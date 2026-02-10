@@ -12,21 +12,6 @@ UIはThymeleaf、DBはH2、ログインありです。
 mvn spring-boot:run
 ```
 
-## Day別コード（段階学習用）
-Dayごとに独立して起動できるコードを用意しています。  
-```
-stages/day1
-stages/day2
-stages/day3
-stages/day4
-stages/day5
-```
-各日で以下のように起動します。
-```bash
-cd stages/dayX
-mvn spring-boot:run
-```
-
 ## 画面（ブラウザ）
 - ログイン: `http://localhost:8080/login`
 - 勤怠トップ: `http://localhost:8080/`
@@ -91,7 +76,7 @@ Service層で制御されることを理解できるように設計していま�
 ```
 
 ### 使用技術
-- 言語: Java 17、HTML、CSS
+- 言語: Java 17
 - フレームワーク: Spring Boot 3.x
 - テンプレート: Thymeleaf
 - DB: H2（インメモリ）

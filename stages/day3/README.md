@@ -1,7 +1,7 @@
-# 勤怠管理システム（MVP / 研修用）
+# 勤怠管理システム（Day3 / 研修用）
 
 1週間研修向けに、最小構成で動く勤怠管理システムを用意しています。  
-UIはThymeleaf、DBはH2、ログインありです。
+Day3では「退勤」と業務ルールを実装します（ログインなし）。
 
 ## 前提
 - Java 17
@@ -12,31 +12,8 @@ UIはThymeleaf、DBはH2、ログインありです。
 mvn spring-boot:run
 ```
 
-## Day別コード（段階学習用）
-Dayごとに独立して起動できるコードを用意しています。  
-```
-stages/day1
-stages/day2
-stages/day3
-stages/day4
-stages/day5
-```
-各日で以下のように起動します。
-```bash
-cd stages/dayX
-mvn spring-boot:run
-```
-
 ## 画面（ブラウザ）
-- ログイン: `http://localhost:8080/login`
 - 勤怠トップ: `http://localhost:8080/`
-- 勤怠一覧: `http://localhost:8080/attendances`
-- アカウント管理（管理者のみ）: `http://localhost:8080/users`
-- 勤怠管理（管理者のみ）: `http://localhost:8080/admin/attendances`
-
-初期ユーザー:
-- admin / admin123（管理者）
-- user1 / password（一般）
 
 ## 業務ルール（抜粋）
 - 同日に複数回の「出勤」は不可
@@ -51,9 +28,7 @@ mvn spring-boot:run
 - Password: （空）
 
 ## テスト
-```bash
-mvn test
-```
+Day3では未実装。
 
 ## プロジェクト構成（抜粋）
 ```
@@ -91,7 +66,7 @@ Service層で制御されることを理解できるように設計していま�
 ```
 
 ### 使用技術
-- 言語: Java 17、HTML、CSS
+- 言語: Java 17
 - フレームワーク: Spring Boot 3.x
 - テンプレート: Thymeleaf
 - DB: H2（インメモリ）

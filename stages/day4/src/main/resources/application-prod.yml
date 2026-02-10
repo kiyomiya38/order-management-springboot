@@ -1,0 +1,10 @@
+spring:
+  h2:
+    console:
+      enabled: false
+  thymeleaf:
+    cache: true
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
