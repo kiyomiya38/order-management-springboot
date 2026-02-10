@@ -1275,7 +1275,7 @@ public class Hello {
 - コンパイルが通るか
   ```bash
   cd practice/day0/java
-  javac Hello.java
+  javac -encoding UTF-8 Hello.java
   ```
 
 コード解説:
@@ -1296,7 +1296,7 @@ public class Hello {
 確認:
 - コンパイルが通るか
   ```bash
-  javac Hello.java
+  javac -encoding UTF-8 Hello.java
   ```
 - 実行しても何も表示されないか
   ```bash
@@ -1325,7 +1325,7 @@ public class Hello {
 確認:
 - コンパイルと実行
   ```bash
-  javac Hello.java
+  javac -encoding UTF-8 Hello.java
   java Hello
   ```
 - `Hello Java` が表示される
@@ -1387,7 +1387,7 @@ public class Calc {
 実行:
 ```bash
 cd practice/day0/java
-javac Calc.java
+javac -encoding UTF-8 Calc.java
 java Calc
 ```
 
@@ -1452,7 +1452,7 @@ public class StatusCheck {
 
 実行:
 ```bash
-javac StatusCheck.java
+javac -encoding UTF-8 StatusCheck.java
 java StatusCheck
 ```
 
@@ -1492,7 +1492,7 @@ public class LoopDemo {
 
 実行:
 ```bash
-javac LoopDemo.java
+javac -encoding UTF-8 LoopDemo.java
 java LoopDemo
 ```
 
@@ -1562,7 +1562,7 @@ public class OrderDemo {
 
 実行:
 ```bash
-javac Order.java OrderDemo.java
+javac -encoding UTF-8 Order.java OrderDemo.java
 java OrderDemo
 ```
 
@@ -1619,7 +1619,7 @@ public class MathUtilDemo {
 
 実行:
 ```bash
-javac MathUtil.java MathUtilDemo.java
+javac -encoding UTF-8 MathUtil.java MathUtilDemo.java
 java MathUtilDemo
 ```
 
@@ -1705,7 +1705,7 @@ public class ListMapDemo {
 
 実行:
 ```bash
-javac ListMapDemo.java
+javac -encoding UTF-8 ListMapDemo.java
 java ListMapDemo
 ```
 
@@ -1783,12 +1783,12 @@ public class AttendanceDemo {
 実行:
 ```bash
 cd practice/day0/java
-javac *.java
+javac -encoding UTF-8 *.java
 java AttendanceDemo
 ```
 
 コマンド解説:
-- `javac *.java`: カレントディレクトリの `.java` をまとめてコンパイル
+- `javac -encoding UTF-8 *.java`: カレントディレクトリの `.java` をまとめてコンパイル
 - `java AttendanceDemo`: `public static void main` を持つクラスを実行
 
 ---
