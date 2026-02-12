@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>勤怠一覧（Day4）</title>
+  <link rel="stylesheet" th:href="@{/styles.css}" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>勤怠履歴一覧</h1>
+      <p class="subtitle">Day4: 一覧表示とDB確認</p>
+      <p><a href="/">トップへ戻る</a></p>
+    </header>
+
+    <section class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>出勤時刻</th>
+            <th>退勤時刻</th>
+            <th>状態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:if="${#lists.isEmpty(rows)}">
+            <td colspan="4" class="muted">データがありません</td>
+          </tr>
+          <tr th:each="r : ${rows}">
+            <td th:text="${r.workDate}">2026-02-05</td>
+            <td th:text="${r.startTime != null ? #temporals.format(r.startTime, 'yyyy-MM-dd HH:mm:ss') : '-'}">-</td>
+            <td th:text="${r.endTime != null ? #temporals.format(r.endTime, 'yyyy-MM-dd HH:mm:ss') : '-'}">-</td>
+            <td th:text="${r.status == T(com.shinesoft.attendance.domain.AttendanceStatus).WORKING ? '出勤中' : (r.status == T(com.shinesoft.attendance.domain.AttendanceStatus).FINISHED ? '退勤済み' : '未出勤')}">未出勤</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

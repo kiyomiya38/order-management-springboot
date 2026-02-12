@@ -182,6 +182,14 @@ mvn test
   - `ROLE_ADMIN` が設定されているか
 - テストが失敗:
   - `pom.xml` に `spring-boot-starter-test` があるか
+- `org.springframework.security...` や `jakarta.validation...` が「存在しません」と出る:
+  - 原因は依存キャッシュ不整合の可能性が高い
+  - Git Bashで次を実行して依存を再取得する
+  - `cd ~/order-management-springboot/stages/day5`
+  - `rm -rf ~/.m2/repository/org/springframework/security`
+  - `rm -rf ~/.m2/repository/jakarta/validation`
+  - `rm -rf ~/.m2/repository/org/hibernate/validator`
+  - `mvn -U clean spring-boot:run`
 
 ---
 
