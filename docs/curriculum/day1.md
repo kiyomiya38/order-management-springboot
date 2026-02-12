@@ -29,7 +29,43 @@ git --version
 
 ---
 
-## 1. 作業フォルダ
+## 1. Maven超入門（最初に読む）
+Day1で使う `mvn` は、Javaプロジェクトの「依存関係管理」と「ビルド自動化」を行うコマンドです。
+
+- `pom.xml`:
+  - Mavenが読む設定ファイル
+  - 使用ライブラリ（依存関係）やJavaバージョンなどを定義する
+- `mvn spring-boot:run`:
+  - 必要ライブラリを取得
+  - Javaコードをコンパイル
+  - Spring Bootアプリを起動
+- `mvn clean`:
+  - 前回生成物（`target`）を削除して再ビルドしやすくする
+
+Day1で最低限覚えるコマンドは以下の3つです。
+- `mvn -version`
+- `mvn clean`
+- `mvn spring-boot:run`
+
+---
+
+## 2. `mvn`コマンドを先に体験（コード変更なし）
+まず、どのフォルダで実行しているかを確認する習慣を付けます。
+
+```bash
+pwd
+```
+
+この時点では、まだ `stages/day1` を作っていないため `pom.xml` はありません。  
+`mvn -version` だけ先に実行して、Maven自体が動くことを確認します。
+
+```bash
+mvn -version
+```
+
+---
+
+## 3. 作業フォルダ
 Day1は `stages/day1` に **自分でコードを作成** します。  
 まずこのフォルダを作成し、このフォルダの中で以降の作業を行ってください。
 
@@ -49,7 +85,7 @@ cd stages/day1
 
 ---
 
-## 2. ディレクトリ構成を作成
+## 4. ディレクトリ構成を作成
 ```bash
 mkdir -p src/main/java/com/shinesoft/attendance
 mkdir -p src/main/java/com/shinesoft/attendance/web
@@ -67,7 +103,7 @@ mkdir -p src/main/resources/static
 
 ---
 
-## 3. `pom.xml` を作成（Maven設定）
+## 5. `pom.xml` を作成（Maven設定）
 作成ファイル: `stages/day1/pom.xml`
 
 ```xml
@@ -138,7 +174,7 @@ mkdir -p src/main/resources/static
 
 ---
 
-## 4. `application.yml` を作成
+## 6. `application.yml` を作成
 作成ファイル: `stages/day1/src/main/resources/application.yml`
 
 ```yaml
@@ -161,7 +197,7 @@ app:
 
 ---
 
-## 5. Applicationクラスを作成
+## 7. Applicationクラスを作成
 作成ファイル: `stages/day1/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
 
 ```java
@@ -184,7 +220,7 @@ public class AttendanceManagementApplication {
 
 ---
 
-## 6. Controllerを作成
+## 8. Controllerを作成
 作成ファイル: `stages/day1/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 ```java
@@ -216,7 +252,35 @@ public class HomeController {
 
 ---
 
-## 7. テンプレート（画面）を作成
+## 8.5 Spring Boot + Thymeleaf の表示の流れ（Controller -> Template）
+
+### 1) リクエストの流れ
+1. ブラウザで `http://localhost:8080/` にアクセスする
+2. Spring Boot の DispatcherServlet が `@GetMapping("/")` のメソッドを探す
+3. `HomeController#index` が実行される
+4. `model.addAttribute(...)` で画面に渡す値を詰める
+5. `return "index"` で `templates/index.html` を表示対象として返す
+6. Thymeleaf が `index.html` 内の `th:text` などを評価して HTML を生成する
+7. 生成されたHTMLがブラウザに返る
+
+### 2) 対応関係（重要）
+- `@GetMapping("/")` -> URL `/` を処理
+- `return "index"` -> `src/main/resources/templates/index.html`
+- `model.addAttribute("statusLabel", "未出勤")` -> HTML側 `${statusLabel}` に表示
+
+### 3) 3分ハンズオン（理解確認）
+1. `HomeController` の `statusLabel` を `"未出勤"` から `"出勤中(テスト)"` に変更
+2. 再起動して `/` を開き、表示が変わることを確認
+3. 元に戻す
+
+### 4) よくあるミス
+- `return "index"` のスペルミス -> テンプレートが見つからずエラー
+- `addAttribute` のキー名と `${...}` が不一致 -> 値が表示されない
+- `@Controller` / `@GetMapping` を付け忘れる -> URLにアクセスできない
+
+---
+
+## 9. テンプレート（画面）を作成
 作成ファイル: `stages/day1/src/main/resources/templates/index.html`
 
 ```html
@@ -261,7 +325,7 @@ public class HomeController {
 
 ---
 
-## 8. CSSを作成
+## 10. CSSを作成
 作成ファイル: `stages/day1/src/main/resources/static/styles.css`
 
 ```css
@@ -396,14 +460,23 @@ th, td {
 
 ---
 
-## 9. 起動
+## 11. 起動
+`stages/day1` で実行していることを先に確認してください。
+
+```bash
+pwd
+ls
+```
+
+`pom.xml` が見えることを確認したら起動します。
+
 ```bash
 mvn spring-boot:run
 ```
 
 ---
 
-## 10. 画面確認
+## 12. 画面確認
 ブラウザで:
 ```
 http://localhost:8080/
@@ -416,18 +489,21 @@ http://localhost:8080/
 
 ---
 
-## 11. 今日のゴール
+## 13. 今日のゴール
 - MVCの最低限構成（Controller → Template）が動くことを確認
 - Day2から「出勤ボタン」を実装する準備ができた
 
 ---
 
-## 12. つまずきポイント
+## 14. つまずきポイント
 - `mvn` が通らない → 環境変数を確認
+- `The goal you specified requires a project to execute but there is no POM in this directory`:
+  - 実行場所が `stages/day1` になっているか確認
+  - `ls` で `pom.xml` が存在するか確認
 - 画面が出ない → 起動ターミナルのエラーを見る
 
 ---
 
-## 13. 時間割目安
+## 15. 時間割目安
 - 午前: Java/Maven導入(60分) / 作成(90分)
 - 午後: 起動・画面確認(60分) / まとめ(30分)
