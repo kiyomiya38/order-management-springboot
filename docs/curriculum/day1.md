@@ -31,15 +31,12 @@ git --version
 
 ## 1. 作業フォルダ
 Day1は `stages/day1` に **自分でコードを作成** します。  
-もし `stages/day1` にファイルが入っている場合は、空フォルダを別名で作って進めてください。
+まずこのフォルダを作成し、このフォルダの中で以降の作業を行ってください。
 
 ```bash
-# 例: stages/day1-work を作って作業する場合
-mkdir -p stages/day1-work
-cd stages/day1-work
+mkdir -p stages/day1
+cd stages/day1
 ```
-
-以降は作業フォルダを `stages/day1` と表記します。
 
 ### VS Codeでフォルダを開く（GUI）
 1. VS Code を起動
