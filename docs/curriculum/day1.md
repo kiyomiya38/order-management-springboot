@@ -38,6 +38,9 @@ mkdir -p stages/day1
 cd stages/day1
 ```
 
+以降の `作成ファイル` は、リポジトリルート (`order-management-springboot`) からのパスで表記します。  
+例: `stages/day1/pom.xml`（絶対パス例: `C:\Users\<ユーザー名>\order-management-springboot\stages\day1\pom.xml`）
+
 ### VS Codeでフォルダを開く（GUI）
 1. VS Code を起動
 2. `ファイル` → `フォルダーを開く`  
@@ -65,7 +68,7 @@ mkdir -p src/main/resources/static
 ---
 
 ## 3. `pom.xml` を作成（Maven設定）
-作成ファイル: `pom.xml`
+作成ファイル: `stages/day1/pom.xml`
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -136,7 +139,7 @@ mkdir -p src/main/resources/static
 ---
 
 ## 4. `application.yml` を作成
-作成ファイル: `src/main/resources/application.yml`
+作成ファイル: `stages/day1/src/main/resources/application.yml`
 
 ```yaml
 spring:
@@ -159,7 +162,7 @@ app:
 ---
 
 ## 5. Applicationクラスを作成
-作成ファイル: `src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
+作成ファイル: `stages/day1/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
 
 ```java
 package com.shinesoft.attendance;
@@ -182,7 +185,7 @@ public class AttendanceManagementApplication {
 ---
 
 ## 6. Controllerを作成
-作成ファイル: `src/main/java/com/shinesoft/attendance/web/HomeController.java`
+作成ファイル: `stages/day1/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 ```java
 package com.shinesoft.attendance.web;
@@ -214,7 +217,7 @@ public class HomeController {
 ---
 
 ## 7. テンプレート（画面）を作成
-作成ファイル: `src/main/resources/templates/index.html`
+作成ファイル: `stages/day1/src/main/resources/templates/index.html`
 
 ```html
 <!doctype html>
@@ -259,7 +262,7 @@ public class HomeController {
 ---
 
 ## 8. CSSを作成
-作成ファイル: `src/main/resources/static/styles.css`
+作成ファイル: `stages/day1/src/main/resources/static/styles.css`
 
 ```css
 :root {
