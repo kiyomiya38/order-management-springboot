@@ -204,6 +204,23 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
 </project>
 ```
 
+理解ポイント（5分）:
+- このファイルの役割:
+  - Mavenがプロジェクトをビルド/起動するための設定ファイル
+- 今日見るキーワード:
+  - `<dependencies>`（使うライブラリ）
+  - `spring-boot-starter-web`（Web機能）
+  - `spring-boot-starter-thymeleaf`（画面テンプレート機能）
+- まず見る場所:
+  - `<groupId>`, `<artifactId>`, `<version>`（プロジェクト識別）
+  - `<dependencies>`（必要機能の宣言）
+  - `spring-boot-maven-plugin`（`mvn spring-boot:run` を実行するためのプラグイン）
+- 変更して試す:
+  - `<description>` を任意の文字列に変えても起動できることを確認
+- よくあるミス:
+  - XMLタグの閉じ忘れでビルド失敗
+  - `<dependency>` の入れ子崩れで依存解決失敗
+
 ---
 
 ## 6. `application.yml` を作成
@@ -227,6 +244,22 @@ app:
   name: ${APP_NAME:attendance-management}
 ```
 
+理解ポイント（5分）:
+- このファイルの役割:
+  - アプリの設定値をまとめるファイル
+- 今日見るキーワード:
+  - `server.port`（待受ポート）
+  - `spring.application.name`（アプリ名）
+  - `logging.level.root`（ログ出力レベル）
+- まず見る場所:
+  - `server.port: ${SERVER_PORT:8080}`（環境変数未指定時は8080）
+  - `app.name: ${APP_NAME:attendance-management}`（画面表示などで利用可能）
+- 変更して試す:
+  - `server.port` のデフォルトを `8081` に変更して起動確認
+- よくあるミス:
+  - YAMLのインデントずれ（スペース数不一致）
+  - `:` の前後を崩して起動失敗
+
 ---
 
 ## 7. Applicationクラスを作成
@@ -249,6 +282,19 @@ public class AttendanceManagementApplication {
 ポイント:
 - `@SpringBootApplication` が起点
 - `main` から Spring Boot を起動する
+
+理解ポイント（5分）:
+- このファイルの役割:
+  - Java実行時の「開始地点」
+- 今日見るキーワード:
+  - `@SpringBootApplication`
+  - `SpringApplication.run(...)`
+  - `main(String[] args)`
+- 変更して試す:
+  - クラス名を変えずに `main` の中へ `System.out.println("start");` を追加し、起動時に表示されることを確認
+- よくあるミス:
+  - ファイル名とクラス名の不一致
+  - `package` 宣言と配置パスの不一致
 
 ---
 
@@ -281,6 +327,19 @@ public class HomeController {
 ポイント:
 - `/` にアクセスしたら `index.html` を返す
 - `Model` で画面にデータを渡している
+
+理解ポイント（10分）:
+- このファイルの役割:
+  - ブラウザからのリクエストを受け、画面に渡すデータを準備する
+- 今日見るキーワード:
+  - `@Controller`（画面表示の制御クラス）
+  - `@GetMapping("/")`（URLとメソッドの対応）
+  - `model.addAttribute(...)`（テンプレートへ値を渡す）
+- 変更して試す:
+  - `statusLabel` を `"未出勤"` から `"出勤前（確認用）"` に変更し、画面反映を確認
+- よくあるミス:
+  - `return "index"` を `return "/index"` にしてテンプレート解決に失敗
+  - `addAttribute` のキー名とHTML側 `${...}` の不一致
 
 ---
 
@@ -354,6 +413,20 @@ public class HomeController {
 </body>
 </html>
 ```
+
+理解ポイント（10分）:
+- このファイルの役割:
+  - Controllerから渡された値をHTMLとして表示するテンプレート
+- 今日見るキーワード:
+  - `xmlns:th="http://www.thymeleaf.org"`（Thymeleaf有効化）
+  - `th:text="${statusLabel}"`（値の差し込み）
+  - `th:href="@{/styles.css}"`（静的CSSの参照）
+- 変更して試す:
+  - `<title>` を変更してブラウザタブ名が変わることを確認
+  - `h1` の文言を変更して画面に反映されることを確認
+- よくあるミス:
+  - `th:text` の`${}`忘れ
+  - `templates` 以外に置いてテンプレートが見つからない
 
 ---
 
@@ -489,6 +562,20 @@ th, td {
   border: 1px solid #bae6fd;
 }
 ```
+
+理解ポイント（10分）:
+- このファイルの役割:
+  - HTMLの見た目（色・余白・配置）を制御する
+- 今日見るキーワード:
+  - `:root`（共通変数の定義）
+  - `--bg` / `var(--bg)`（CSS変数の定義と参照）
+  - `.panel`（クラスセレクタ）
+- 変更して試す:
+  - `--bg` を別の色に変えて背景色が変わることを確認
+  - `h1` の `margin` を調整して見た目の変化を確認
+- よくあるミス:
+  - `{}` の閉じ忘れで後続のスタイルが無効化
+  - HTML側のクラス名とCSS側のクラス名不一致
 
 ---
 
