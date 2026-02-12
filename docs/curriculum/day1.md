@@ -13,6 +13,23 @@
 Spring Bootは、JavaでWebアプリを作るためのSpringの実行基盤です。  
 通常は手作業で必要になる設定を減らし、`mvn spring-boot:run` で起動できる状態を短時間で作れます。
 
+### Springとは（用語の整理）
+- Spring:
+  - Javaアプリ開発を効率化するための技術群（フレームワーク群）
+- Spring Framework:
+  - Springの中核。DI、Web MVCなどの基盤機能を提供
+- Spring Boot:
+  - Spring Frameworkを「すぐ起動できる形」にまとめた仕組み
+  - 設定の自動化（Auto Configuration）で初期構築を簡略化
+- Spring MVC:
+  - Web機能の一部。`@Controller` や `@GetMapping` でURLと処理を結び付ける
+
+関係イメージ:
+- Spring（全体）
+- Spring Framework（中核）
+- Spring Boot（起動・設定を簡単にする）
+- Spring MVC（Web画面/HTTPを扱う機能）
+
 Day1では、以下の最小構成を体験します。
 - `Controller`:
   - URLリクエストを受け取り、画面に渡すデータを用意する
