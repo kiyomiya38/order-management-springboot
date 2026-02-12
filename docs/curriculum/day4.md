@@ -7,7 +7,7 @@
 
 ## 前提
 - Day3 を完了している
-- `stages/day3` が起動し、出勤/退勤の動作確認が終わっている
+- `~/order-management-springboot/stages/day3` が起動し、出勤/退勤の動作確認が終わっている
 
 ## Day4で作るもの
 - 画面:
@@ -32,18 +32,18 @@ git --version
 Day4 は Day3 を土台に進めます。
 
 ```bash
-mkdir -p stages/day4
-cp -r stages/day3/* stages/day4/
-cd stages/day4
+mkdir -p ~/order-management-springboot/stages/day4
+cp -r ~/order-management-springboot/stages/day3/* ~/order-management-springboot/stages/day4/
+cd ~/order-management-springboot/stages/day4
 ```
 
-以降の `作成ファイル` は、リポジトリルート (`order-management-springboot`) からのパスで表記します。  
-例: `stages/day4/src/main/java/...`
+以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
+例: `~/order-management-springboot/stages/day4/src/main/java/...`
 
 ---
 
 ## 2. `AttendanceRepository` を編集（一覧取得クエリ追加）
-作成ファイル: `stages/day4/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
+作成ファイル: `~/order-management-springboot/stages/day4/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
 
 全文を以下に置き換えてください。
 
@@ -71,7 +71,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 ---
 
 ## 3. `AttendanceService` を編集（一覧取得メソッド追加）
-作成ファイル: `stages/day4/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
+作成ファイル: `~/order-management-springboot/stages/day4/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
 
 全文を以下に置き換えてください。
 
@@ -159,7 +159,7 @@ public class AttendanceService {
 ---
 
 ## 4. 一覧用Controllerを新規作成
-作成ファイル: `stages/day4/src/main/java/com/shinesoft/attendance/web/AttendanceController.java`
+作成ファイル: `~/order-management-springboot/stages/day4/src/main/java/com/shinesoft/attendance/web/AttendanceController.java`
 
 新規作成してください。
 
@@ -197,7 +197,7 @@ public class AttendanceController {
 ---
 
 ## 5. `HomeController` を編集（一覧画面リンク用）
-作成ファイル: `stages/day4/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+作成ファイル: `~/order-management-springboot/stages/day4/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 `HomeController` は Day3 のままで動作します。  
 このステップでは変更不要です。
@@ -205,7 +205,7 @@ public class AttendanceController {
 ---
 
 ## 6. 一覧テンプレートを新規作成
-作成ファイル: `stages/day4/src/main/resources/templates/attendances.html`
+作成ファイル: `~/order-management-springboot/stages/day4/src/main/resources/templates/attendances.html`
 
 新規作成してください。
 
@@ -257,7 +257,7 @@ public class AttendanceController {
 ---
 
 ## 7. `index.html` を編集（一覧リンク追加）
-作成ファイル: `stages/day4/src/main/resources/templates/index.html`
+作成ファイル: `~/order-management-springboot/stages/day4/src/main/resources/templates/index.html`
 
 `<section class="panel">` の末尾付近に以下の1行を追加してください。
 
@@ -268,7 +268,7 @@ public class AttendanceController {
 ---
 
 ## 8. `styles.css` を確認
-作成ファイル: `stages/day4/src/main/resources/static/styles.css`
+作成ファイル: `~/order-management-springboot/stages/day4/src/main/resources/static/styles.css`
 
 Day3 の CSS でそのまま表示可能です。  
 追加変更は必須ではありません。
@@ -277,7 +277,7 @@ Day3 の CSS でそのまま表示可能です。
 
 ## 9. 起動
 ```bash
-cd stages/day4
+cd ~/order-management-springboot/stages/day4
 mvn spring-boot:run
 ```
 

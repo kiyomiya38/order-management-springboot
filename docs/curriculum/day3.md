@@ -8,7 +8,7 @@
 
 ## 前提
 - Day2 を完了している
-- `stages/day2` のアプリが起動・動作確認できている
+- `~/order-management-springboot/stages/day2` のアプリが起動・動作確認できている
 
 ## Day3で作るもの
 - 画面: `/`
@@ -31,21 +31,21 @@ git --version
 ---
 
 ## 1. 作業フォルダを準備（Day2を複製）
-Day3 は Day2 を土台に進めます。`stages/day3` を作成して Day2 の内容をコピーしてください。
+Day3 は Day2 を土台に進めます。`~/order-management-springboot/stages/day3` を作成して Day2 の内容をコピーしてください。
 
 ```bash
-mkdir -p stages/day3
-cp -r stages/day2/* stages/day3/
-cd stages/day3
+mkdir -p ~/order-management-springboot/stages/day3
+cp -r ~/order-management-springboot/stages/day2/* ~/order-management-springboot/stages/day3/
+cd ~/order-management-springboot/stages/day3
 ```
 
-以降の `作成ファイル` は、リポジトリルート (`order-management-springboot`) からのパスで表記します。  
-例: `stages/day3/src/main/java/...`
+以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
+例: `~/order-management-springboot/stages/day3/src/main/java/...`
 
 ---
 
 ## 2. `AttendanceService` を編集（退勤ロジック追加）
-作成ファイル: `stages/day3/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
+作成ファイル: `~/order-management-springboot/stages/day3/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
 
 全文を以下に置き換えてください。
 
@@ -133,7 +133,7 @@ public class AttendanceService {
 ---
 
 ## 3. `HomeController` を編集（退勤エンドポイント追加）
-作成ファイル: `stages/day3/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+作成ファイル: `~/order-management-springboot/stages/day3/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 全文を以下に置き換えてください。
 
@@ -237,7 +237,7 @@ public class HomeController {
 ---
 
 ## 4. `index.html` を編集（退勤ボタン表示）
-作成ファイル: `stages/day3/src/main/resources/templates/index.html`
+作成ファイル: `~/order-management-springboot/stages/day3/src/main/resources/templates/index.html`
 
 全文を以下に置き換えてください。
 
@@ -291,7 +291,7 @@ public class HomeController {
 ---
 
 ## 5. `styles.css` を編集（退勤ボタン用クラス）
-作成ファイル: `stages/day3/src/main/resources/static/styles.css`
+作成ファイル: `~/order-management-springboot/stages/day3/src/main/resources/static/styles.css`
 
 `styles.css` に以下があることを確認してください（無ければ追加）。
 
@@ -312,7 +312,7 @@ public class HomeController {
 
 ## 6. 起動
 ```bash
-cd stages/day3
+cd ~/order-management-springboot/stages/day3
 mvn spring-boot:run
 ```
 

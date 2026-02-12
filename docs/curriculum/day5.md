@@ -8,7 +8,7 @@
 
 ## 前提
 - Day4 を完了している
-- `stages/day4` のトップ/一覧が動作する
+- `~/order-management-springboot/stages/day4` のトップ/一覧が動作する
 
 ---
 
@@ -23,27 +23,27 @@ git --version
 
 ## 1. 作業フォルダを準備（Day4を複製）
 ```bash
-mkdir -p stages/day5
-cp -r stages/day4/* stages/day5/
-cd stages/day5
+mkdir -p ~/order-management-springboot/stages/day5
+cp -r ~/order-management-springboot/stages/day4/* ~/order-management-springboot/stages/day5/
+cd ~/order-management-springboot/stages/day5
 ```
 
-以降の `作成ファイル` は、リポジトリルート (`order-management-springboot`) からのパスで表記します。  
-例: `stages/day5/src/main/java/...`
+以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
+例: `~/order-management-springboot/stages/day5/src/main/java/...`
 
 ---
 
 ## 2. ディレクトリを追加
 ```bash
-mkdir -p src/main/java/com/shinesoft/attendance/config
-mkdir -p src/main/java/com/shinesoft/attendance/web/form
-mkdir -p src/test/java/com/shinesoft/attendance/service
+mkdir -p ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config
+mkdir -p ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/form
+mkdir -p ~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance/service
 ```
 
 ---
 
 ## 3. `pom.xml` を編集（依存追加）
-作成ファイル: `stages/day5/pom.xml`
+作成ファイル: `~/order-management-springboot/stages/day5/pom.xml`
 
 Day4からの追加依存:
 - `spring-boot-starter-security`
@@ -58,53 +58,53 @@ rg -n "spring-boot-starter-security|spring-boot-starter-validation|spring-boot-s
 ---
 
 ## 4. Day5差分ファイルを作成（完成版ソースを転記）
-Day5はファイル数が多いため、入力ミス防止のためにリポジトリ完成版 `src` から `stages/day5` へ転記します。  
+Day5はファイル数が多いため、入力ミス防止のためにリポジトリ完成版 `~/order-management-springboot/src` から `~/order-management-springboot/stages/day5` へ転記します。  
 （転記後に必ず中身を開いて読むこと）
 
 ```bash
-cp ../../src/main/resources/application.yml src/main/resources/application.yml
+cp ~/order-management-springboot/src/main/resources/application.yml ~/order-management-springboot/stages/day5/src/main/resources/application.yml
 
-cp ../../src/main/java/com/shinesoft/attendance/domain/User.java src/main/java/com/shinesoft/attendance/domain/User.java
-cp ../../src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/domain/User.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/domain/User.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java
 
-cp ../../src/main/java/com/shinesoft/attendance/repository/UserRepository.java src/main/java/com/shinesoft/attendance/repository/UserRepository.java
-cp ../../src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/repository/UserRepository.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/repository/UserRepository.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java
 
-cp ../../src/main/java/com/shinesoft/attendance/service/UserService.java src/main/java/com/shinesoft/attendance/service/UserService.java
-cp ../../src/main/java/com/shinesoft/attendance/service/AttendanceService.java src/main/java/com/shinesoft/attendance/service/AttendanceService.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/service/UserService.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/service/UserService.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/service/AttendanceService.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/service/AttendanceService.java
 
-cp ../../src/main/java/com/shinesoft/attendance/config/SecurityConfig.java src/main/java/com/shinesoft/attendance/config/SecurityConfig.java
-cp ../../src/main/java/com/shinesoft/attendance/config/DataSeeder.java src/main/java/com/shinesoft/attendance/config/DataSeeder.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/config/DataSeeder.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config/DataSeeder.java
 
-cp ../../src/main/java/com/shinesoft/attendance/web/AuthController.java src/main/java/com/shinesoft/attendance/web/AuthController.java
-cp ../../src/main/java/com/shinesoft/attendance/web/HomeController.java src/main/java/com/shinesoft/attendance/web/HomeController.java
-cp ../../src/main/java/com/shinesoft/attendance/web/AttendanceController.java src/main/java/com/shinesoft/attendance/web/AttendanceController.java
-cp ../../src/main/java/com/shinesoft/attendance/web/UserController.java src/main/java/com/shinesoft/attendance/web/UserController.java
-cp ../../src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/web/AuthController.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AuthController.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/web/HomeController.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/HomeController.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/web/AttendanceController.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AttendanceController.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/web/UserController.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/UserController.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java
 
-cp ../../src/main/java/com/shinesoft/attendance/web/form/UserForm.java src/main/java/com/shinesoft/attendance/web/form/UserForm.java
-cp ../../src/main/java/com/shinesoft/attendance/web/form/AdminAttendanceForm.java src/main/java/com/shinesoft/attendance/web/form/AdminAttendanceForm.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/web/form/UserForm.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/form/UserForm.java
+cp ~/order-management-springboot/src/main/java/com/shinesoft/attendance/web/form/AdminAttendanceForm.java ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/form/AdminAttendanceForm.java
 
-cp ../../src/main/resources/templates/login.html src/main/resources/templates/login.html
-cp ../../src/main/resources/templates/index.html src/main/resources/templates/index.html
-cp ../../src/main/resources/templates/attendances.html src/main/resources/templates/attendances.html
-cp ../../src/main/resources/templates/users.html src/main/resources/templates/users.html
-cp ../../src/main/resources/templates/user-form.html src/main/resources/templates/user-form.html
-cp ../../src/main/resources/templates/admin-attendances.html src/main/resources/templates/admin-attendances.html
-cp ../../src/main/resources/templates/admin-attendance-form.html src/main/resources/templates/admin-attendance-form.html
+cp ~/order-management-springboot/src/main/resources/templates/login.html ~/order-management-springboot/stages/day5/src/main/resources/templates/login.html
+cp ~/order-management-springboot/src/main/resources/templates/index.html ~/order-management-springboot/stages/day5/src/main/resources/templates/index.html
+cp ~/order-management-springboot/src/main/resources/templates/attendances.html ~/order-management-springboot/stages/day5/src/main/resources/templates/attendances.html
+cp ~/order-management-springboot/src/main/resources/templates/users.html ~/order-management-springboot/stages/day5/src/main/resources/templates/users.html
+cp ~/order-management-springboot/src/main/resources/templates/user-form.html ~/order-management-springboot/stages/day5/src/main/resources/templates/user-form.html
+cp ~/order-management-springboot/src/main/resources/templates/admin-attendances.html ~/order-management-springboot/stages/day5/src/main/resources/templates/admin-attendances.html
+cp ~/order-management-springboot/src/main/resources/templates/admin-attendance-form.html ~/order-management-springboot/stages/day5/src/main/resources/templates/admin-attendance-form.html
 
-cp ../../src/main/resources/static/styles.css src/main/resources/static/styles.css
+cp ~/order-management-springboot/src/main/resources/static/styles.css ~/order-management-springboot/stages/day5/src/main/resources/static/styles.css
 
-cp ../../src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java
+cp ~/order-management-springboot/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java ~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java
 ```
 
 ---
 
 ## 5. ファイル作成チェック（必須）
 ```bash
-rg --files src/main/java/com/shinesoft/attendance | sort
-rg --files src/main/resources/templates | sort
-rg --files src/test/java/com/shinesoft/attendance | sort
+rg --files ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance | sort
+rg --files ~/order-management-springboot/stages/day5/src/main/resources/templates | sort
+rg --files ~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance | sort
 ```
 
 期待する追加カテゴリ:
@@ -119,7 +119,7 @@ rg --files src/test/java/com/shinesoft/attendance | sort
 
 ## 6. 起動
 ```bash
-cd stages/day5
+cd ~/order-management-springboot/stages/day5
 mvn spring-boot:run
 ```
 
@@ -156,19 +156,19 @@ mvn test
 
 ## 9. コード読解ポイント（必須）
 
-1. `stages/day5/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
+1. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
 - `requestMatchers` でURL別権限制御
 - `formLogin` でログイン画面指定
 
-2. `stages/day5/src/main/java/com/shinesoft/attendance/service/UserService.java`
+2. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/service/UserService.java`
 - パスワードハッシュ化
 - ユーザー名重複チェック
 
-3. `stages/day5/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+3. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 - `Principal` からログインユーザー取得
 - `isAdmin` で画面表示を分岐
 
-4. `stages/day5/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
+4. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
 - 管理者だけが勤怠編集できる流れ
 
 ---

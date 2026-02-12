@@ -29,40 +29,40 @@ git --version
 ---
 
 ## 1. 作業フォルダ
-Day2 は `stages/day2` に自分でコードを作成します。
+Day2 は `~/order-management-springboot/stages/day2` に自分でコードを作成します。
 
 ```bash
-mkdir -p stages/day2
-cd stages/day2
+mkdir -p ~/order-management-springboot/stages/day2
+cd ~/order-management-springboot/stages/day2
 ```
 
-以降の `作成ファイル` は、リポジトリルート (`order-management-springboot`) からのパスで表記します。  
-例: `stages/day2/pom.xml`（絶対パス例: `C:\Users\<ユーザー名>\order-management-springboot\stages\day2\pom.xml`）
+以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
+例: `~/order-management-springboot/stages/day2/pom.xml`
 
 ### VS Codeでフォルダを開く（GUI）
 1. VS Code を起動
 2. `ファイル` -> `フォルダーを開く`
-3. `.../order-management-springboot/stages/day2` を選択
+3. `~/order-management-springboot/stages/day2` を選択
 
 ---
 
 ## 2. ディレクトリ構成を作成
 ```bash
-mkdir -p src/main/java/com/shinesoft/attendance
-mkdir -p src/main/java/com/shinesoft/attendance/web
-mkdir -p src/main/java/com/shinesoft/attendance/service
-mkdir -p src/main/java/com/shinesoft/attendance/domain
-mkdir -p src/main/java/com/shinesoft/attendance/repository
-mkdir -p src/main/java/com/shinesoft/attendance/exception
-mkdir -p src/main/java/com/shinesoft/attendance/config
-mkdir -p src/main/resources/templates
-mkdir -p src/main/resources/static
+mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance
+mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/web
+mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/service
+mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/domain
+mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/repository
+mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/exception
+mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/config
+mkdir -p ~/order-management-springboot/stages/day2/src/main/resources/templates
+mkdir -p ~/order-management-springboot/stages/day2/src/main/resources/static
 ```
 
 ---
 
 ## 3. `pom.xml` を作成（Maven設定）
-作成ファイル: `stages/day2/pom.xml`
+作成ファイル: `~/order-management-springboot/stages/day2/pom.xml`
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -142,7 +142,7 @@ mkdir -p src/main/resources/static
 ---
 
 ## 4. `application.yml` を作成
-作成ファイル: `stages/day2/src/main/resources/application.yml`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/resources/application.yml`
 
 ```yaml
 spring:
@@ -175,7 +175,7 @@ logging:
 ---
 
 ## 5. Applicationクラス
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
 
 ```java
 package com.shinesoft.attendance;
@@ -196,7 +196,7 @@ public class AttendanceManagementApplication {
 ## 6. Domain（Entity / Enum）を作成
 
 ### 6-1. 勤怠ステータス
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java`
 
 ```java
 package com.shinesoft.attendance.domain;
@@ -209,7 +209,7 @@ public enum AttendanceStatus {
 ```
 
 ### 6-2. ユーザー
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/domain/User.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/domain/User.java`
 
 ```java
 package com.shinesoft.attendance.domain;
@@ -246,7 +246,7 @@ public class User {
 ```
 
 ### 6-3. 勤怠
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/domain/Attendance.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/domain/Attendance.java`
 
 ```java
 package com.shinesoft.attendance.domain;
@@ -365,7 +365,7 @@ public class Attendance {
 ## 7. Repositoryを作成
 
 ### 7-1. `UserRepository`
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/repository/UserRepository.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/repository/UserRepository.java`
 
 ```java
 package com.shinesoft.attendance.repository;
@@ -382,7 +382,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ```
 
 ### 7-2. `AttendanceRepository`
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
 
 ```java
 package com.shinesoft.attendance.repository;
@@ -404,7 +404,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 ## 8. 例外とServiceを作成
 
 ### 8-1. `BusinessException`
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/exception/BusinessException.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/exception/BusinessException.java`
 
 ```java
 package com.shinesoft.attendance.exception;
@@ -417,7 +417,7 @@ public class BusinessException extends RuntimeException {
 ```
 
 ### 8-2. `AttendanceService`
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
 
 ```java
 package com.shinesoft.attendance.service;
@@ -479,7 +479,7 @@ public class AttendanceService {
 ---
 
 ## 9. 初期データ投入（固定ユーザー）
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
 
 ```java
 package com.shinesoft.attendance.config;
@@ -510,7 +510,7 @@ public class DataSeeder {
 ---
 
 ## 10. Controllerを作成
-作成ファイル: `stages/day2/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 ```java
 package com.shinesoft.attendance.web;
@@ -596,7 +596,7 @@ public class HomeController {
 ---
 
 ## 11. テンプレートを作成
-作成ファイル: `stages/day2/src/main/resources/templates/index.html`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/resources/templates/index.html`
 
 ```html
 <!doctype html>
@@ -639,7 +639,7 @@ public class HomeController {
 ---
 
 ## 12. CSSを作成
-作成ファイル: `stages/day2/src/main/resources/static/styles.css`
+作成ファイル: `~/order-management-springboot/stages/day2/src/main/resources/static/styles.css`
 
 ```css
 :root {
@@ -734,7 +734,7 @@ button:hover { opacity: 0.9; }
 
 ## 13. 起動
 ```bash
-cd stages/day2
+cd ~/order-management-springboot/stages/day2
 mvn spring-boot:run
 ```
 

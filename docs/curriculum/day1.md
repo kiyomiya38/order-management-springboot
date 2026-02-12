@@ -16,7 +16,7 @@
 ---
 
 ## 0. 事前確認（環境セットアップはDay0）
-環境セットアップ手順は `docs/curriculum/day0.md` の「0. 環境セットアップ」で実施します。  
+環境セットアップ手順は `~/order-management-springboot/docs/curriculum/day0/day0.md` の「0. 環境セットアップ」で実施します。  
 Day1開始前に、以下だけ確認してください。
 
 ```bash
@@ -56,7 +56,7 @@ Day1で最低限覚えるコマンドは以下の3つです。
 pwd
 ```
 
-この時点では、まだ `stages/day1` を作っていないため `pom.xml` はありません。  
+この時点では、まだ `~/order-management-springboot/stages/day1` を作っていないため `pom.xml` はありません。  
 `mvn -version` だけ先に実行して、Maven自体が動くことを確認します。
 
 ```bash
@@ -66,45 +66,45 @@ mvn -version
 ---
 
 ## 3. 作業フォルダ
-Day1は `stages/day1` に **自分でコードを作成** します。  
+Day1は `~/order-management-springboot/stages/day1` に **自分でコードを作成** します。  
 まずこのフォルダを作成し、このフォルダの中で以降の作業を行ってください。
 
 ```bash
-mkdir -p stages/day1
-cd stages/day1
+mkdir -p ~/order-management-springboot/stages/day1
+cd ~/order-management-springboot/stages/day1
 ```
 
-以降の `作成ファイル` は、リポジトリルート (`order-management-springboot`) からのパスで表記します。  
-例: `stages/day1/pom.xml`（絶対パス例: `C:\Users\<ユーザー名>\order-management-springboot\stages\day1\pom.xml`）
+以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
+例: `~/order-management-springboot/stages/day1/pom.xml`
 
 ### VS Codeでフォルダを開く（GUI）
 1. VS Code を起動
 2. `ファイル` → `フォルダーを開く`  
-3. `.../order-management-springboot/stages/day1` を選択  
-   - フォルダが無い場合は、エクスプローラーで `stages/day1` を作成してから開く
+3. `~/order-management-springboot/stages/day1` を選択  
+   - フォルダが無い場合は、エクスプローラーで `~/order-management-springboot/stages/day1` を作成してから開く
 
 ---
 
 ## 4. ディレクトリ構成を作成
 ```bash
-mkdir -p src/main/java/com/shinesoft/attendance
-mkdir -p src/main/java/com/shinesoft/attendance/web
-mkdir -p src/main/resources/templates
-mkdir -p src/main/resources/static
+mkdir -p ~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance
+mkdir -p ~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/web
+mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/templates
+mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
 ```
 
 ### VS Codeでディレクトリを作る（GUI）
 1. 左側のエクスプローラーで `src` を右クリック → `新しいフォルダー`
 2. 以下を順に作成  
-   - `src/main/java/com/shinesoft/attendance`  
-   - `src/main/java/com/shinesoft/attendance/web`  
-   - `src/main/resources/templates`  
-   - `src/main/resources/static`
+   - `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance`  
+   - `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/web`  
+   - `~/order-management-springboot/stages/day1/src/main/resources/templates`  
+   - `~/order-management-springboot/stages/day1/src/main/resources/static`
 
 ---
 
 ## 5. `pom.xml` を作成（Maven設定）
-作成ファイル: `stages/day1/pom.xml`
+作成ファイル: `~/order-management-springboot/stages/day1/pom.xml`
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -175,7 +175,7 @@ mkdir -p src/main/resources/static
 ---
 
 ## 6. `application.yml` を作成
-作成ファイル: `stages/day1/src/main/resources/application.yml`
+作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/application.yml`
 
 ```yaml
 spring:
@@ -198,7 +198,7 @@ app:
 ---
 
 ## 7. Applicationクラスを作成
-作成ファイル: `stages/day1/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
+作成ファイル: `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
 
 ```java
 package com.shinesoft.attendance;
@@ -221,7 +221,7 @@ public class AttendanceManagementApplication {
 ---
 
 ## 8. Controllerを作成
-作成ファイル: `stages/day1/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+作成ファイル: `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 ```java
 package com.shinesoft.attendance.web;
@@ -265,7 +265,7 @@ public class HomeController {
 
 ### 2) 対応関係（重要）
 - `@GetMapping("/")` -> URL `/` を処理
-- `return "index"` -> `src/main/resources/templates/index.html`
+- `return "index"` -> `~/order-management-springboot/stages/day1/src/main/resources/templates/index.html`
 - `model.addAttribute("statusLabel", "未出勤")` -> HTML側 `${statusLabel}` に表示
 
 ### 3) 3分ハンズオン（理解確認）
@@ -281,7 +281,7 @@ public class HomeController {
 ---
 
 ## 9. テンプレート（画面）を作成
-作成ファイル: `stages/day1/src/main/resources/templates/index.html`
+作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/templates/index.html`
 
 ```html
 <!doctype html>
@@ -326,7 +326,7 @@ public class HomeController {
 ---
 
 ## 10. CSSを作成
-作成ファイル: `stages/day1/src/main/resources/static/styles.css`
+作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/static/styles.css`
 
 ```css
 :root {
@@ -461,7 +461,7 @@ th, td {
 ---
 
 ## 11. 起動
-`stages/day1` で実行していることを先に確認してください。
+`~/order-management-springboot/stages/day1` で実行していることを先に確認してください。
 
 ```bash
 pwd
@@ -498,7 +498,7 @@ http://localhost:8080/
 ## 14. つまずきポイント
 - `mvn` が通らない → 環境変数を確認
 - `The goal you specified requires a project to execute but there is no POM in this directory`:
-  - 実行場所が `stages/day1` になっているか確認
+  - 実行場所が `~/order-management-springboot/stages/day1` になっているか確認
   - `ls` で `pom.xml` が存在するか確認
 - 画面が出ない → 起動ターミナルのエラーを見る
 
