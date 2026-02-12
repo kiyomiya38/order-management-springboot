@@ -9,6 +9,21 @@
 - Java 17 / Maven 3.9+ がインストール済み
 - このリポジトリのルートで作業する
 
+## Spring Bootとは（Day1開始前に読む）
+Spring Bootは、JavaでWebアプリを作るためのSpringの実行基盤です。  
+通常は手作業で必要になる設定を減らし、`mvn spring-boot:run` で起動できる状態を短時間で作れます。
+
+Day1では、以下の最小構成を体験します。
+- `Controller`:
+  - URLリクエストを受け取り、画面に渡すデータを用意する
+- `Template`（Thymeleaf）:
+  - `Controller`から受け取ったデータをHTMLに埋め込んで表示する
+- `Application`:
+  - Spring Bootアプリの起動エントリポイント（`main`メソッド）
+
+この研修の目的は、Java文法を深掘りすることではなく、後続のDocker/CI/CD/K8sで扱う「動くアプリ土台」を作ることです。  
+そのためDay1は、最小の構成で起動と画面表示に集中します。
+
 ## Day1で作るもの（最小MVC）
 - 画面: `/`（勤怠トップ画面、表示のみ）
 - 機能: まだ出勤/退勤はしない（Day2から）
