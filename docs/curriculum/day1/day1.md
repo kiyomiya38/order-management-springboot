@@ -142,83 +142,61 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <!-- Mavenがこのファイルをどう読むかを示すPOM仕様バージョン（通常は4.0.0固定） -->
-  <modelVersion>4.0.0</modelVersion>
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd"> <!-- Mavenが読むPOM定義 -->
+  <modelVersion>4.0.0</modelVersion> <!-- POM仕様バージョン（通常4.0.0） -->
 
-  <!-- このプロジェクトを一意に識別する情報 -->
-  <!-- groupId: 組織名/ドメインを逆順で書くのが一般的 -->
-  <groupId>com.shinesoft</groupId>
-  <!-- artifactId: 成果物（Jar）の名前になる -->
-  <artifactId>attendance-management</artifactId>
-  <!-- version: SNAPSHOTは「開発中バージョン」の意味 -->
-  <version>0.0.1-SNAPSHOT</version>
-  <!-- name/description: 人が読むための表示名・説明 -->
-  <name>attendance-management</name>
-  <description>Attendance Management MVP</description>
+  <groupId>com.shinesoft</groupId> <!-- 組織名/ドメイン逆順が一般的 -->
+  <artifactId>attendance-management</artifactId> <!-- 成果物（Jar）名 -->
+  <version>0.0.1-SNAPSHOT</version> <!-- SNAPSHOT = 開発中バージョン -->
+  <name>attendance-management</name> <!-- 表示名 -->
+  <description>Attendance Management MVP</description> <!-- 説明文 -->
 
-  <!-- 共通で使う値を変数化。1か所変更で全体へ反映できる -->
-  <properties>
-    <!-- 使用するJavaのバージョン -->
-    <java.version>17</java.version>
-    <!-- Spring Boot関連ライブラリの基準バージョン -->
-    <spring-boot.version>3.2.6</spring-boot.version>
-    <!-- 文字コード（日本語の文字化け防止のためUTF-8に統一） -->
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-    <!-- コンパイル後の互換バージョン（Java 17としてビルド） -->
-    <maven.compiler.release>17</maven.compiler.release>
+  <properties> <!-- 共通値を変数化（${...}で再利用） -->
+    <java.version>17</java.version> <!-- 使用Javaバージョン -->
+    <spring-boot.version>3.2.6</spring-boot.version> <!-- Spring Boot基準バージョン -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- 文字コード -->
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding> <!-- レポート文字コード -->
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding> <!-- コンパイラ文字コード -->
+    <maven.compiler.release>17</maven.compiler.release> <!-- Java 17としてコンパイル -->
   </properties>
 
-  <!-- 依存ライブラリの「バージョン表」を取り込む場所（ここではSpring BootのBOMを利用） -->
-  <!-- ポイント: ここは実際に使うライブラリ一覧ではなく、バージョン管理用 -->
-  <dependencyManagement>
+  <dependencyManagement> <!-- 依存のバージョン管理用（実際の利用一覧ではない） -->
     <dependencies>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
         <version>${spring-boot.version}</version>
-        <!-- type=pom + scope=import でBOM（部品の推奨バージョンセット）を読み込む -->
-        <type>pom</type>
-        <scope>import</scope>
+        <type>pom</type> <!-- BOMの取り込み設定 -->
+        <scope>import</scope> <!-- BOMをimportしてversion記述を省略可能にする -->
       </dependency>
     </dependencies>
   </dependencyManagement>
 
-  <!-- このアプリで「実際に使う」ライブラリ一覧 -->
-  <dependencies>
-    <!-- Webアプリ機能（Spring MVC, 組み込みTomcat, JSON変換など） -->
-    <dependency>
+  <dependencies> <!-- このアプリで実際に使うライブラリ -->
+    <dependency> <!-- Web機能（Spring MVC/組み込みTomcat/JSON変換など） -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    <!-- サーバーサイドHTMLテンプレート機能（Thymeleaf） -->
-    <dependency>
+    <dependency> <!-- サーバーサイドHTMLテンプレート機能（Thymeleaf） -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
     </dependency>
   </dependencies>
 
-  <!-- Mavenのビルド処理を拡張するプラグイン設定 -->
-  <build>
+  <build> <!-- Mavenのビルド処理を拡張 -->
     <plugins>
-      <!-- Spring Boot起動用プラグイン。mvn spring-boot:run を使えるようにする -->
-      <plugin>
+      <plugin> <!-- mvn spring-boot:run を使えるようにする -->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
       </plugin>
-      <!-- Javaコンパイル設定プラグイン -->
-      <plugin>
+      <plugin> <!-- Javaコンパイル設定 -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
         <configuration>
-          <!-- Java 17としてコンパイル -->
-          <release>${maven.compiler.release}</release>
-          <!-- ソースコードの文字コード -->
-          <encoding>${maven.compiler.encoding}</encoding>
+          <release>${maven.compiler.release}</release> <!-- Java 17でビルド -->
+          <encoding>${maven.compiler.encoding}</encoding> <!-- ソース文字コード -->
         </configuration>
       </plugin>
     </plugins>
@@ -249,33 +227,21 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/application.yml`
 
 ```yaml
-# Spring Framework全体の設定
-spring:
+spring: # Spring Framework全体の設定
   application:
-    # アプリ名。${環境変数:デフォルト値} の形式
-    # APP_NAMEが未設定なら attendance-management を使う
-    name: ${APP_NAME:attendance-management}
+    name: ${APP_NAME:attendance-management} # ${環境変数:デフォルト値}。APP_NAME未設定ならattendance-management
   thymeleaf:
-    # テンプレートキャッシュ設定
-    # false: 画面HTMLを修正した時に反映されやすい（学習中に便利）
-    cache: false
+    cache: false # テンプレートキャッシュ無効（学習中はHTML変更を反映しやすい）
 
-# 組み込みWebサーバー（Tomcat）の設定
-server:
-  # 待受ポート。SERVER_PORTが未設定なら8080で起動
-  port: ${SERVER_PORT:8080}
+server: # 組み込みWebサーバー（Tomcat）の設定
+  port: ${SERVER_PORT:8080} # 待受ポート。SERVER_PORT未設定なら8080
 
-# ログ出力設定
-logging:
+logging: # ログ出力設定
   level:
-    # アプリ全体(root)のログレベル（INFO/DEBUG/WARN/ERROR など）
-    root: ${LOG_LEVEL:INFO}
+    root: ${LOG_LEVEL:INFO} # アプリ全体(root)のログレベル（INFO/DEBUG/WARN/ERROR など）
 
-# 独自設定（spring配下ではない任意キー）
-# ControllerやServiceで参照するためのアプリ固有値を置ける
-app:
-  # 画面表示などで使うアプリ名（今回は spring.application.name と同じ値）
-  name: ${APP_NAME:attendance-management}
+app: # 独自設定（spring配下ではない任意キー）
+  name: ${APP_NAME:attendance-management} # 画面表示などで使うアプリ名
 ```
 
 理解ポイント（5分）:
@@ -300,27 +266,15 @@ app:
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
 
 ```java
-// このクラスが属するパッケージ。
-// フォルダ構成 `com/shinesoft/attendance` と一致させる必要がある。
-package com.shinesoft.attendance;
+package com.shinesoft.attendance; // パッケージ宣言（配置フォルダと一致させる）
 
-// Spring Bootアプリを起動するためのクラス
-import org.springframework.boot.SpringApplication;
-// 「このクラスがSpring Bootの起点である」ことを示すアノテーション
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringApplication; // Spring Boot起動クラス
+import org.springframework.boot.autoconfigure.SpringBootApplication; // 起点アノテーション
 
-// @SpringBootApplication は以下をまとめた便利アノテーション:
-// - 設定クラスとして扱う
-// - コンポーネントスキャンを有効化
-// - 自動設定を有効化
-@SpringBootApplication
+@SpringBootApplication // 設定クラス + コンポーネントスキャン + 自動設定を有効化
 public class AttendanceManagementApplication {
-    // Javaプログラムの開始地点（エントリポイント）
-    public static void main(String[] args) {
-        // Spring Bootアプリを起動する
-        // 第1引数: 起動クラス
-        // 第2引数: コマンドライン引数
-        SpringApplication.run(AttendanceManagementApplication.class, args);
+    public static void main(String[] args) { // Java実行時の開始地点（エントリポイント）
+        SpringApplication.run(AttendanceManagementApplication.class, args); // 起動クラスと引数を渡してアプリ起動
     }
 }
 ```
@@ -348,37 +302,24 @@ public class AttendanceManagementApplication {
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 ```java
-// Controllerクラスの配置先パッケージ。
-// `web` は「画面/HTTPリクエストを扱う層」という意味で分けている。
-package com.shinesoft.attendance.web;
+package com.shinesoft.attendance.web; // `web` は画面/HTTPリクエストを扱う層
 
-// 日付を扱うJava標準クラス（今日の日付を表示するために使う）
-import java.time.LocalDate;
+import java.time.LocalDate; // 今日の日付を扱うJava標準クラス
 
-// このクラスが画面表示用Controllerであることを示す
-import org.springframework.stereotype.Controller;
-// Controllerからテンプレートへ値を渡す入れ物
-import org.springframework.ui.Model;
-// HTTP GETのURLとメソッドを対応付ける
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.stereotype.Controller; // 画面表示用Controllerを示す
+import org.springframework.ui.Model; // Controllerからテンプレートへ値を渡す入れ物
+import org.springframework.web.bind.annotation.GetMapping; // HTTP GETのURLとメソッドを対応付ける
 
-// 「画面を返すController」としてSpringに登録される
-@Controller
+@Controller // 「画面を返すController」としてSpringに登録
 public class HomeController {
 
-    // ブラウザが "/" にGETアクセスした時に、このメソッドが呼ばれる
-    @GetMapping("/")
+    @GetMapping("/") // ブラウザが "/" にGETアクセスした時に呼ばれる
     public String index(Model model) {
-        // テンプレートへ渡す値を追加する（HTML側では ${workDate} で参照）
-        model.addAttribute("workDate", LocalDate.now());
-        // 画面上の状態ラベル（HTML側: ${statusLabel}）
-        model.addAttribute("statusLabel", "未出勤");
-        // Day1では未使用のため null を渡している（HTMLでは "-" 表示）
-        model.addAttribute("startTime", null);
+        model.addAttribute("workDate", LocalDate.now()); // HTML側 ${workDate}
+        model.addAttribute("statusLabel", "未出勤"); // HTML側 ${statusLabel}
+        model.addAttribute("startTime", null); // Day1では未使用（HTMLでは "-" 表示）
         model.addAttribute("endTime", null);
-        // `templates/index.html` を表示する、という意味
-        // 注意: 先頭に "/" は付けない（`return "index"` が基本）
-        return "index";
+        return "index"; // templates/index.html を表示（先頭に "/" は付けない）
     }
 }
 ```
@@ -434,44 +375,32 @@ public class HomeController {
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/templates/index.html`
 
 ```html
-<!-- HTML5の文書宣言 -->
-<!doctype html>
-<!-- lang="ja": 文章言語を日本語として宣言 -->
-<!-- xmlns:th: Thymeleaf属性（th:*）を使うための名前空間宣言 -->
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<!doctype html> <!-- HTML5の文書宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"> <!-- lang: 日本語 / xmlns:th: Thymeleaf有効化 -->
 <head>
-  <!-- 文字コード。日本語を正しく表示するためにUTF-8 -->
-  <meta charset="utf-8" />
-  <!-- スマホ表示時の拡大率設定（レスポンシブ対応の基本） -->
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /> <!-- 日本語表示のためUTF-8 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> <!-- レスポンシブ表示 -->
   <title>勤怠管理（MVP）</title>
-  <!-- @{} はURL生成式。/static 配下の styles.css を参照する -->
-  <link rel="stylesheet" th:href="@{/styles.css}" />
+  <link rel="stylesheet" th:href="@{/styles.css}" /> <!-- @{} はURL生成式。/static/styles.css を参照 -->
 </head>
 <body>
-  <!-- 画面全体のラッパー -->
-  <div class="container">
+  <div class="container"> <!-- 画面全体のラッパー -->
     <header>
       <h1>勤怠管理システム（MVP）</h1>
       <p class="subtitle">研修用 / Day1（画面表示のみ）</p>
     </header>
 
-    <!-- 1つ目の情報パネル -->
-    <section class="panel">
+    <section class="panel"> <!-- 1つ目の情報パネル -->
       <div class="panel-header">
         <h2>今日の勤怠</h2>
-        <!-- ${statusLabel}: Controllerで addAttribute した値を表示 -->
-        <!-- 右側の「未出勤」はフォールバック文字（Thymeleaf未評価時に見える値） -->
-        <span class="status-badge" th:text="${statusLabel}">未出勤</span>
+        <span class="status-badge" th:text="${statusLabel}">未出勤</span> <!-- ${statusLabel}。右の文字はフォールバック -->
       </div>
-      <!-- ${workDate}: Controllerの workDate を表示 -->
-      <p>日付: <span th:text="${workDate}">2026-02-05</span></p>
+      <p>日付: <span th:text="${workDate}">2026-02-05</span></p> <!-- ${workDate} -->
       <p>出勤時刻: -</p>
       <p>退勤時刻: -</p>
     </section>
 
-    <!-- 2つ目の情報パネル -->
-    <section class="panel">
+    <section class="panel"> <!-- 2つ目の情報パネル -->
       <h2>業務ルール（抜粋）</h2>
       <ul>
         <li>同日に複数回の出勤は不可</li>
@@ -505,176 +434,125 @@ public class HomeController {
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/static/styles.css`
 
 ```css
-/* :root は「全体で使えるCSS変数」を定義する場所 */
-:root {
-  /* ページ全体の背景色 */
-  --bg: #f6f6f2;
-  /* パネル（カード）の背景色 */
-  --panel: #ffffff;
-  /* 基本文字色 */
-  --text: #202124;
-  /* 補助文字色（少し薄い文字） */
-  --muted: #6b7280;
-  /* 強調色（ボタンなど） */
-  --accent: #0ea5e9;
-  /* 枠線色 */
-  --border: #e5e7eb;
+:root { /* 全体で使えるCSS変数 */
+  --bg: #f6f6f2; /* ページ全体の背景色 */
+  --panel: #ffffff; /* パネル（カード）の背景色 */
+  --text: #202124; /* 基本文字色 */
+  --muted: #6b7280; /* 補助文字色（少し薄い文字） */
+  --accent: #0ea5e9; /* 強調色（ボタンなど） */
+  --border: #e5e7eb; /* 枠線色 */
 }
 
-/* すべての要素で、幅計算に border/padding を含める */
-* { box-sizing: border-box; }
+* { box-sizing: border-box; } /* 幅計算に border/padding を含める */
 
-/* ページ全体の基本スタイル */
-body {
-  /* ブラウザ既定の余白をリセット */
-  margin: 0;
-  /* 文字フォント */
-  font-family: "Segoe UI", Tahoma, sans-serif;
-  /* 基本文字色（CSS変数を参照） */
-  color: var(--text);
-  /* 背景色（CSS変数を参照） */
-  background: var(--bg);
+body { /* ページ全体の基本スタイル */
+  margin: 0; /* ブラウザ既定の余白をリセット */
+  font-family: "Segoe UI", Tahoma, sans-serif; /* 文字フォント */
+  color: var(--text); /* 基本文字色（CSS変数参照） */
+  background: var(--bg); /* 背景色（CSS変数参照） */
 }
 
-/* 画面中央に内容を寄せるコンテナ */
-.container {
-  /* 横幅の上限（これ以上は広がらない） */
-  max-width: 920px;
-  /* 左右を自動余白にして中央寄せ */
-  margin: 0 auto;
-  /* 内側の余白 */
-  padding: 24px;
+.container { /* 画面中央に内容を寄せるコンテナ */
+  max-width: 920px; /* 横幅の上限（これ以上は広がらない） */
+  margin: 0 auto; /* 左右自動余白で中央寄せ */
+  padding: 24px; /* 内側余白 */
 }
 
-/* ヘッダー下に少し余白 */
-header {
-  margin-bottom: 16px;
-}
+header { margin-bottom: 16px; } /* ヘッダー下に少し余白 */
 
-/* タイトルの余白調整（上0 / 右0 / 下4 / 左0） */
-h1 {
-  margin: 0 0 4px;
-}
+h1 { margin: 0 0 4px; } /* タイトル余白（上0 / 右0 / 下4 / 左0） */
 
-/* サブタイトルは薄い色 */
-.subtitle {
-  color: var(--muted);
+.subtitle { /* サブタイトル */
+  color: var(--muted); /* 薄い色 */
   margin: 0 0 16px;
 }
 
-/* 情報ブロック（白いカード） */
-.panel {
+.panel { /* 情報ブロック（白いカード） */
   background: var(--panel);
   border: 1px solid var(--border);
-  /* 角を丸くする */
-  border-radius: 8px;
+  border-radius: 8px; /* 角を丸くする */
   padding: 16px;
   margin-bottom: 16px;
 }
 
-/* パネル見出しの左右配置（見出し + ステータス） */
-.panel-header {
-  /* 子要素を横並びにする */
-  display: flex;
-  /* 垂直方向の中央揃え */
-  align-items: center;
-  /* 左右端に配置 */
-  justify-content: space-between;
+.panel-header { /* パネル見出しの左右配置（見出し + ステータス） */
+  display: flex; /* 子要素を横並びにする */
+  align-items: center; /* 垂直方向の中央揃え */
+  justify-content: space-between; /* 左右端に配置 */
 }
 
-/* 「未出勤」などのバッジ */
-.status-badge {
+.status-badge { /* 「未出勤」などのバッジ */
   display: inline-block;
   padding: 4px 10px;
-  /* 999pxでカプセル形にする */
-  border-radius: 999px;
+  border-radius: 999px; /* 999pxでカプセル形にする */
   background: #e0f2fe;
   color: #0369a1;
   font-size: 12px;
 }
 
-/* 状態別の色（Day2以降で利用） */
-.status-working { background: #fef9c3; color: #854d0e; }
-.status-finished { background: #dcfce7; color: #166534; }
+.status-working { background: #fef9c3; color: #854d0e; } /* 状態別の色（Day2以降で利用） */
+.status-finished { background: #dcfce7; color: #166534; } /* 状態別の色（Day2以降で利用） */
 
-/* 入力項目などを横並びにする共通クラス */
-.row {
+.row { /* 入力項目などを横並びにする共通クラス */
   display: flex;
-  /* 子要素間の間隔 */
-  gap: 8px;
-  /* 幅不足時は折り返し */
-  flex-wrap: wrap;
+  gap: 8px; /* 子要素間の間隔 */
+  flex-wrap: wrap; /* 幅不足時は折り返し */
   align-items: center;
 }
 
-/* ラベルと入力欄を縦並びにする */
-label {
+label { /* ラベルと入力欄を縦並びにする */
   display: flex;
   flex-direction: column;
   gap: 6px;
   font-size: 14px;
 }
 
-/* 入力欄とセレクトボックスの共通見た目 */
-input, select {
+input, select { /* 入力欄とセレクトボックスの共通見た目 */
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
 }
 
-/* ボタンの基本スタイル */
-button {
+button { /* ボタンの基本スタイル */
   padding: 8px 12px;
   background: var(--accent);
   color: #fff;
-  /* ブラウザ既定の枠線を消す */
-  border: none;
+  border: none; /* ブラウザ既定の枠線を消す */
   border-radius: 6px;
-  /* マウスカーソルを手の形に */
-  cursor: pointer;
+  cursor: pointer; /* マウスカーソルを手の形に */
 }
 
-/* ホバー時に少し薄くして押せる感を出す */
-button:hover { opacity: 0.9; }
+button:hover { opacity: 0.9; } /* ホバー時に少し薄くして押せる感を出す */
 
-/* 危険操作ボタン（削除など）の色 */
-.danger { background: #ef4444; }
+.danger { background: #ef4444; } /* 危険操作ボタン（削除など）の色 */
 
-/* 表の基本設定 */
-table {
-  /* 横幅いっぱい */
-  width: 100%;
-  /* セルの境界線を1本にまとめる */
-  border-collapse: collapse;
+table { /* 表の基本設定 */
+  width: 100%; /* 横幅いっぱい */
+  border-collapse: collapse; /* セルの境界線を1本にまとめる */
   font-size: 14px;
 }
 
-/* 表ヘッダーとセルの共通設定 */
-th, td {
+th, td { /* 表ヘッダーとセルの共通設定 */
   border-bottom: 1px solid var(--border);
   text-align: left;
   padding: 8px;
 }
 
-/* 補足文字用の薄い色 */
-.muted { color: var(--muted); }
+.muted { color: var(--muted); } /* 補足文字用の薄い色 */
 
-/* 通知メッセージの共通枠 */
-.alert {
+.alert { /* 通知メッセージの共通枠 */
   padding: 10px 12px;
   border-radius: 6px;
   margin-bottom: 12px;
 }
 
-/* エラー通知の色 */
-.alert-error {
+.alert-error { /* エラー通知の色 */
   background: #fee2e2;
   color: #991b1b;
   border: 1px solid #fecaca;
 }
 
-/* 情報通知の色 */
-.alert-info {
+.alert-info { /* 情報通知の色 */
   background: #e0f2fe;
   color: #075985;
   border: 1px solid #bae6fd;
