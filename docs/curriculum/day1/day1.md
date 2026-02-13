@@ -249,20 +249,32 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/application.yml`
 
 ```yaml
+# Spring Framework全体の設定
 spring:
   application:
+    # アプリ名。${環境変数:デフォルト値} の形式
+    # APP_NAMEが未設定なら attendance-management を使う
     name: ${APP_NAME:attendance-management}
   thymeleaf:
+    # テンプレートキャッシュ設定
+    # false: 画面HTMLを修正した時に反映されやすい（学習中に便利）
     cache: false
 
+# 組み込みWebサーバー（Tomcat）の設定
 server:
+  # 待受ポート。SERVER_PORTが未設定なら8080で起動
   port: ${SERVER_PORT:8080}
 
+# ログ出力設定
 logging:
   level:
+    # アプリ全体(root)のログレベル（INFO/DEBUG/WARN/ERROR など）
     root: ${LOG_LEVEL:INFO}
 
+# 独自設定（spring配下ではない任意キー）
+# ControllerやServiceで参照するためのアプリ固有値を置ける
 app:
+  # 画面表示などで使うアプリ名（今回は spring.application.name と同じ値）
   name: ${APP_NAME:attendance-management}
 ```
 
@@ -288,14 +300,26 @@ app:
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
 
 ```java
+// このクラスが属するパッケージ。
+// フォルダ構成 `com/shinesoft/attendance` と一致させる必要がある。
 package com.shinesoft.attendance;
 
+// Spring Bootアプリを起動するためのクラス
 import org.springframework.boot.SpringApplication;
+// 「このクラスがSpring Bootの起点である」ことを示すアノテーション
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+// @SpringBootApplication は以下をまとめた便利アノテーション:
+// - 設定クラスとして扱う
+// - コンポーネントスキャンを有効化
+// - 自動設定を有効化
 @SpringBootApplication
 public class AttendanceManagementApplication {
+    // Javaプログラムの開始地点（エントリポイント）
     public static void main(String[] args) {
+        // Spring Bootアプリを起動する
+        // 第1引数: 起動クラス
+        // 第2引数: コマンドライン引数
         SpringApplication.run(AttendanceManagementApplication.class, args);
     }
 }
@@ -324,23 +348,36 @@ public class AttendanceManagementApplication {
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 ```java
+// Controllerクラスの配置先パッケージ。
+// `web` は「画面/HTTPリクエストを扱う層」という意味で分けている。
 package com.shinesoft.attendance.web;
 
+// 日付を扱うJava標準クラス（今日の日付を表示するために使う）
 import java.time.LocalDate;
 
+// このクラスが画面表示用Controllerであることを示す
 import org.springframework.stereotype.Controller;
+// Controllerからテンプレートへ値を渡す入れ物
 import org.springframework.ui.Model;
+// HTTP GETのURLとメソッドを対応付ける
 import org.springframework.web.bind.annotation.GetMapping;
 
+// 「画面を返すController」としてSpringに登録される
 @Controller
 public class HomeController {
 
+    // ブラウザが "/" にGETアクセスした時に、このメソッドが呼ばれる
     @GetMapping("/")
     public String index(Model model) {
+        // テンプレートへ渡す値を追加する（HTML側では ${workDate} で参照）
         model.addAttribute("workDate", LocalDate.now());
+        // 画面上の状態ラベル（HTML側: ${statusLabel}）
         model.addAttribute("statusLabel", "未出勤");
+        // Day1では未使用のため null を渡している（HTMLでは "-" 表示）
         model.addAttribute("startTime", null);
         model.addAttribute("endTime", null);
+        // `templates/index.html` を表示する、という意味
+        // 注意: 先頭に "/" は付けない（`return "index"` が基本）
         return "index";
     }
 }
@@ -397,31 +434,43 @@ public class HomeController {
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/templates/index.html`
 
 ```html
+<!-- HTML5の文書宣言 -->
 <!doctype html>
+<!-- lang="ja": 文章言語を日本語として宣言 -->
+<!-- xmlns:th: Thymeleaf属性（th:*）を使うための名前空間宣言 -->
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <head>
+  <!-- 文字コード。日本語を正しく表示するためにUTF-8 -->
   <meta charset="utf-8" />
+  <!-- スマホ表示時の拡大率設定（レスポンシブ対応の基本） -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>勤怠管理（MVP）</title>
+  <!-- @{} はURL生成式。/static 配下の styles.css を参照する -->
   <link rel="stylesheet" th:href="@{/styles.css}" />
 </head>
 <body>
+  <!-- 画面全体のラッパー -->
   <div class="container">
     <header>
       <h1>勤怠管理システム（MVP）</h1>
       <p class="subtitle">研修用 / Day1（画面表示のみ）</p>
     </header>
 
+    <!-- 1つ目の情報パネル -->
     <section class="panel">
       <div class="panel-header">
         <h2>今日の勤怠</h2>
+        <!-- ${statusLabel}: Controllerで addAttribute した値を表示 -->
+        <!-- 右側の「未出勤」はフォールバック文字（Thymeleaf未評価時に見える値） -->
         <span class="status-badge" th:text="${statusLabel}">未出勤</span>
       </div>
+      <!-- ${workDate}: Controllerの workDate を表示 -->
       <p>日付: <span th:text="${workDate}">2026-02-05</span></p>
       <p>出勤時刻: -</p>
       <p>退勤時刻: -</p>
     </section>
 
+    <!-- 2つ目の情報パネル -->
     <section class="panel">
       <h2>業務ルール（抜粋）</h2>
       <ul>
@@ -456,76 +505,109 @@ public class HomeController {
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/static/styles.css`
 
 ```css
+/* :root は「全体で使えるCSS変数」を定義する場所 */
 :root {
+  /* ページ全体の背景色 */
   --bg: #f6f6f2;
+  /* パネル（カード）の背景色 */
   --panel: #ffffff;
+  /* 基本文字色 */
   --text: #202124;
+  /* 補助文字色（少し薄い文字） */
   --muted: #6b7280;
+  /* 強調色（ボタンなど） */
   --accent: #0ea5e9;
+  /* 枠線色 */
   --border: #e5e7eb;
 }
 
+/* すべての要素で、幅計算に border/padding を含める */
 * { box-sizing: border-box; }
 
+/* ページ全体の基本スタイル */
 body {
+  /* ブラウザ既定の余白をリセット */
   margin: 0;
+  /* 文字フォント */
   font-family: "Segoe UI", Tahoma, sans-serif;
+  /* 基本文字色（CSS変数を参照） */
   color: var(--text);
+  /* 背景色（CSS変数を参照） */
   background: var(--bg);
 }
 
+/* 画面中央に内容を寄せるコンテナ */
 .container {
+  /* 横幅の上限（これ以上は広がらない） */
   max-width: 920px;
+  /* 左右を自動余白にして中央寄せ */
   margin: 0 auto;
+  /* 内側の余白 */
   padding: 24px;
 }
 
+/* ヘッダー下に少し余白 */
 header {
   margin-bottom: 16px;
 }
 
+/* タイトルの余白調整（上0 / 右0 / 下4 / 左0） */
 h1 {
   margin: 0 0 4px;
 }
 
+/* サブタイトルは薄い色 */
 .subtitle {
   color: var(--muted);
   margin: 0 0 16px;
 }
 
+/* 情報ブロック（白いカード） */
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
+  /* 角を丸くする */
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
 }
 
+/* パネル見出しの左右配置（見出し + ステータス） */
 .panel-header {
+  /* 子要素を横並びにする */
   display: flex;
+  /* 垂直方向の中央揃え */
   align-items: center;
+  /* 左右端に配置 */
   justify-content: space-between;
 }
 
+/* 「未出勤」などのバッジ */
 .status-badge {
   display: inline-block;
   padding: 4px 10px;
+  /* 999pxでカプセル形にする */
   border-radius: 999px;
   background: #e0f2fe;
   color: #0369a1;
   font-size: 12px;
 }
 
+/* 状態別の色（Day2以降で利用） */
 .status-working { background: #fef9c3; color: #854d0e; }
 .status-finished { background: #dcfce7; color: #166534; }
 
+/* 入力項目などを横並びにする共通クラス */
 .row {
   display: flex;
+  /* 子要素間の間隔 */
   gap: 8px;
+  /* 幅不足時は折り返し */
   flex-wrap: wrap;
   align-items: center;
 }
 
+/* ラベルと入力欄を縦並びにする */
 label {
   display: flex;
   flex-direction: column;
@@ -533,51 +615,65 @@ label {
   font-size: 14px;
 }
 
+/* 入力欄とセレクトボックスの共通見た目 */
 input, select {
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
 }
 
+/* ボタンの基本スタイル */
 button {
   padding: 8px 12px;
   background: var(--accent);
   color: #fff;
+  /* ブラウザ既定の枠線を消す */
   border: none;
   border-radius: 6px;
+  /* マウスカーソルを手の形に */
   cursor: pointer;
 }
 
+/* ホバー時に少し薄くして押せる感を出す */
 button:hover { opacity: 0.9; }
 
+/* 危険操作ボタン（削除など）の色 */
 .danger { background: #ef4444; }
 
+/* 表の基本設定 */
 table {
+  /* 横幅いっぱい */
   width: 100%;
+  /* セルの境界線を1本にまとめる */
   border-collapse: collapse;
   font-size: 14px;
 }
 
+/* 表ヘッダーとセルの共通設定 */
 th, td {
   border-bottom: 1px solid var(--border);
   text-align: left;
   padding: 8px;
 }
 
+/* 補足文字用の薄い色 */
 .muted { color: var(--muted); }
 
+/* 通知メッセージの共通枠 */
 .alert {
   padding: 10px 12px;
   border-radius: 6px;
   margin-bottom: 12px;
 }
 
+/* エラー通知の色 */
 .alert-error {
   background: #fee2e2;
   color: #991b1b;
   border: 1px solid #fecaca;
 }
 
+/* 情報通知の色 */
 .alert-info {
   background: #e0f2fe;
   color: #075985;
