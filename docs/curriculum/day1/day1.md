@@ -143,23 +143,31 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <!-- POMモデルのバージョン（通常は4.0.0） -->
   <modelVersion>4.0.0</modelVersion>
 
+  <!-- このプロジェクトの識別情報 -->
   <groupId>com.shinesoft</groupId>
   <artifactId>attendance-management</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>attendance-management</name>
   <description>Attendance Management MVP</description>
 
+  <!-- 共通で使う値（${...}で参照） -->
   <properties>
+    <!-- 使用するJavaバージョン -->
     <java.version>17</java.version>
+    <!-- Spring Bootの基準バージョン -->
     <spring-boot.version>3.2.6</spring-boot.version>
+    <!-- 文字コード設定 -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+    <!-- コンパイル対象のJavaバージョン -->
     <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
+  <!-- 依存ライブラリのバージョンを一括管理 -->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -172,24 +180,30 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
     </dependencies>
   </dependencyManagement>
 
+  <!-- このアプリで実際に使うライブラリ -->
   <dependencies>
+    <!-- Webアプリ機能（Spring MVCなど） -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
+    <!-- 画面テンプレート機能（Thymeleaf） -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
     </dependency>
   </dependencies>
 
+  <!-- ビルド時に使うプラグイン -->
   <build>
     <plugins>
+      <!-- mvn spring-boot:run を実行するためのプラグイン -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
       </plugin>
+      <!-- Java 17 + UTF-8でコンパイルする設定 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
