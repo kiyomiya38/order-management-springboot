@@ -50,6 +50,7 @@ cd ~/order-management-springboot/stages/day3
 全文を以下に置き換えてください。
 
 ```java
+// Serviceクラスを置くパッケージ
 package com.shinesoft.attendance.service;
 
 import java.time.LocalDate;
@@ -67,57 +68,79 @@ import com.shinesoft.attendance.exception.BusinessException;
 import com.shinesoft.attendance.repository.AttendanceRepository;
 import com.shinesoft.attendance.repository.UserRepository;
 
+// 業務ロジックを担当するクラス（Controllerから分離）
 @Service
 public class AttendanceService {
+    // 操作履歴を出力するロガー
     private static final Logger log = LoggerFactory.getLogger(AttendanceService.class);
 
+    // DBアクセス層（依存注入）
     private final AttendanceRepository attendanceRepository;
     private final UserRepository userRepository;
 
+    // コンストラクタインジェクション
     public AttendanceService(AttendanceRepository attendanceRepository, UserRepository userRepository) {
         this.attendanceRepository = attendanceRepository;
         this.userRepository = userRepository;
     }
 
+    // 当日の勤怠を取得（無ければOptional.empty）
     public Optional<Attendance> findToday(Long userId) {
         return attendanceRepository.findByUserIdAndWorkDate(userId, LocalDate.now());
     }
 
+    // 出勤処理（Day2から継続）
     public Attendance clockIn(Long userId) {
+        // 1. 今日の日付を取得
         LocalDate today = LocalDate.now();
+        // 2. 同日レコードが既にあるか確認
         Optional<Attendance> existing = attendanceRepository.findByUserIdAndWorkDate(userId, today);
         if (existing.isPresent()) {
+            // 3. 既存レコードがあれば二重出勤として業務エラー
             throw new BusinessException("すでに出勤済みです");
         }
 
+        // 4. 対象ユーザー取得（存在しなければシステムエラー）
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalStateException("研修ユーザーが存在しません"));
 
+        // 5. 新規勤怠レコード作成
         Attendance attendance = new Attendance();
         attendance.setUser(user);
         attendance.setWorkDate(today);
+        // 出勤時刻は現在時刻
         attendance.setStartTime(LocalDateTime.now());
+        // 出勤後の状態
         attendance.setStatus(AttendanceStatus.WORKING);
 
+        // 6. 保存してログ出力
         Attendance saved = attendanceRepository.save(attendance);
         log.info("clock-in userId={} date={} time={}", userId, saved.getWorkDate(), saved.getStartTime());
         return saved;
     }
 
+    // 退勤処理（Day3で追加）
     public Attendance clockOut(Long userId) {
+        // 1. 今日の日付で当日レコードを取得
         LocalDate today = LocalDate.now();
         Attendance attendance = attendanceRepository.findByUserIdAndWorkDate(userId, today)
+            // レコードが無い = まだ出勤していない
             .orElseThrow(() -> new BusinessException("退勤するには先に出勤してください"));
 
+        // 2. すでに退勤済みなら再退勤は禁止
         if (attendance.getStatus() == AttendanceStatus.FINISHED) {
             throw new BusinessException("すでに退勤済みです");
         }
+        // 3. 出勤中以外の状態では退勤不可
         if (attendance.getStatus() != AttendanceStatus.WORKING) {
             throw new BusinessException("退勤するには先に出勤してください");
         }
 
+        // 4. 退勤時刻と状態を更新
         attendance.setEndTime(LocalDateTime.now());
         attendance.setStatus(AttendanceStatus.FINISHED);
+
+        // 5. 保存してログ出力
         Attendance saved = attendanceRepository.save(attendance);
         log.info("clock-out userId={} date={} time={}", userId, saved.getWorkDate(), saved.getEndTime());
         return saved;
@@ -151,6 +174,7 @@ public class AttendanceService {
 全文を以下に置き換えてください。
 
 ```java
+// 画面（Web）層のクラスを置くパッケージ
 package com.shinesoft.attendance.web;
 
 import java.time.LocalDate;
@@ -170,56 +194,77 @@ import com.shinesoft.attendance.domain.AttendanceStatus;
 import com.shinesoft.attendance.exception.BusinessException;
 import com.shinesoft.attendance.service.AttendanceService;
 
+// 画面表示を担当するController
 @Controller
 public class HomeController {
+    // Day3は固定ユーザーで進める（認証はDay5で実装）
     private static final Long TRAINING_USER_ID = 1L;
+    // 日時表示フォーマット
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    // 業務ロジックはServiceに委譲
     private final AttendanceService attendanceService;
 
     public HomeController(AttendanceService attendanceService) {
         this.attendanceService = attendanceService;
     }
 
+    // トップ画面表示
     @GetMapping("/")
     public String index(Model model,
+                        // リダイレクト時に受け取る成功メッセージ（任意）
                         @RequestParam(value = "message", required = false) String message,
+                        // リダイレクト時に受け取るエラーメッセージ（任意）
                         @RequestParam(value = "error", required = false) String error) {
+        // 当日の勤怠を取得
         Optional<Attendance> today = attendanceService.findToday(TRAINING_USER_ID);
 
+        // テンプレートに渡す表示データを準備
         model.addAttribute("workDate", LocalDate.now());
         model.addAttribute("statusLabel", toStatusLabel(today));
         model.addAttribute("startTime", format(today.map(Attendance::getStartTime).orElse(null)));
         model.addAttribute("endTime", format(today.map(Attendance::getEndTime).orElse(null)));
+        // 出勤ボタン: 当日レコードがまだ無い時のみ表示
         model.addAttribute("canClockIn", today.isEmpty());
+        // 退勤ボタン: 当日レコードがあり、状態がWORKINGの時のみ表示
         model.addAttribute("canClockOut", today.isPresent() && today.get().getStatus() == AttendanceStatus.WORKING);
         model.addAttribute("message", message);
         model.addAttribute("error", error);
+        // templates/index.html を表示
         return "index";
     }
 
+    // 出勤ボタン押下時の処理
     @PostMapping("/clock-in")
     public String clockIn(RedirectAttributes redirectAttributes) {
         try {
+            // 出勤処理を実行
             attendanceService.clockIn(TRAINING_USER_ID);
             redirectAttributes.addAttribute("message", "出勤を記録しました");
         } catch (BusinessException e) {
+            // 業務エラーは画面向けメッセージとして返す
             redirectAttributes.addAttribute("error", e.getMessage());
         }
+        // POST後はGETへリダイレクト（PRGパターン）
         return "redirect:/";
     }
 
+    // 退勤ボタン押下時の処理（Day3で追加）
     @PostMapping("/clock-out")
     public String clockOut(RedirectAttributes redirectAttributes) {
         try {
+            // 退勤処理を実行
             attendanceService.clockOut(TRAINING_USER_ID);
             redirectAttributes.addAttribute("message", "退勤を記録しました");
         } catch (BusinessException e) {
+            // 業務エラーは画面向けメッセージとして返す
             redirectAttributes.addAttribute("error", e.getMessage());
         }
+        // POST後はGETへリダイレクト（PRGパターン）
         return "redirect:/";
     }
 
+    // 勤怠状態を画面表示用文字列へ変換
     private String toStatusLabel(Optional<Attendance> today) {
         if (today.isEmpty()) {
             return "未出勤";
@@ -234,8 +279,10 @@ public class HomeController {
         return "未出勤";
     }
 
+    // 日時表示の共通フォーマッタ
     private String format(LocalDateTime value) {
         if (value == null) {
+            // 値が無い時は "-" を表示
             return "-";
         }
         return value.format(FMT);
@@ -267,43 +314,59 @@ public class HomeController {
 全文を以下に置き換えてください。
 
 ```html
+<!-- HTML5の文書宣言 -->
 <!doctype html>
+<!-- Thymeleafを使うため xmlns:th を宣言 -->
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <head>
+  <!-- 文字コード -->
   <meta charset="utf-8" />
+  <!-- スマホ表示用の基本設定 -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>勤怠管理（Day3）</title>
+  <!-- /static 配下のCSSを読み込む -->
   <link rel="stylesheet" th:href="@{/styles.css}" />
 </head>
 <body>
+  <!-- 画面全体コンテナ -->
   <div class="container">
     <header>
       <h1>勤怠管理システム（MVP）</h1>
       <p class="subtitle">Day3: 退勤機能と業務ルール</p>
     </header>
 
+    <!-- message がある時のみ成功通知表示 -->
     <div th:if="${message}" class="alert alert-info" th:text="${message}"></div>
+    <!-- error がある時のみエラー通知表示 -->
     <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
+    <!-- 今日の勤怠表示パネル -->
     <section class="panel">
       <div class="panel-header">
         <h2>今日の勤怠</h2>
+        <!-- Controllerで作った statusLabel を表示 -->
         <span class="status-badge" th:text="${statusLabel}">未出勤</span>
       </div>
+      <!-- 値があれば差し込み、無ければフォールバック値を表示 -->
       <p>日付: <span th:text="${workDate}">2026-02-05</span></p>
       <p>出勤時刻: <span th:text="${startTime}">-</span></p>
       <p>退勤時刻: <span th:text="${endTime}">-</span></p>
 
+      <!-- 出勤・退勤ボタンを横並びにする -->
       <div class="row">
+        <!-- canClockIn=true の時だけ出勤ボタンを表示 -->
         <form th:if="${canClockIn}" method="post" th:action="@{/clock-in}">
           <button type="submit">出勤</button>
         </form>
 
+        <!-- canClockOut=true の時だけ退勤ボタンを表示 -->
         <form th:if="${canClockOut}" method="post" th:action="@{/clock-out}">
+          <!-- danger クラスで退勤ボタンを強調 -->
           <button type="submit" class="danger">退勤</button>
         </form>
       </div>
 
+      <!-- 退勤済み（両ボタン非表示）時の案内 -->
       <p th:if="${!canClockIn and !canClockOut}" class="muted">
         本日の勤怠は確定済みです（退勤済み）。
       </p>
@@ -333,13 +396,19 @@ public class HomeController {
 `styles.css` に以下があることを確認してください（無ければ追加）。
 
 ```css
+/* 出勤ボタンと退勤ボタンを横並びにする */
 .row {
+  /* 子要素を横方向に並べる */
   display: flex;
+  /* ボタン間の余白 */
   gap: 8px;
+  /* 幅が足りない時は折り返す */
   flex-wrap: wrap;
+  /* 高さ方向を中央揃え */
   align-items: center;
 }
 
+/* 危険操作（退勤）を目立たせる色 */
 .danger {
   background: #ef4444;
 }
