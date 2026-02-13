@@ -150,7 +150,36 @@ Service層で制御されることを理解できるように設計していま�
 - DB: H2（インメモリ）
 - ビルド: Maven
 
-### ディレクトリと役割
+### ディレクトリと役割（Java初心者向け）
+
+まず最初に、Spring Boot + Maven では「置き場所」に意味があります。  
+この約束に合わせると、`mvn spring-boot:run` だけで自動的にビルド・起動できます。
+
+```
+src/
+  ├─ main/     # 本番アプリのコード・設定
+  └─ test/     # テストコード
+```
+
+`main` の中身:
+- `src/main/java`: Javaコード（Controller, Service, Repository など）
+- `src/main/resources`: Java以外のファイル（設定, HTML, CSS）
+  - `templates`: Thymeleafテンプレート（画面HTML）
+  - `static`: 静的ファイル（CSS, JS, 画像）
+
+この分割のメリット:
+- Maven/Spring Bootが自動で読み込む場所なので設定ミスが減る
+- 「業務ロジック」「画面」「DBアクセス」の責務を分けやすい
+- チーム開発で、どこに何を書くか迷いにくい
+
+このプロジェクトでの対応関係（イメージ）:
+1. ブラウザが `/` にアクセス
+2. `web/*Controller` がリクエストを受ける
+3. 必要なら `service` が業務ルールを判定
+4. DB操作は `repository` が担当
+5. `templates/*.html` を返して画面表示
+
+以下は実際の配置です。
 ```
 src/main/java/com/shinesoft/attendance
   ├─ AttendanceManagementApplication.java  # 起動クラス
@@ -188,8 +217,8 @@ src/main/resources
   │   ├─ index.html                        # 勤怠トップ
   │   ├─ attendances.html                  # 勤怠一覧
   │   ├─ users.html                        # アカウント管理一覧
-  │   └─ user-form.html                    # アカウント作成/編集
-  │   └─ admin-attendances.html            # 管理者勤怠一覧
+  │   ├─ user-form.html                    # アカウント作成/編集
+  │   ├─ admin-attendances.html            # 管理者勤怠一覧
   │   └─ admin-attendance-form.html        # 管理者勤怠編集
   └─ static
       └─ styles.css                        # 画面共通CSS
