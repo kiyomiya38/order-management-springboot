@@ -143,73 +143,81 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <!-- POMモデルのバージョン（通常は4.0.0） -->
+  <!-- Mavenがこのファイルをどう読むかを示すPOM仕様バージョン（通常は4.0.0固定） -->
   <modelVersion>4.0.0</modelVersion>
 
-  <!-- このプロジェクトの識別情報 -->
+  <!-- このプロジェクトを一意に識別する情報 -->
+  <!-- groupId: 組織名/ドメインを逆順で書くのが一般的 -->
   <groupId>com.shinesoft</groupId>
+  <!-- artifactId: 成果物（Jar）の名前になる -->
   <artifactId>attendance-management</artifactId>
+  <!-- version: SNAPSHOTは「開発中バージョン」の意味 -->
   <version>0.0.1-SNAPSHOT</version>
+  <!-- name/description: 人が読むための表示名・説明 -->
   <name>attendance-management</name>
   <description>Attendance Management MVP</description>
 
-  <!-- 共通で使う値（${...}で参照） -->
+  <!-- 共通で使う値を変数化。1か所変更で全体へ反映できる -->
   <properties>
-    <!-- 使用するJavaバージョン -->
+    <!-- 使用するJavaのバージョン -->
     <java.version>17</java.version>
-    <!-- Spring Bootの基準バージョン -->
+    <!-- Spring Boot関連ライブラリの基準バージョン -->
     <spring-boot.version>3.2.6</spring-boot.version>
-    <!-- 文字コード設定 -->
+    <!-- 文字コード（日本語の文字化け防止のためUTF-8に統一） -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-    <!-- コンパイル対象のJavaバージョン -->
+    <!-- コンパイル後の互換バージョン（Java 17としてビルド） -->
     <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
-  <!-- 依存ライブラリのバージョンを一括管理 -->
+  <!-- 依存ライブラリの「バージョン表」を取り込む場所（ここではSpring BootのBOMを利用） -->
+  <!-- ポイント: ここは実際に使うライブラリ一覧ではなく、バージョン管理用 -->
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
         <version>${spring-boot.version}</version>
+        <!-- type=pom + scope=import でBOM（部品の推奨バージョンセット）を読み込む -->
         <type>pom</type>
         <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
 
-  <!-- このアプリで実際に使うライブラリ -->
+  <!-- このアプリで「実際に使う」ライブラリ一覧 -->
   <dependencies>
-    <!-- Webアプリ機能（Spring MVCなど） -->
+    <!-- Webアプリ機能（Spring MVC, 組み込みTomcat, JSON変換など） -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    <!-- 画面テンプレート機能（Thymeleaf） -->
+    <!-- サーバーサイドHTMLテンプレート機能（Thymeleaf） -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
     </dependency>
   </dependencies>
 
-  <!-- ビルド時に使うプラグイン -->
+  <!-- Mavenのビルド処理を拡張するプラグイン設定 -->
   <build>
     <plugins>
-      <!-- mvn spring-boot:run を実行するためのプラグイン -->
+      <!-- Spring Boot起動用プラグイン。mvn spring-boot:run を使えるようにする -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
       </plugin>
-      <!-- Java 17 + UTF-8でコンパイルする設定 -->
+      <!-- Javaコンパイル設定プラグイン -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
         <configuration>
+          <!-- Java 17としてコンパイル -->
           <release>${maven.compiler.release}</release>
+          <!-- ソースコードの文字コード -->
           <encoding>${maven.compiler.encoding}</encoding>
         </configuration>
       </plugin>
