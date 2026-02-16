@@ -1,0 +1,4 @@
+com\shinesoft\sandbox\SandboxApplication.class
+com\shinesoft\sandbox\GreetingCalculator.class
+com\shinesoft\sandbox\service\GreetingService.class
+com\shinesoft\sandbox\web\GreetingController.class
