@@ -687,11 +687,148 @@ java AttendanceDemo
 - `javac -encoding UTF-8 *.java`: カレントディレクトリの `.java` をまとめてコンパイル
 - `java AttendanceDemo`: `public static void main` を持つクラスを実行
 
+### 2-9. 手動ライブラリ追加を体験（15〜20分）
+目的:
+- Mavenを使わずに「ライブラリを使える状態にする」手順を体験する
+- Day1の `pom.xml` が何を簡略化しているかを理解する
+
+完了条件:
+- `lib/manual-banner-1.0.jar` を自分で作成できる
+- クラスパス指定なしだと失敗し、指定ありで `ManualLibDemo` が実行できる
+
+#### Step 0: ミニライブラリを自作する
+作成ファイル: `practice/day0/java/libsrc/com/shinesoft/util/BannerUtil.java`
+
+```java
+package com.shinesoft.util;
+
+public class BannerUtil {
+    public static String banner(String text) {
+        return "[[ " + text + " ]]";
+    }
+}
+```
+
+コンパイルして jar 化:
+```bash
+cd practice/day0/java
+mkdir -p libsrc/com/shinesoft/util
+mkdir -p lib/classes
+javac -encoding UTF-8 -d lib/classes libsrc/com/shinesoft/util/BannerUtil.java
+jar --create --file lib/manual-banner-1.0.jar -C lib/classes .
+```
+
+確認:
+```bash
+jar --list --file lib/manual-banner-1.0.jar
+```
+
+#### Step 1: ライブラリ利用側を作る
+作成ファイル: `practice/day0/java/ManualLibDemo.java`
+
+```java
+import com.shinesoft.util.BannerUtil;
+
+public class ManualLibDemo {
+    public static void main(String[] args) {
+        System.out.println(BannerUtil.banner("Manual dependency"));
+    }
+}
+```
+
+#### Step 2: 失敗パターンを先に確認（クラスパス未指定）
+```bash
+javac -encoding UTF-8 ManualLibDemo.java
+```
+
+期待結果:
+- `package com.shinesoft.util does not exist` などのエラーが出る
+
+#### Step 3: クラスパスを指定して成功させる
+```bash
+javac -encoding UTF-8 -cp lib/manual-banner-1.0.jar ManualLibDemo.java
+java -cp ".;lib/manual-banner-1.0.jar" ManualLibDemo
+```
+
+期待出力:
+```text
+[[ Manual dependency ]]
+```
+
+学習ポイント:
+- jar を作る、配置する、`-cp` を指定する、実行時にも `-cp` を指定する、を毎回管理する必要がある
+- Day1ではこの管理を `pom.xml` と `mvn` が肩代わりする
+
+### 2-10. 手動Web起動を体験（20〜25分）
+目的:
+- Spring BootなしでWebサーバーを立てると、どこまで手作業が必要か体験する
+- Day1の `@Controller` / `@GetMapping` が何を簡略化するか理解する
+
+完了条件:
+- `http://localhost:8080/` にアクセスしてHTMLが表示される
+- `Ctrl + C` で停止できる
+
+作成ファイル: `practice/day0/java/MiniWebServer.java`
+
+```java
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
+
+public class MiniWebServer {
+    public static void main(String[] args) throws IOException {
+        HttpServer server = HttpServer.create(new java.net.InetSocketAddress(8080), 0);
+        server.createContext("/", MiniWebServer::handleTop);
+        server.start();
+        System.out.println("Server started: http://localhost:8080/");
+    }
+
+    private static void handleTop(HttpExchange exchange) throws IOException {
+        String html = "<!doctype html><html lang=\"ja\"><head><meta charset=\"utf-8\"><title>Mini</title></head>"
+                + "<body><h1>Day0 Manual Web</h1><p>手動でWeb起動しています。</p></body></html>";
+        byte[] body = html.getBytes(StandardCharsets.UTF_8);
+
+        exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
+        exchange.sendResponseHeaders(200, body.length);
+        exchange.getResponseBody().write(body);
+        exchange.close();
+    }
+}
+```
+
+実行:
+```bash
+cd practice/day0/java
+javac -encoding UTF-8 --add-modules jdk.httpserver MiniWebServer.java
+java --add-modules jdk.httpserver MiniWebServer
+```
+
+確認:
+- ブラウザで `http://localhost:8080/` を開く
+- 画面に `Day0 Manual Web` が表示される
+- 停止は `Ctrl + C`
+
+学習ポイント:
+- ルーティング、レスポンスヘッダ、ステータスコード、ボディ返却を自分で書く必要がある
+- Day1では `@GetMapping("/")` と `return "index"` で同じ意図をより短く表現できる
+
+### 2-11. Day1への橋渡し（5分）
+1. 2-9で手作業だった項目を3つ書く（例: jar作成、配置、`-cp` 指定）
+2. 2-10で手作業だった項目を3つ書く（例: ルーティング、ヘッダ設定、HTML返却）
+3. それぞれがDay1で何に置き換わるかを書く
+
+対応の目安:
+- 手動jar管理 -> `pom.xml` + `mvn` の依存管理
+- 手動Web起動 -> Spring Boot の自動設定 + 組み込みサーバー
+- 手動ルーティング -> `@Controller` + `@GetMapping`
+
 ---
 
 ## 3. 今日のゴール
-- HTML/CSSで画面を作れる
 - Javaの基本構文を「自分で動かして理解できた」状態になる
+- 手動ライブラリ追加と手動Web起動を体験し、Day1で置き換わる部分を説明できる
 - Day1のSpring Boot演習に進む準備ができた
 
 ---
@@ -700,7 +837,8 @@ java AttendanceDemo
 - `javac` / `java` が見つからない → `JAVA_HOME` と `Path` を確認
 - `class X is public, should be declared in a file named X.java`  
   → クラス名とファイル名が一致しているか確認
-- CSSが反映されない → `index.html` と `styles.css` の同一フォルダを確認
+- `-cp` 指定がない/誤っている → jar利用時はコンパイル時・実行時の両方でクラスパスを確認
+- `Address already in use: bind` → 8080ポートを別プロセスが使用中。対象停止かポート変更
 - 文字化けや `BOM` 由来のエラーが出る → ファイルを `UTF-8`（BOMなし推奨）で保存し直す
 
 ---
@@ -710,6 +848,8 @@ java AttendanceDemo
 |---|---|---|
 | `javac` / `java` が見つからない | `JAVA_HOME` / `Path` 未設定、またはターミナル再起動前 | 環境変数を設定し、Git Bash を再起動 |
 | `class X is public, should be declared in a file named X.java` | クラス名とファイル名不一致 | `public class X` と `X.java` を一致させる |
+| `package ... does not exist` | jar利用時の `-cp` 指定漏れ/誤り | コンパイル時・実行時の両方で `-cp` を確認 |
+| `Address already in use: bind` | 使用ポートが競合している | 既存プロセス停止、または使用ポートを変更 |
 | `reached end of file while parsing` | `}` の閉じ忘れ | `{` と `}` の数を対応させる |
 | `';' expected` | 文末の `;` 抜け | エラー行付近の文末に `;` を付ける |
 | `cannot find symbol` | 変数名/メソッド名の打ち間違い、`import` 不足 | エラー箇所のスペル確認、必要な `import` を追加 |
