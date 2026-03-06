@@ -846,6 +846,7 @@ mkdir -p day1-bridge/teststyle
 このStepで新しく覚えること:
 - `private final`（再代入しないフィールド）
 - コンストラクタで依存を受け取る形（コンストラクタ注入の土台）
+- このStepでは `trim()` / `isBlank()` など文字列整形は扱わない（Step 2で扱う）
 
 作成ファイル: `practice/day0/java/day1-bridge/ConstructorDiDemo.java`
 
@@ -853,10 +854,7 @@ mkdir -p day1-bridge/teststyle
 public class ConstructorDiDemo {
     static class MessageService {
         String createMessage(String name) {
-            if (name == null || name.isBlank()) {
-                return "Hello, guest";
-            }
-            return "Hello, " + name.trim();
+            return "Hello, " + name;
         }
     }
 
@@ -875,7 +873,7 @@ public class ConstructorDiDemo {
     public static void main(String[] args) {
         MessageService service = new MessageService();
         GreetingControllerLike controller = new GreetingControllerLike(service);
-        System.out.println(controller.hello("  Shinesoft  "));
+        System.out.println(controller.hello("Shinesoft"));
     }
 }
 ```
@@ -902,10 +900,10 @@ Hello, Shinesoft
   - 受け取った依存をフィールドへ保存
 
 なぜこの出力になるか:
-- `"  Shinesoft  "` が `trim()` で前後空白除去され、`Hello, Shinesoft` になる
+- `controller.hello("Shinesoft")` が `MessageService#createMessage` に渡され、`"Hello, " + name` が返るため
 
 1分ミニ改造:
-- `controller.hello("   ")` に変更して `Hello, guest` になることを確認
+- `controller.hello("Taro")` に変更して `Hello, Taro` になることを確認
 
 よくあるミス:
 - `final` フィールドに後から再代入しようとしてエラーになる
