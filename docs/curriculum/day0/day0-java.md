@@ -830,12 +830,23 @@ java --add-modules jdk.httpserver MiniWebServer
 - `import static` と `assertEquals` の使い方を説明できる
 
 #### Step 0: 作業フォルダを作る
+このStepで新しく覚えること:
+- Day1向けの予習コードを通常演習と分離する理由
+
 ```bash
 cd practice/day0/java
 mkdir -p day1-bridge/teststyle
 ```
 
+意味:
+- `day1-bridge` を作ることで、Day0の基本演習ファイルと混ざらず復習しやすくなる
+- `teststyle` は Step 4 の `package teststyle;` とフォルダを一致させるため
+
 #### Step 1: コンストラクタ + `private final`（DIの形）
+このStepで新しく覚えること:
+- `private final`（再代入しないフィールド）
+- コンストラクタで依存を受け取る形（コンストラクタ注入の土台）
+
 作成ファイル: `practice/day0/java/day1-bridge/ConstructorDiDemo.java`
 
 ```java
@@ -881,7 +892,33 @@ java ConstructorDiDemo
 Hello, Shinesoft
 ```
 
+行ごとの意味（重要行）:
+- `private final MessageService messageService;`
+  - `private`: このクラス内からのみアクセス
+  - `final`: 1回代入したら参照先を変更しない
+- `GreetingControllerLike(MessageService messageService)`
+  - コンストラクタ。外から依存オブジェクトを受け取る入口
+- `this.messageService = messageService;`
+  - 受け取った依存をフィールドへ保存
+
+なぜこの出力になるか:
+- `"  Shinesoft  "` が `trim()` で前後空白除去され、`Hello, Shinesoft` になる
+
+1分ミニ改造:
+- `controller.hello("   ")` に変更して `Hello, guest` になることを確認
+
+よくあるミス:
+- `final` フィールドに後から再代入しようとしてエラーになる
+- コンストラクタの引数名と `this.` の意味を混同する
+
+Day1でどこに出るか:
+- `maven-sandbox/README.md` の `GreetingController` で `private final` とコンストラクタ注入が出る
+
 #### Step 2: `||`, `isBlank()`, `trim()` の挙動
+このStepで新しく覚えること:
+- `||`（OR条件）の評価
+- 文字列の空判定と整形
+
 作成ファイル: `practice/day0/java/day1-bridge/StringRuleDemo.java`
 
 ```java
@@ -914,7 +951,31 @@ guest
 Alice
 ```
 
+行ごとの意味（重要行）:
+- `if (name == null || name.isBlank())`
+  - 左が `true` なら右を見なくても `true`（短絡評価）
+- `name.trim()`
+  - 前後の空白だけを削る（途中の空白は残る）
+
+なぜこの出力になるか:
+- `null` と `"   "` は条件式で `guest`
+- `"  Alice  "` は `trim()` で `"Alice"` になる
+
+1分ミニ改造:
+- `normalize(" A B ")` を追加して、`A B`（途中空白は残る）を確認
+
+よくあるミス:
+- `isBlank()` と `isEmpty()` の違いを混同する
+- `null` チェックより先に `isBlank()` を呼んで `NullPointerException` になる
+
+Day1でどこに出るか:
+- `GreetingService` / `GreetingCalculator` の `name == null || name.isBlank()` と `trim()`
+
 #### Step 3: アノテーション記法 + `@RequestParam` 風の属性
+このStepで新しく覚えること:
+- `@...` の基本形（アノテーション宣言と付与）
+- `name = "..."`, `required = false` のような属性指定の読み方
+
 作成ファイル: `practice/day0/java/day1-bridge/AnnotationAndRequestParamDemo.java`
 
 ```java
@@ -983,7 +1044,35 @@ RequestParamLike.name: name
 RequestParamLike.required: false
 ```
 
+行ごとの意味（重要行）:
+- `@interface ControllerLike {}`:
+  - 「アノテーション型」を定義している
+- `@GetMappingLike("/hello")`:
+  - `value` 属性への省略記法（`value = "/hello"` と同義）
+- `@RequestParamLike(name = "name", required = false)`:
+  - 属性を明示した記法。Day1の `@RequestParam` と同じ読み方
+- `method.getAnnotation(...)` / `param.getAnnotation(...)`:
+  - 付与したアノテーション情報を読み取って出力している
+
+なぜこの出力になるか:
+- クラス/メソッド/引数に付けた値を、実行時に読み取って表示しているため
+
+1分ミニ改造:
+- `@GetMappingLike("/hi")` に変えて `GetMappingLike.value` の出力差分を確認
+
+よくあるミス:
+- `@interface` を通常クラスと勘違いする
+- `@Retention(RetentionPolicy.RUNTIME)` を外して実行時に取得できなくなる
+
+Day1でどこに出るか:
+- `@Controller`, `@GetMapping`, `@RequestParam(name=..., required=false)` の見方そのもの
+
 #### Step 4: `@Test` 風 + `import static` + `assertEquals`
+このStepで新しく覚えること:
+- `import static` でメソッド名だけで呼び出せること
+- `assertEquals` で期待値と実際値を比較する考え方
+- `@Test` 相当の「テストメソッド目印」記法
+
 作成ファイル: `practice/day0/java/day1-bridge/teststyle/AssertLite.java`
 
 ```java
@@ -1054,6 +1143,27 @@ java -cp . teststyle.TestStyleDemo
 [PASS] blank_returnsGuest
 PASSED: 2
 ```
+
+行ごとの意味（重要行）:
+- `import static teststyle.AssertLite.assertEquals;`
+  - `AssertLite.assertEquals(...)` を `assertEquals(...)` と短く書ける
+- `@TestCase`
+  - そのメソッドをテスト対象として扱う目印
+- `if (m.isAnnotationPresent(TestCase.class))`
+  - `@TestCase` が付いたメソッドだけ実行する
+
+なぜこの出力になるか:
+- 2つのテストメソッドが例外なく通過したので `PASS` が2件表示される
+
+1分ミニ改造:
+- `assertEquals(6, 2 + 3);` に変えて失敗メッセージを確認して戻す
+
+よくあるミス:
+- `package teststyle;` とフォルダ名 `teststyle/` を一致させない
+- `import static` の対象を通常 `import` と同じ感覚で書いてエラーになる
+
+Day1でどこに出るか:
+- JUnit の `@Test` と `Assertions.assertEquals(...)` の読み方
 
 対応関係（Day1へ）
 - `ControllerLike` / `GetMappingLike` / `RequestParamLike` -> `@Controller` / `@GetMapping` / `@RequestParam`
