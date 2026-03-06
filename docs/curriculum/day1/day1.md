@@ -79,6 +79,16 @@ Day1で最低限覚えるコマンドは以下の3つです。
 - `mvn clean`
 - `mvn spring-boot:run`
 
+### Day0方式 vs Day1方式（ここが便利）
+| 観点 | Day0（Java基礎） | Day1（Maven + Spring Boot） |
+|---|---|---|
+| コンパイル/実行 | `javac` と `java` を対象ファイルごとに実行 | `mvn spring-boot:run` で起動まで一括実行 |
+| ライブラリ追加 | 手動でjar管理が必要（実務では破綻しやすい） | `pom.xml` に1行追加して自動取得 |
+| Web起動の初期設定 | 自分で多くの設定を組む必要がある | Spring Boot が初期設定を自動化 |
+| チーム開発での再現性 | 個人環境差分が出やすい | `pom.xml` に定義を寄せて再現しやすい |
+
+この後の実習は「なぜ便利か」を体感するために、Day0と同じく最小構成で進めます。
+
 ---
 
 ## 2. `mvn`コマンドを先に体験（コード変更なし）
@@ -220,6 +230,22 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
 - よくあるミス:
   - XMLタグの閉じ忘れでビルド失敗
   - `<dependency>` の入れ子崩れで依存解決失敗
+
+## 5.5 Mavenの便利さを体感（5分）
+`pom.xml` を作った直後に、依存解決の自動化を一度体感します。
+
+```bash
+cd ~/order-management-springboot/stages/day1
+mvn -q dependency:tree
+```
+
+確認ポイント:
+- 自分でjarを1つずつ配置しなくても、依存関係が連鎖して解決される
+- `spring-boot-starter-web` の1行から、Web起動に必要な複数ライブラリが取得される
+
+Day0との違い:
+- Day0: Java文法を学ぶために手動コンパイル中心
+- Day1: Mavenに「何を使うか」を宣言すると、取得とビルドを自動化できる
 
 ---
 
@@ -368,6 +394,14 @@ public class HomeController {
 - `return "index"` のスペルミス -> テンプレートが見つからずエラー
 - `addAttribute` のキー名と `${...}` が不一致 -> 値が表示されない
 - `@Controller` / `@GetMapping` を付け忘れる -> URLにアクセスできない
+
+### 5) Springを使わない場合に増える作業（比較）
+- URLごとの振る舞いを手作業でルーティング実装する必要がある
+- リクエスト/レスポンス処理の共通化を自前で設計する必要がある
+- テンプレートへの値受け渡し規約を自前で決める必要がある
+- 起動・設定・依存解決の手順が分散し、初期構築コストが上がる
+
+この章で触れた `@Controller` / `@GetMapping` / `return "index"` は、これらの定型作業を大幅に減らすための仕組みです。
 
 ---
 
@@ -606,7 +640,14 @@ http://localhost:8080/
 
 ## 13. 今日のゴール
 - MVCの最低限構成（Controller → Template）が動くことを確認
+- Day0の手動実行と比べて、Maven/Spring Bootの便利さを説明できる
 - Day2から「出勤ボタン」を実装する準備ができた
+
+---
+
+## 13.5 リフレクション（3分）
+1. Day0方式で同じ画面表示を作る場合、どの作業が増えるかを3つ書く
+2. Mavenを使わない場合、依存ライブラリ管理で何がつらいかを1つ書く
 
 ---
 
