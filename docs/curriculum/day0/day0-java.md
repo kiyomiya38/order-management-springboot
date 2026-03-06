@@ -818,10 +818,253 @@ java --add-modules jdk.httpserver MiniWebServer
 - ルーティング、レスポンスヘッダ、ステータスコード、ボディ返却を自分で書く必要がある
 - Day1では `@GetMapping("/")` と `return "index"` で同じ意図をより短く表現できる
 
-### 2-11. Day1への橋渡し（5分）
+### 2-11. Day1で出るJava構文を先取り（45〜60分）
+目的:
+- Day1 `maven-sandbox` で急に出るJava記法を、Spring本体に入る前に体験する
+- 「何をしているコードか」を読める状態でDay1に進む
+
+完了条件:
+- `private final` とコンストラクタ注入の形を説明できる
+- `||`, `isBlank()`, `trim()` の意味を説明できる
+- `@Controller` / `@GetMapping` / `@RequestParam` / `@Test` の見た目と役割を説明できる
+- `import static` と `assertEquals` の使い方を説明できる
+
+#### Step 0: 作業フォルダを作る
+```bash
+cd practice/day0/java
+mkdir -p day1-bridge/teststyle
+```
+
+#### Step 1: コンストラクタ + `private final`（DIの形）
+作成ファイル: `practice/day0/java/day1-bridge/ConstructorDiDemo.java`
+
+```java
+public class ConstructorDiDemo {
+    static class MessageService {
+        String createMessage(String name) {
+            if (name == null || name.isBlank()) {
+                return "Hello, guest";
+            }
+            return "Hello, " + name.trim();
+        }
+    }
+
+    static class GreetingControllerLike {
+        private final MessageService messageService; // 再代入しない依存
+
+        GreetingControllerLike(MessageService messageService) { // コンストラクタで受け取る
+            this.messageService = messageService;
+        }
+
+        String hello(String name) {
+            return messageService.createMessage(name);
+        }
+    }
+
+    public static void main(String[] args) {
+        MessageService service = new MessageService();
+        GreetingControllerLike controller = new GreetingControllerLike(service);
+        System.out.println(controller.hello("  Shinesoft  "));
+    }
+}
+```
+
+実行:
+```bash
+cd practice/day0/java/day1-bridge
+javac -encoding UTF-8 ConstructorDiDemo.java
+java ConstructorDiDemo
+```
+
+期待出力:
+```text
+Hello, Shinesoft
+```
+
+#### Step 2: `||`, `isBlank()`, `trim()` の挙動
+作成ファイル: `practice/day0/java/day1-bridge/StringRuleDemo.java`
+
+```java
+public class StringRuleDemo {
+    static String normalize(String name) {
+        if (name == null || name.isBlank()) {
+            return "guest";
+        }
+        return name.trim();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(normalize(null));
+        System.out.println(normalize("   "));
+        System.out.println(normalize("  Alice  "));
+    }
+}
+```
+
+実行:
+```bash
+javac -encoding UTF-8 StringRuleDemo.java
+java StringRuleDemo
+```
+
+期待出力:
+```text
+guest
+guest
+Alice
+```
+
+#### Step 3: アノテーション記法 + `@RequestParam` 風の属性
+作成ファイル: `practice/day0/java/day1-bridge/AnnotationAndRequestParamDemo.java`
+
+```java
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@interface ControllerLike {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@interface GetMappingLike {
+    String value();
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.PARAMETER)
+@interface RequestParamLike {
+    String name();
+
+    boolean required() default true;
+}
+
+@ControllerLike
+class GreetingControllerLike {
+    @GetMappingLike("/hello")
+    public String hello(@RequestParamLike(name = "name", required = false) String name) {
+        return name;
+    }
+}
+
+public class AnnotationAndRequestParamDemo {
+    public static void main(String[] args) throws Exception {
+        Class<?> clazz = GreetingControllerLike.class;
+        Method method = clazz.getDeclaredMethod("hello", String.class);
+        Parameter param = method.getParameters()[0];
+
+        GetMappingLike mapping = method.getAnnotation(GetMappingLike.class);
+        RequestParamLike requestParam = param.getAnnotation(RequestParamLike.class);
+
+        System.out.println("ControllerLike: " + clazz.isAnnotationPresent(ControllerLike.class));
+        System.out.println("GetMappingLike.value: " + mapping.value());
+        System.out.println("RequestParamLike.name: " + requestParam.name());
+        System.out.println("RequestParamLike.required: " + requestParam.required());
+    }
+}
+```
+
+実行:
+```bash
+javac -encoding UTF-8 AnnotationAndRequestParamDemo.java
+java AnnotationAndRequestParamDemo
+```
+
+期待出力:
+```text
+ControllerLike: true
+GetMappingLike.value: /hello
+RequestParamLike.name: name
+RequestParamLike.required: false
+```
+
+#### Step 4: `@Test` 風 + `import static` + `assertEquals`
+作成ファイル: `practice/day0/java/day1-bridge/teststyle/AssertLite.java`
+
+```java
+package teststyle;
+
+public class AssertLite {
+    public static void assertEquals(Object expected, Object actual) {
+        if (expected == null ? actual != null : !expected.equals(actual)) {
+            throw new IllegalStateException("expected=" + expected + ", actual=" + actual);
+        }
+    }
+}
+```
+
+作成ファイル: `practice/day0/java/day1-bridge/teststyle/TestStyleDemo.java`
+
+```java
+package teststyle;
+
+import static teststyle.AssertLite.assertEquals;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Method;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@interface TestCase {
+}
+
+public class TestStyleDemo {
+    @TestCase
+    static void add_returnsSum() {
+        assertEquals(5, 2 + 3);
+    }
+
+    @TestCase
+    static void blank_returnsGuest() {
+        String value = " ".isBlank() ? "guest" : "x";
+        assertEquals("guest", value);
+    }
+
+    public static void main(String[] args) throws Exception {
+        int passed = 0;
+        for (Method m : TestStyleDemo.class.getDeclaredMethods()) {
+            if (m.isAnnotationPresent(TestCase.class)) {
+                m.invoke(null);
+                passed++;
+                System.out.println("[PASS] " + m.getName());
+            }
+        }
+        System.out.println("PASSED: " + passed);
+    }
+}
+```
+
+実行:
+```bash
+javac -encoding UTF-8 teststyle/AssertLite.java teststyle/TestStyleDemo.java
+java -cp . teststyle.TestStyleDemo
+```
+
+期待出力:
+```text
+[PASS] add_returnsSum
+[PASS] blank_returnsGuest
+PASSED: 2
+```
+
+対応関係（Day1へ）
+- `ControllerLike` / `GetMappingLike` / `RequestParamLike` -> `@Controller` / `@GetMapping` / `@RequestParam`
+- `TestCase` / `AssertLite.assertEquals` -> `@Test` / `Assertions.assertEquals`
+- `private final` + コンストラクタ受け取り -> コンストラクタ注入（DI）の基本形
+
+### 2-12. Day1への橋渡し（5分）
 1. 2-9で手作業だった項目を3つ書く（例: jar作成、配置、`-cp` 指定）
 2. 2-10で手作業だった項目を3つ書く（例: ルーティング、ヘッダ設定、HTML返却）
-3. それぞれがDay1で何に置き換わるかを書く
+3. 2-11で先取りしたJava記法が、Day1のどの行で使われるかを3つ書く
+4. それぞれがDay1で何に置き換わるかを書く
 
 対応の目安:
 - 手動jar管理 -> `pom.xml` + `mvn` の依存管理
@@ -832,6 +1075,7 @@ java --add-modules jdk.httpserver MiniWebServer
 
 ## 3. 今日のゴール
 - Javaの基本構文を「自分で動かして理解できた」状態になる
+- Day1で出るJava記法（アノテーション、コンストラクタ注入、`private final`、`||`/`isBlank`/`trim`、`import static`、`assertEquals`）を読める
 - 手動ライブラリ追加と手動Web起動を体験し、Day1で置き換わる部分を説明できる
 - Day1のSpring Boot演習に進む準備ができた
 

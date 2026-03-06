@@ -1,75 +1,78 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"> <!-- POM全体のルート要素 -->
+  <!-- xmlns: このXMLがMaven POMのタグ体系であることを示す名前空間 -->
+  <!-- xmlns:xsi: xsi:schemaLocation のような xsd検証用属性を使うための宣言 -->
+  <!-- xsi:schemaLocation: どのXSD（定義ファイル）でこのPOMを検証するかを示す -->
+  <modelVersion>4.0.0</modelVersion> <!-- POM仕様バージョン -->
 
-  <groupId>com.shinesoft.training</groupId>
-  <artifactId>day1-maven-sandbox</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <name>day1-maven-sandbox</name>
-  <description>Day1 Maven learning sandbox project</description>
+  <groupId>com.shinesoft.training</groupId> <!-- 組織識別子 -->
+  <artifactId>day1-maven-sandbox</artifactId> <!-- 成果物名 -->
+  <version>1.0.0-SNAPSHOT</version> <!-- 開発中バージョン -->
+  <name>day1-maven-sandbox</name> <!-- プロジェクト表示名 -->
+  <description>Day1 Maven learning sandbox project</description> <!-- プロジェクト説明 -->
 
-  <properties>
-    <java.version>17</java.version>
-    <maven.compiler.release>${java.version}</maven.compiler.release>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.boot.version>3.2.6</spring.boot.version>
-    <junit.jupiter.version>5.10.2</junit.jupiter.version>
-  </properties>
+  <properties> <!-- 共通プロパティ定義 -->
+    <java.version>17</java.version> <!-- Javaバージョン -->
+    <maven.compiler.release>${java.version}</maven.compiler.release> <!-- Javaコンパイル対象バージョン -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- ソース文字コード -->
+    <spring.boot.version>3.2.6</spring.boot.version> <!-- Spring Boot基準バージョン -->
+    <junit.jupiter.version>5.10.2</junit.jupiter.version> <!-- JUnitバージョン -->
+  </properties> <!-- propertiesセクション終了 -->
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring.boot.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+  <dependencyManagement> <!-- 依存バージョンの一括管理 -->
+    <dependencies> <!-- 依存管理対象の一覧 -->
+      <dependency> <!-- Spring Boot BOMの取り込み -->
+        <groupId>org.springframework.boot</groupId> <!-- Spring Boot系ライブラリ -->
+        <artifactId>spring-boot-dependencies</artifactId> <!-- BOM本体 -->
+        <version>${spring.boot.version}</version> <!-- BOMバージョン -->
+        <type>pom</type> <!-- BOMとして扱う -->
+        <scope>import</scope> <!-- 管理情報として読み込む -->
+      </dependency> <!-- BOM依存定義の終了 -->
+    </dependencies> <!-- dependencyManagement内 dependencies終了 -->
+  </dependencyManagement> <!-- dependencyManagement終了 -->
 
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
+  <dependencies> <!-- 実際に使う依存 -->
+    <dependency> <!-- Web機能 -->
+      <groupId>org.springframework.boot</groupId> <!-- Spring Boot系ライブラリ -->
+      <artifactId>spring-boot-starter-web</artifactId> <!-- Spring MVC + 組み込みTomcat -->
+    </dependency> <!-- Web依存終了 -->
 
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-thymeleaf</artifactId>
-    </dependency>
+    <dependency> <!-- 画面テンプレート機能 -->
+      <groupId>org.springframework.boot</groupId> <!-- Spring Boot系ライブラリ -->
+      <artifactId>spring-boot-starter-thymeleaf</artifactId> <!-- Thymeleaf -->
+    </dependency> <!-- Thymeleaf依存終了 -->
 
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <version>${junit.jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+    <dependency> <!-- テスト依存 -->
+      <groupId>org.junit.jupiter</groupId> <!-- JUnit 5 -->
+      <artifactId>junit-jupiter</artifactId> <!-- テスト実行ライブラリ -->
+      <version>${junit.jupiter.version}</version> <!-- JUnitバージョン -->
+      <scope>test</scope> <!-- テスト時のみ利用 -->
+    </dependency> <!-- テスト依存終了 -->
+  </dependencies> <!-- dependenciesセクション終了 -->
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
-        <configuration>
-          <release>${maven.compiler.release}</release>
-        </configuration>
-      </plugin>
+  <build> <!-- ビルド設定 -->
+    <plugins> <!-- 使用プラグイン一覧 -->
+      <plugin> <!-- Javaコンパイル -->
+        <groupId>org.apache.maven.plugins</groupId> <!-- 公式Mavenプラグイン -->
+        <artifactId>maven-compiler-plugin</artifactId> <!-- コンパイラプラグイン -->
+        <version>3.13.0</version> <!-- プラグインバージョン -->
+        <configuration> <!-- コンパイラ設定 -->
+          <release>${maven.compiler.release}</release> <!-- Java 17でコンパイル -->
+        </configuration> <!-- compiler plugin設定終了 -->
+      </plugin> <!-- maven-compiler-plugin終了 -->
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.2.5</version>
-      </plugin>
+      <plugin> <!-- 単体テスト実行 -->
+        <groupId>org.apache.maven.plugins</groupId> <!-- 公式Mavenプラグイン -->
+        <artifactId>maven-surefire-plugin</artifactId> <!-- JUnit実行 -->
+        <version>3.2.5</version> <!-- プラグインバージョン -->
+      </plugin> <!-- maven-surefire-plugin終了 -->
 
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${spring.boot.version}</version>
-      </plugin>
-    </plugins>
-  </build>
-</project>
+      <plugin> <!-- Spring Boot起動 -->
+        <groupId>org.springframework.boot</groupId> <!-- Spring Bootプラグイン -->
+        <artifactId>spring-boot-maven-plugin</artifactId> <!-- spring-boot:run を提供 -->
+        <version>${spring.boot.version}</version> <!-- Spring Bootバージョン -->
+      </plugin> <!-- spring-boot-maven-plugin終了 -->
+    </plugins> <!-- pluginsセクション終了 -->
+  </build> <!-- buildセクション終了 -->
+</project> <!-- projectルート終了 -->

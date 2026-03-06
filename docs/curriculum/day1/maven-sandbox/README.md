@@ -12,7 +12,7 @@
 
 ## 1. まず全体像（概念）
 
-### 1-1. Mavenとは
+### 1-1. Maven（メイヴン）とは
 Mavenは、Javaプロジェクトの作業を自動化するツールです。
 主に次を担当します。
 
@@ -48,7 +48,10 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"> <!-- MavenのPOM定義 -->
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"> <!-- POM全体のルート要素 -->
+  <!-- xmlns: このXMLがMaven POMのタグ体系であることを示す名前空間 -->
+  <!-- xmlns:xsi: xsi:schemaLocation のような xsd検証用属性を使うための宣言 -->
+  <!-- xsi:schemaLocation: どのXSD（定義ファイル）でこのPOMを検証するかを示す -->
   <modelVersion>4.0.0</modelVersion> <!-- POM仕様バージョン（通常4.0.0） -->
 
   <groupId>com.shinesoft.training</groupId> <!-- 組織識別子（ドメイン逆順が一般的） -->
@@ -57,65 +60,65 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
   <name>day1-maven-sandbox</name> <!-- プロジェクト表示名 -->
   <description>Day1 Maven learning sandbox project</description> <!-- 説明 -->
 
-  <properties> <!-- 共通で使う値をまとめる -->
+  <properties> <!-- 共通で使う値をまとめるセクション -->
     <java.version>17</java.version> <!-- Javaバージョン -->
     <maven.compiler.release>${java.version}</maven.compiler.release> <!-- Java 17でコンパイル -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- ソース文字コード -->
     <spring.boot.version>3.2.6</spring.boot.version> <!-- Spring Boot基準バージョン -->
     <junit.jupiter.version>5.10.2</junit.jupiter.version> <!-- JUnitバージョン -->
-  </properties>
+  </properties> <!-- propertiesセクション終了 -->
 
   <dependencyManagement> <!-- 依存バージョンを一括管理する領域 -->
-    <dependencies>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring.boot.version}</version>
+    <dependencies> <!-- 依存管理対象の一覧 -->
+      <dependency> <!-- Spring Boot BOM（依存バージョン表）を取り込む -->
+        <groupId>org.springframework.boot</groupId> <!-- Spring Boot系ライブラリのグループ -->
+        <artifactId>spring-boot-dependencies</artifactId> <!-- BOM本体 -->
+        <version>${spring.boot.version}</version> <!-- BOMの基準バージョン -->
         <type>pom</type> <!-- BOMとして読み込む -->
         <scope>import</scope> <!-- BOMをimportしてversion記述を減らす -->
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+      </dependency> <!-- BOM依存定義の終了 -->
+    </dependencies> <!-- dependencyManagement内のdependencies終了 -->
+  </dependencyManagement> <!-- dependencyManagementセクション終了 -->
 
   <dependencies> <!-- 実際に使うライブラリ -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
+    <dependency> <!-- Web機能を使うための依存 -->
+      <groupId>org.springframework.boot</groupId> <!-- Spring Boot系ライブラリのグループ -->
       <artifactId>spring-boot-starter-web</artifactId> <!-- Spring MVC + 組み込みTomcat -->
-    </dependency>
+    </dependency> <!-- Web依存の終了 -->
 
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
+    <dependency> <!-- テスト実行用の依存 -->
+      <groupId>org.junit.jupiter</groupId> <!-- JUnit 5系ライブラリのグループ -->
       <artifactId>junit-jupiter</artifactId> <!-- 単体テスト用 -->
-      <version>${junit.jupiter.version}</version>
+      <version>${junit.jupiter.version}</version> <!-- JUnitバージョン -->
       <scope>test</scope> <!-- テスト実行時のみ有効 -->
-    </dependency>
-  </dependencies>
+    </dependency> <!-- テスト依存の終了 -->
+  </dependencies> <!-- dependenciesセクション終了 -->
 
   <build> <!-- ビルドに使うプラグイン設定 -->
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
-        <configuration>
+    <plugins> <!-- 使用するMavenプラグインの一覧 -->
+      <plugin> <!-- Javaコンパイル用プラグイン -->
+        <groupId>org.apache.maven.plugins</groupId> <!-- 公式Mavenプラグイングループ -->
+        <artifactId>maven-compiler-plugin</artifactId> <!-- Javaコンパイラ設定 -->
+        <version>3.13.0</version> <!-- プラグインバージョン -->
+        <configuration> <!-- プラグイン固有設定 -->
           <release>${maven.compiler.release}</release> <!-- Java 17でコンパイル -->
-        </configuration>
-      </plugin>
+        </configuration> <!-- compiler plugin設定終了 -->
+      </plugin> <!-- maven-compiler-pluginの終了 -->
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
+      <plugin> <!-- テスト実行用プラグイン -->
+        <groupId>org.apache.maven.plugins</groupId> <!-- 公式Mavenプラグイングループ -->
+        <artifactId>maven-surefire-plugin</artifactId> <!-- 単体テスト実行 -->
         <version>3.2.5</version> <!-- mvn testでJUnitを実行 -->
-      </plugin>
+      </plugin> <!-- maven-surefire-pluginの終了 -->
 
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
+      <plugin> <!-- Spring Boot起動/パッケージ化用プラグイン -->
+        <groupId>org.springframework.boot</groupId> <!-- Spring Boot系プラグイングループ -->
+        <artifactId>spring-boot-maven-plugin</artifactId> <!-- spring-boot:run などを提供 -->
         <version>${spring.boot.version}</version> <!-- mvn spring-boot:run を使うために必要 -->
-      </plugin>
-    </plugins>
-  </build>
-</project>
+      </plugin> <!-- spring-boot-maven-pluginの終了 -->
+    </plugins> <!-- pluginsセクション終了 -->
+  </build> <!-- buildセクション終了 -->
+</project> <!-- projectルート終了 -->
 ```
 
 ### 2-1. 最低限ここだけ先に読む
