@@ -697,6 +697,13 @@ java AttendanceDemo
 - クラスパス指定なしだと失敗し、指定ありで `ManualLibDemo` が実行できる
 
 #### Step 0: ミニライブラリを自作する
+最初にディレクトリを作成:
+```bash
+cd practice/day0/java
+mkdir -p libsrc/com/shinesoft/util
+mkdir -p lib/classes
+```
+
 作成ファイル: `practice/day0/java/libsrc/com/shinesoft/util/BannerUtil.java`
 
 ```java
@@ -711,9 +718,6 @@ public class BannerUtil {
 
 コンパイルして jar 化:
 ```bash
-cd practice/day0/java
-mkdir -p libsrc/com/shinesoft/util
-mkdir -p lib/classes
 javac -encoding UTF-8 -d lib/classes libsrc/com/shinesoft/util/BannerUtil.java
 jar --create --file lib/manual-banner-1.0.jar -C lib/classes .
 ```
