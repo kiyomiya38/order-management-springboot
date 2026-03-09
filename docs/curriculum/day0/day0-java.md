@@ -834,8 +834,8 @@ java --add-modules jdk.httpserver MiniWebServer
 - Day1向けの予習コードを通常演習と分離する理由
 
 ```bash
-cd practice/day0/java
-mkdir -p day1-bridge/teststyle
+cd practice/day0/java           # Day0のJava演習フォルダへ移動する
+mkdir -p day1-bridge/teststyle # 予習コード用フォルダとStep4用のpackageフォルダを作る
 ```
 
 意味:
@@ -851,31 +851,31 @@ mkdir -p day1-bridge/teststyle
 作成ファイル: `practice/day0/java/day1-bridge/ConstructorDiDemo.java`
 
 ```java
-public class ConstructorDiDemo {
-    static class MessageService {
-        String createMessage(String name) {
-            return "Hello, " + name;
-        }
-    }
+public class ConstructorDiDemo { // このサンプルを実行するメインクラス
+    static class MessageService { // メッセージ作成だけを担当する小さなクラス
+        String createMessage(String name) { // 呼び出し元から受け取った名前で挨拶文を作る
+            return "Hello, " + name; // 文字列を連結して結果を返す
+        } // createMessageメソッドの終わり
+    } // MessageServiceクラスの終わり
 
-    static class GreetingControllerLike {
-        private final MessageService messageService; // 再代入しない依存
+    static class GreetingControllerLike { // Serviceを利用する側（Controller風）のクラス
+        private final MessageService messageService; // private: クラス内専用 / final: 再代入しない
 
-        GreetingControllerLike(MessageService messageService) { // コンストラクタで受け取る
-            this.messageService = messageService;
-        }
+        GreetingControllerLike(MessageService messageService) { // コンストラクタ: new時に1回だけ呼ばれる初期化処理
+            this.messageService = messageService; // 引数で受け取ったServiceを自分のフィールドへ保存する
+        } // コンストラクタの終わり
 
-        String hello(String name) {
-            return messageService.createMessage(name);
-        }
-    }
+        String hello(String name) { // 呼び出し窓口メソッド: 受け取ったnameで挨拶を返す
+            return messageService.createMessage(name); // 文字列作成処理はServiceへ委譲する
+        } // helloメソッドの終わり
+    } // GreetingControllerLikeクラスの終わり
 
-    public static void main(String[] args) {
-        MessageService service = new MessageService();
-        GreetingControllerLike controller = new GreetingControllerLike(service);
-        System.out.println(controller.hello("Shinesoft"));
-    }
-}
+    public static void main(String[] args) { // Javaプログラムの実行開始地点
+        MessageService service = new MessageService(); // Serviceのインスタンスを生成する
+        GreetingControllerLike controller = new GreetingControllerLike(service); // コンストラクタでServiceを注入してControllerを作る
+        System.out.println(controller.hello("Shinesoft")); // 実行結果を標準出力へ表示する
+    } // mainメソッドの終わり
+} // ConstructorDiDemoクラスの終わり
 ```
 
 実行:
@@ -920,20 +920,20 @@ Day1でどこに出るか:
 作成ファイル: `practice/day0/java/day1-bridge/StringRuleDemo.java`
 
 ```java
-public class StringRuleDemo {
-    static String normalize(String name) {
-        if (name == null || name.isBlank()) {
-            return "guest";
-        }
-        return name.trim();
-    }
+public class StringRuleDemo { // 文字列の判定と整形ルールを確認するクラス
+    static String normalize(String name) { // 入力nameを「表示用の安全な文字列」に整える
+        if (name == null || name.isBlank()) { // nullまたは空白だけならguest扱いにする
+            return "guest"; // 代替文字列を返す
+        } // ifブロックの終わり
+        return name.trim(); // それ以外は前後の空白を削って返す
+    } // normalizeメソッドの終わり
 
-    public static void main(String[] args) {
-        System.out.println(normalize(null));
-        System.out.println(normalize("   "));
-        System.out.println(normalize("  Alice  "));
-    }
-}
+    public static void main(String[] args) { // 実行入口
+        System.out.println(normalize(null)); // null入力の結果を確認する
+        System.out.println(normalize("   ")); // 空白だけ入力の結果を確認する
+        System.out.println(normalize("  Alice  ")); // 前後空白つき入力の結果を確認する
+    } // mainメソッドの終わり
+} // StringRuleDemoクラスの終わり
 ```
 
 実行:
@@ -977,55 +977,55 @@ Day1でどこに出るか:
 作成ファイル: `practice/day0/java/day1-bridge/AnnotationAndRequestParamDemo.java`
 
 ```java
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.annotation.ElementType; // アノテーションを付けられる対象（型/メソッド/引数など）を表す
+import java.lang.annotation.Retention; // アノテーション保持期間を指定するメタアノテーション
+import java.lang.annotation.RetentionPolicy; // 保持期間の種類（SOURCE/CLASS/RUNTIME）を表す
+import java.lang.annotation.Target; // アノテーション付与対象を指定するメタアノテーション
+import java.lang.reflect.Method; // メソッド情報を実行時に扱うための型
+import java.lang.reflect.Parameter; // 引数情報を実行時に扱うための型
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@interface ControllerLike {
-}
+@Retention(RetentionPolicy.RUNTIME) // 実行時にリフレクションで取得できるようにする
+@Target(ElementType.TYPE) // クラスやインターフェースに付与可能
+@interface ControllerLike { // @Controller相当の自作アノテーション型を宣言
+} // ControllerLike宣言の終わり
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@interface GetMappingLike {
-    String value();
-}
+@Retention(RetentionPolicy.RUNTIME) // 実行時にも保持する
+@Target(ElementType.METHOD) // メソッドに付与可能
+@interface GetMappingLike { // @GetMapping相当の自作アノテーション型を宣言
+    String value(); // ルート文字列（例: "/hello"）を持つ属性
+} // GetMappingLike宣言の終わり
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
-@interface RequestParamLike {
-    String name();
+@Retention(RetentionPolicy.RUNTIME) // 実行時にも保持する
+@Target(ElementType.PARAMETER) // メソッド引数に付与可能
+@interface RequestParamLike { // @RequestParam相当の自作アノテーション型を宣言
+    String name(); // パラメータ名を表す必須属性
 
-    boolean required() default true;
-}
+    boolean required() default true; // 未指定時はtrueになる既定値付き属性
+} // RequestParamLike宣言の終わり
 
-@ControllerLike
-class GreetingControllerLike {
-    @GetMappingLike("/hello")
-    public String hello(@RequestParamLike(name = "name", required = false) String name) {
-        return name;
-    }
-}
+@ControllerLike // このクラスがController役であることを示す目印
+class GreetingControllerLike { // Controller風のサンプルクラス
+    @GetMappingLike("/hello") // "/hello" に対応するハンドラであることを示す
+    public String hello(@RequestParamLike(name = "name", required = false) String name) { // 引数nameに属性を付ける
+        return name; // 受け取った文字列をそのまま返す（挙動確認用）
+    } // helloメソッドの終わり
+} // GreetingControllerLikeクラスの終わり
 
-public class AnnotationAndRequestParamDemo {
-    public static void main(String[] args) throws Exception {
-        Class<?> clazz = GreetingControllerLike.class;
-        Method method = clazz.getDeclaredMethod("hello", String.class);
-        Parameter param = method.getParameters()[0];
+public class AnnotationAndRequestParamDemo { // アノテーション情報を読み取って表示する実行クラス
+    public static void main(String[] args) throws Exception { // 実行入口（反射APIを使うので例外をthrows）
+        Class<?> clazz = GreetingControllerLike.class; // 対象クラス情報を取得する
+        Method method = clazz.getDeclaredMethod("hello", String.class); // helloメソッド情報を取得する
+        Parameter param = method.getParameters()[0]; // 1つ目の引数情報を取得する
 
-        GetMappingLike mapping = method.getAnnotation(GetMappingLike.class);
-        RequestParamLike requestParam = param.getAnnotation(RequestParamLike.class);
+        GetMappingLike mapping = method.getAnnotation(GetMappingLike.class); // メソッドに付いたGetMappingLikeを取得する
+        RequestParamLike requestParam = param.getAnnotation(RequestParamLike.class); // 引数に付いたRequestParamLikeを取得する
 
-        System.out.println("ControllerLike: " + clazz.isAnnotationPresent(ControllerLike.class));
-        System.out.println("GetMappingLike.value: " + mapping.value());
-        System.out.println("RequestParamLike.name: " + requestParam.name());
-        System.out.println("RequestParamLike.required: " + requestParam.required());
-    }
-}
+        System.out.println("ControllerLike: " + clazz.isAnnotationPresent(ControllerLike.class)); // クラスにControllerLikeが付いているか表示
+        System.out.println("GetMappingLike.value: " + mapping.value()); // ルート属性valueを表示
+        System.out.println("RequestParamLike.name: " + requestParam.name()); // 引数名属性nameを表示
+        System.out.println("RequestParamLike.required: " + requestParam.required()); // 必須属性requiredを表示
+    } // mainメソッドの終わり
+} // AnnotationAndRequestParamDemoクラスの終わり
 ```
 
 実行:
@@ -1074,59 +1074,59 @@ Day1でどこに出るか:
 作成ファイル: `practice/day0/java/day1-bridge/teststyle/AssertLite.java`
 
 ```java
-package teststyle;
+package teststyle; // このクラスが teststyle パッケージに属することを宣言する
 
-public class AssertLite {
-    public static void assertEquals(Object expected, Object actual) {
-        if (expected == null ? actual != null : !expected.equals(actual)) {
-            throw new IllegalStateException("expected=" + expected + ", actual=" + actual);
-        }
-    }
-}
+public class AssertLite { // 最小限のアサート機能だけを持つ補助クラス
+    public static void assertEquals(Object expected, Object actual) { // 期待値expectedと実際値actualが同じか判定する
+        if (expected == null ? actual != null : !expected.equals(actual)) { // null考慮込みで不一致ならtrue
+            throw new IllegalStateException("expected=" + expected + ", actual=" + actual); // 失敗時は例外でテスト失敗を知らせる
+        } // ifブロックの終わり
+    } // assertEqualsメソッドの終わり
+} // AssertLiteクラスの終わり
 ```
 
 作成ファイル: `practice/day0/java/day1-bridge/teststyle/TestStyleDemo.java`
 
 ```java
-package teststyle;
+package teststyle; // このクラスが teststyle パッケージに属することを宣言する
 
-import static teststyle.AssertLite.assertEquals;
+import static teststyle.AssertLite.assertEquals; // AssertLite.assertEquals をクラス名なしで呼べるようにする
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Method;
+import java.lang.annotation.ElementType; // アノテーション付与対象の種類を表す
+import java.lang.annotation.Retention; // 保持期間指定用のメタアノテーション
+import java.lang.annotation.RetentionPolicy; // 保持期間の列挙型
+import java.lang.annotation.Target; // 付与対象指定用のメタアノテーション
+import java.lang.reflect.Method; // 反射でメソッドを列挙・実行するために使う
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@interface TestCase {
-}
+@Retention(RetentionPolicy.RUNTIME) // 実行時に TestCase を取得可能にする
+@Target(ElementType.METHOD) // TestCase はメソッドに付与する
+@interface TestCase { // @Test 相当の目印アノテーションを定義する
+} // TestCase宣言の終わり
 
-public class TestStyleDemo {
-    @TestCase
-    static void add_returnsSum() {
-        assertEquals(5, 2 + 3);
-    }
+public class TestStyleDemo { // テスト風実行を行うサンプルクラス
+    @TestCase // このメソッドをテスト対象としてマークする
+    static void add_returnsSum() { // 足し算の結果を検証するテスト
+        assertEquals(5, 2 + 3); // 期待値5と実際値2+3を比較する
+    } // add_returnsSumの終わり
 
-    @TestCase
-    static void blank_returnsGuest() {
-        String value = " ".isBlank() ? "guest" : "x";
-        assertEquals("guest", value);
-    }
+    @TestCase // このメソッドもテスト対象としてマークする
+    static void blank_returnsGuest() { // 空白文字列の判定結果を検証するテスト
+        String value = " ".isBlank() ? "guest" : "x"; // 空白だけならguest、そうでなければxを代入する
+        assertEquals("guest", value); // 期待値guestと実際値valueを比較する
+    } // blank_returnsGuestの終わり
 
-    public static void main(String[] args) throws Exception {
-        int passed = 0;
-        for (Method m : TestStyleDemo.class.getDeclaredMethods()) {
-            if (m.isAnnotationPresent(TestCase.class)) {
-                m.invoke(null);
-                passed++;
-                System.out.println("[PASS] " + m.getName());
-            }
-        }
-        System.out.println("PASSED: " + passed);
-    }
-}
+    public static void main(String[] args) throws Exception { // 実行入口（反射API利用のためthrows）
+        int passed = 0; // 成功したテスト数を数える変数
+        for (Method m : TestStyleDemo.class.getDeclaredMethods()) { // このクラス内の全メソッドを順に確認する
+            if (m.isAnnotationPresent(TestCase.class)) { // @TestCase が付いているメソッドだけを対象にする
+                m.invoke(null); // staticメソッドなのでnullを渡して実行する
+                passed++; // 例外が出なければ成功件数を1増やす
+                System.out.println("[PASS] " + m.getName()); // 成功したメソッド名を表示する
+            } // ifブロックの終わり
+        } // forループの終わり
+        System.out.println("PASSED: " + passed); // 最終的な成功件数を表示する
+    } // mainメソッドの終わり
+} // TestStyleDemoクラスの終わり
 ```
 
 実行:
