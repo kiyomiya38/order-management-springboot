@@ -693,11 +693,9 @@ http://localhost:8080/
 
 変更メニュー:
 1. `HomeController` の `statusLabel` を `"出勤前（確認用）"` に変更して画面反映を確認
-2. `index.html` の `<title>` と `h1` を変更して表示反映を確認
-3. `styles.css` の `--bg` や `h1` の `margin` を変更して見た目の変化を確認（必要ならブラウザ再読込）
-4. `AttendanceManagementApplication` の `main` に `System.out.println("start");` を入れて、再起動時ログを確認
-5. `application.yml` の `server.port` を `8081` に変更して再起動し、`http://localhost:8081/` で表示確認
-6. `pom.xml` の `<description>` を変更しても `mvn spring-boot:run` で起動できることを確認
+2. `AttendanceManagementApplication` の `main` に `System.out.println("start");` を入れて、再起動時ログを確認
+3. `application.yml` の `server.port` を `8081` に変更して再起動し、`http://localhost:8081/` で表示確認
+4. `pom.xml` の `<description>` を変更しても `mvn spring-boot:run` で起動できることを確認
 
 補足:
 - Javaクラス（`Application`/`Controller`）や `application.yml` を変えた場合は、いったん停止して再起動する
