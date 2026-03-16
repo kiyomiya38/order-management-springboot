@@ -330,6 +330,11 @@ app: # 独自設定（spring配下ではない任意キー）
 ---
 
 ## 7. Applicationクラスを作成
+このファイルを作る理由（最初に把握）:
+- Spring Bootアプリを起動する「入口（エントリポイント）」を明示するため
+- `@SpringBootApplication` により、自動設定やコンポーネントスキャンを有効化するため
+- `mvn spring-boot:run` や jar実行時に、どのクラスから起動するかを決めるため
+
 作成ファイル: `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
 
 ```java
