@@ -22,7 +22,7 @@
 
 1. 演習フォルダへ移動
 ```bash
-cd practice/day0/java
+cd ~/order-management-springboot/practice/day0/java
 pwd
 ls
 ```
@@ -119,7 +119,7 @@ public class Hello {
 確認:
 - コンパイルが通るか
   ```bash
-  cd practice/day0/java
+  cd ~/order-management-springboot/practice/day0/java
   javac -encoding UTF-8 Hello.java
   ```
 
@@ -237,7 +237,7 @@ public class Calc {
 
 実行:
 ```bash
-cd practice/day0/java
+cd ~/order-management-springboot/practice/day0/java
 javac -encoding UTF-8 Calc.java
 java Calc
 ```
@@ -678,7 +678,7 @@ public class AttendanceDemo {
 
 実行:
 ```bash
-cd practice/day0/java
+cd ~/order-management-springboot/practice/day0/java
 javac -encoding UTF-8 *.java
 java AttendanceDemo
 ```
@@ -699,7 +699,7 @@ java AttendanceDemo
 #### Step 0: ミニライブラリを自作する
 最初にディレクトリを作成:
 ```bash
-cd practice/day0/java
+cd ~/order-management-springboot/practice/day0/java
 mkdir -p libsrc/com/shinesoft/util
 mkdir -p lib/classes
 ```
@@ -804,7 +804,7 @@ public class MiniWebServer {
 
 実行:
 ```bash
-cd practice/day0/java
+cd ~/order-management-springboot/practice/day0/java
 javac -encoding UTF-8 --add-modules jdk.httpserver MiniWebServer.java
 java --add-modules jdk.httpserver MiniWebServer
 ```
@@ -834,7 +834,7 @@ java --add-modules jdk.httpserver MiniWebServer
 - Day1向けの予習コードを通常演習と分離する理由
 
 ```bash
-cd practice/day0/java           # Day0のJava演習フォルダへ移動する
+cd ~/order-management-springboot/practice/day0/java           # Day0のJava演習フォルダへ移動する
 mkdir -p day1-bridge/teststyle # 予習コード用フォルダとStep4用のpackageフォルダを作る
 ```
 
@@ -880,7 +880,7 @@ public class ConstructorDiDemo { // このサンプルを実行するメイン�
 
 実行:
 ```bash
-cd practice/day0/java/day1-bridge
+cd ~/order-management-springboot/practice/day0/java/day1-bridge
 javac -encoding UTF-8 ConstructorDiDemo.java
 java ConstructorDiDemo
 ```
