@@ -249,8 +249,8 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
   - `<groupId>`, `<artifactId>`, `<version>`（プロジェクト識別）
   - `<dependencies>`（必要機能の宣言）
   - `spring-boot-maven-plugin`（`mvn spring-boot:run` を実行するためのプラグイン）
-- 変更して試す:
-  - `<description>` を任意の文字列に変えても起動できることを確認
+- 変更メモ（12.5でまとめて実施）:
+  - `<description>` を任意の文字列に変更し、起動できることを確認
 - よくあるミス:
   - XMLタグの閉じ忘れでビルド失敗
   - `<dependency>` の入れ子崩れで依存解決失敗
@@ -321,7 +321,7 @@ app: # 独自設定（spring配下ではない任意キー）
 - まず見る場所:
   - `server.port: ${SERVER_PORT:8080}`（環境変数未指定時は8080）
   - `app.name: ${APP_NAME:attendance-management}`（画面表示などで利用可能）
-- 変更して試す:
+- 変更メモ（12.5でまとめて実施）:
   - `server.port` のデフォルトを `8081` に変更して起動確認
 - よくあるミス:
   - YAMLのインデントずれ（スペース数不一致）
@@ -362,7 +362,7 @@ public class AttendanceManagementApplication {
   - `@SpringBootApplication`
   - `SpringApplication.run(...)`
   - `main(String[] args)`
-- 変更して試す:
+- 変更メモ（12.5でまとめて実施）:
   - クラス名を変えずに `main` の中へ `System.out.println("start");` を追加し、起動時に表示されることを確認
 - よくあるミス:
   - ファイル名とクラス名の不一致
@@ -407,7 +407,7 @@ public class HomeController {
   - `@Controller`（画面表示の制御クラス）
   - `@GetMapping("/")`（URLとメソッドの対応）
   - `model.addAttribute(...)`（テンプレートへ値を渡す）
-- 変更して試す:
+- 変更メモ（12.5でまとめて実施）:
   - `statusLabel` を `"未出勤"` から `"出勤前（確認用）"` に変更し、画面反映を確認
 - よくあるミス:
   - `return "index"` を `return "/index"` にしてテンプレート解決に失敗
@@ -501,7 +501,7 @@ public class HomeController {
   - `xmlns:th="http://www.thymeleaf.org"`（Thymeleaf有効化）
   - `th:text="${statusLabel}"`（値の差し込み）
   - `th:href="@{/styles.css}"`（静的CSSの参照）
-- 変更して試す:
+- 変更メモ（12.5でまとめて実施）:
   - `<title>` を変更してブラウザタブ名が変わることを確認
   - `h1` の文言を変更して画面に反映されることを確認
 - よくあるミス:
@@ -646,7 +646,7 @@ th, td { /* 表ヘッダーとセルの共通設定 */
   - `:root`（共通変数の定義）
   - `--bg` / `var(--bg)`（CSS変数の定義と参照）
   - `.panel`（クラスセレクタ）
-- 変更して試す:
+- 変更メモ（12.5でまとめて実施）:
   - `--bg` を別の色に変えて背景色が変わることを確認
   - `h1` の `margin` を調整して見た目の変化を確認
 - よくあるミス:
@@ -681,6 +681,27 @@ http://localhost:8080/
 - 「勤怠トップ」が表示される
 - 状態が「未出勤」と表示される
 - 時刻は「-」になっている
+
+## 12.5 変更して試す（このタイミングでまとめて実施）
+ここまでで一度起動確認が終わった後に、以下を1項目ずつ試します。
+
+進め方:
+1. 1項目だけ変更する
+2. 画面またはログで結果を確認する
+3. 元に戻す
+4. 次の項目へ進む
+
+変更メニュー:
+1. `HomeController` の `statusLabel` を `"出勤前（確認用）"` に変更して画面反映を確認
+2. `index.html` の `<title>` と `h1` を変更して表示反映を確認
+3. `styles.css` の `--bg` や `h1` の `margin` を変更して見た目の変化を確認（必要ならブラウザ再読込）
+4. `AttendanceManagementApplication` の `main` に `System.out.println("start");` を入れて、再起動時ログを確認
+5. `application.yml` の `server.port` を `8081` に変更して再起動し、`http://localhost:8081/` で表示確認
+6. `pom.xml` の `<description>` を変更しても `mvn spring-boot:run` で起動できることを確認
+
+補足:
+- Javaクラス（`Application`/`Controller`）や `application.yml` を変えた場合は、いったん停止して再起動する
+- まとめ実施後は、`server.port` を `8080` へ戻しておく
 
 ---
 
