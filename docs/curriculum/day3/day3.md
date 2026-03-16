@@ -393,7 +393,7 @@ public class HomeController {
 ## 5. `styles.css` を編集（退勤ボタン用クラス）
 作成ファイル: `~/order-management-springboot/stages/day3/src/main/resources/static/styles.css`
 
-`styles.css` に以下があることを確認してください（無ければ追加）。
+`styles.css` に以下を追加。
 
 ```css
 /* 出勤ボタンと退勤ボタンを横並びにする */
@@ -434,17 +434,57 @@ mvn spring-boot:run
 ---
 
 ## 7. 動作確認（必須）
+この確認で分かること:
+- 未出勤のまま退勤できない（業務ルール違反）
+- 出勤中なら退勤できる（正常系）
+- 退勤済みの再退勤を禁止できる（業務ルール違反）
+
+先にターミナルを2つ用意して進めます。
+
+- ターミナルA（起動用）:
+  - `cd ~/order-management-springboot/stages/day3`
+  - `mvn spring-boot:run` を実行し、そのまま起動状態を維持する
+- ターミナルB（確認用）:
+  - `curl` や追加確認コマンドを実行する
+  - ※ `mvn spring-boot:run` 実行中のターミナルAでは `curl` は入力できない
+
+`curl -i` の結果の見方:
+- `HTTP/1.1 302` は正常（POST後に `redirect:/` するため）
+- `Location` に `?message=...` があれば成功
+- `Location` に `?error=...` があれば業務エラー
+- 日本語メッセージはURLエンコードされるため、まず `message=` / `error=` を見る
+
 1. `http://localhost:8080/` を開く
 2. 初期状態で「未出勤」を確認
-3. 「退勤」URLへ直接 POST（未出勤時）するとエラーになることを確認
+3. 未出勤のまま退勤APIを直接呼び、エラーになることを確認
 
 ```bash
+# ターミナルBで実行
 curl -X POST http://localhost:8080/clock-out -i
 ```
 
-4. 画面で「出勤」ボタンを押す（状態: 出勤中）
-5. 画面で「退勤」ボタンを押す（状態: 退勤済み）
-6. 再度 `curl -X POST http://localhost:8080/clock-out -i` を実行し、`すでに退勤済みです` を確認
+4. 出勤APIを呼び、成功になることを確認
+
+```bash
+# ターミナルBで実行
+curl -X POST http://localhost:8080/clock-in -i
+```
+
+5. 退勤APIを呼び、成功になることを確認
+
+```bash
+# ターミナルBで実行
+curl -X POST http://localhost:8080/clock-out -i
+```
+
+6. 再度退勤APIを呼び、`すでに退勤済みです` のエラーになることを確認
+
+```bash
+# ターミナルBで実行
+curl -X POST http://localhost:8080/clock-out -i
+```
+
+7. ブラウザを再読み込みし、状態が「退勤済み」になっていることを確認
 
 ---
 

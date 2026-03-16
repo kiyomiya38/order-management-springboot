@@ -96,22 +96,54 @@ git --version
 ---
 
 ## 1. Maven超入門（最初に読む）
-Day1で使う `mvn` は、Javaプロジェクトの「依存関係管理」と「ビルド自動化」を行うコマンドです。
+Day1で使う `mvn` は、Javaプロジェクトの「依存関係管理」と「ビルド自動化」を行うツールです。
 
+### Mavenがやっていること（最重要）
+- 依存関係管理:
+  - `pom.xml` に必要ライブラリを書くと、取得とバージョン整合を自動化できる
+- ビルド自動化:
+  - コンパイル、リソース配置、テスト、成果物作成をコマンドで実行できる
+- 実行補助:
+  - `spring-boot-maven-plugin` を通じて `mvn spring-boot:run` で起動できる
+
+### 用語ミニ辞典
 - `pom.xml`:
-  - Mavenが読む設定ファイル
-  - 使用ライブラリ（依存関係）やJavaバージョンなどを定義する
-- `mvn spring-boot:run`:
-  - 必要ライブラリを取得
-  - Javaコードをコンパイル
-  - Spring Bootアプリを起動
-- `mvn clean`:
-  - 前回生成物（`target`）を削除して再ビルドしやすくする
+  - Mavenが読む設定ファイル（依存、Javaバージョン、プラグインなどを定義）
+- dependency（依存）:
+  - アプリが利用する外部ライブラリ
+- plugin（プラグイン）:
+  - Mavenに機能を追加する部品
+- `target`:
+  - ビルド成果物の出力先フォルダ（コンパイル結果や各種中間ファイル）
+- `~/.m2/repository`:
+  - ダウンロード済み依存ライブラリのローカル保存先
 
-Day1で最低限覚えるコマンドは以下の3つです。
-- `mvn -version`
-- `mvn clean`
-- `mvn spring-boot:run`
+### `mvn spring-boot:run` で起きること
+1. `pom.xml` を読み込む
+2. 必要な依存を解決する
+3. Javaコードをコンパイルする（`.java` -> `.class`）
+4. `src/main/resources` を `target/classes` に配置する
+5. Spring Bootアプリを起動する
+
+### ビルドとコンパイルの違い
+- コンパイル:
+  - Javaソースをバイトコード（`.class`）へ変換する工程
+- ビルド:
+  - 依存解決、コンパイル、テスト、成果物作成まで含む一連の工程
+- 関係:
+  - コンパイルはビルドの一部
+
+### テストとは何をするか
+- `mvn test` は `src/test/java` のテストコードを実行し、期待結果と実際結果を比較する
+- テスト失敗時はビルド失敗として扱われる
+- Day1時点ではテストコード未作成のため、実行対象はほぼない
+
+### Day1で最低限使うコマンド
+- `mvn -version`: Mavenが使えるか確認
+- `mvn clean`: `target` を削除して作業状態を初期化
+- `mvn spring-boot:run`: 依存解決・コンパイル後にアプリ起動
+- `mvn test`: （必要時）テスト実行
+- `mvn package`: （必要時）jarを作成
 
 ---
 
@@ -255,34 +287,6 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
   - XMLタグの閉じ忘れでビルド失敗
   - `<dependency>` の入れ子崩れで依存解決失敗
 
-## 5.5 Mavenの便利さを体感（5分）
-`pom.xml` を作った直後に、依存解決の自動化を一度体感します。
-
-```bash
-cd ~/order-management-springboot/stages/day1
-mvn -q dependency:tree
-```
-
-確認ポイント:
-- 自分でjarを1つずつ配置しなくても、依存関係が連鎖して解決される
-- `spring-boot-starter-web` の1行から、Web起動に必要な複数ライブラリが取得される
-
-Day0との違い:
-- Day0: Java文法を学ぶために手動コンパイル中心
-- Day1: Mavenに「何を使うか」を宣言すると、取得とビルドを自動化できる
-
-### Day0方式 vs Day1方式（2-9/2-10実施後に読む）
-前提:
-- Day0の `2-9 手動ライブラリ追加` と `2-10 手動Web起動` を実施済み
-
-| 観点 | Day0（手動演習） | Day1（Maven + Spring Boot） |
-|---|---|---|
-| ライブラリ追加 | jar作成/配置と `-cp` を都度管理 | `pom.xml` に依存宣言して `mvn` で自動取得 |
-| Web起動の初期設定 | サーバー生成、ルーティング、レスポンス処理を手作業で実装 | 自動設定 + `@Controller` / `@GetMapping` で実装量を圧縮 |
-| 実行手順 | コマンドが用途ごとに分散しやすい | `mvn spring-boot:run` で起動手順を一本化しやすい |
-
-この後の実習は「なぜ便利か」を体感するために、Day0手動演習との対応を意識して進めます。
-
 ---
 
 ## 6. `application.yml` を作成
@@ -412,42 +416,6 @@ public class HomeController {
 - よくあるミス:
   - `return "index"` を `return "/index"` にしてテンプレート解決に失敗
   - `addAttribute` のキー名とHTML側 `${...}` の不一致
-
----
-
-## 8.5 Spring Boot + Thymeleaf の表示の流れ（Controller -> Template）
-
-### 1) リクエストの流れ
-1. ブラウザで `http://localhost:8080/` にアクセスする
-2. Spring Boot の DispatcherServlet が `@GetMapping("/")` のメソッドを探す
-3. `HomeController#index` が実行される
-4. `model.addAttribute(...)` で画面に渡す値を詰める
-5. `return "index"` で `templates/index.html` を表示対象として返す
-6. Thymeleaf が `index.html` 内の `th:text` などを評価して HTML を生成する
-7. 生成されたHTMLがブラウザに返る
-
-### 2) 対応関係（重要）
-- `@GetMapping("/")` -> URL `/` を処理
-- `return "index"` -> `~/order-management-springboot/stages/day1/src/main/resources/templates/index.html`
-- `model.addAttribute("statusLabel", "未出勤")` -> HTML側 `${statusLabel}` に表示
-
-### 3) 3分ハンズオン（理解確認）
-1. `HomeController` の `statusLabel` を `"未出勤"` から `"出勤中(テスト)"` に変更
-2. 再起動して `/` を開き、表示が変わることを確認
-3. 元に戻す
-
-### 4) よくあるミス
-- `return "index"` のスペルミス -> テンプレートが見つからずエラー
-- `addAttribute` のキー名と `${...}` が不一致 -> 値が表示されない
-- `@Controller` / `@GetMapping` を付け忘れる -> URLにアクセスできない
-
-### 5) Springを使わない場合に増える作業（比較）
-- URLごとの振る舞いを手作業でルーティング実装する必要がある
-- リクエスト/レスポンス処理の共通化を自前で設計する必要がある
-- テンプレートへの値受け渡し規約を自前で決める必要がある
-- 起動・設定・依存解決の手順が分散し、初期構築コストが上がる
-
-この章で触れた `@Controller` / `@GetMapping` / `return "index"` は、これらの定型作業を大幅に減らすための仕組みです。
 
 ---
 
@@ -655,6 +623,43 @@ th, td { /* 表ヘッダーとセルの共通設定 */
 
 ---
 
+## 10.5 Spring Boot + Thymeleaf の表示の流れ（Controller -> Template）
+この章は、`11. 起動` の直前に読んで「何がどう表示されるか」を整理するための章です。
+
+### 1) リクエストの流れ
+1. ブラウザで `http://localhost:8080/` にアクセスする
+2. Spring Boot の DispatcherServlet が `@GetMapping("/")` のメソッドを探す
+3. `HomeController#index` が実行される
+4. `model.addAttribute(...)` で画面に渡す値を詰める
+5. `return "index"` で `templates/index.html` を表示対象として返す
+6. Thymeleaf が `index.html` 内の `th:text` などを評価して HTML を生成する
+7. 生成されたHTMLがブラウザに返る
+
+### 2) 対応関係（重要）
+- `@GetMapping("/")` -> URL `/` を処理
+- `return "index"` -> `~/order-management-springboot/stages/day1/src/main/resources/templates/index.html`
+- `model.addAttribute("statusLabel", "未出勤")` -> HTML側 `${statusLabel}` に表示
+
+### 3) 3分ハンズオン（理解確認）
+1. `HomeController` の `statusLabel` を `"未出勤"` から `"出勤中(テスト)"` に変更
+2. `11` で起動（または再起動）して `/` を開き、表示が変わることを確認
+3. 元に戻す
+
+### 4) よくあるミス
+- `return "index"` のスペルミス -> テンプレートが見つからずエラー
+- `addAttribute` のキー名と `${...}` が不一致 -> 値が表示されない
+- `@Controller` / `@GetMapping` を付け忘れる -> URLにアクセスできない
+
+### 5) Springを使わない場合に増える作業（比較）
+- URLごとの振る舞いを手作業でルーティング実装する必要がある
+- リクエスト/レスポンス処理の共通化を自前で設計する必要がある
+- テンプレートへの値受け渡し規約を自前で決める必要がある
+- 起動・設定・依存解決の手順が分散し、初期構築コストが上がる
+
+この章で触れた `@Controller` / `@GetMapping` / `return "index"` は、これらの定型作業を大幅に減らすための仕組みです。
+
+---
+
 ## 11. 起動
 `~/order-management-springboot/stages/day1` で実行していることを先に確認してください。
 
@@ -668,6 +673,14 @@ ls
 ```bash
 mvn spring-boot:run
 ```
+
+補足: `target` フォルダについて
+- `mvn spring-boot:run` を初めて実行した時点で、`~/order-management-springboot/stages/day1/target` が自動作成される
+- `target` は Maven の作業フォルダ（ビルド成果物の出力先）
+- 例: `target/classes` にコンパイル済みの `.class` が出力される
+- 手動で作成する必要はない
+- 削除しても問題ない（次回の `mvn spring-boot:run` で再作成される）
+- 一度きれいにしたい場合は `mvn clean` を実行する
 
 ---
 
@@ -700,6 +713,15 @@ http://localhost:8080/
 補足:
 - Javaクラス（`Application`/`Controller`）や `application.yml` を変えた場合は、いったん停止して再起動する
 - まとめ実施後は、`server.port` を `8080` へ戻しておく
+- 再起動手順（ターミナル）:
+  1. `mvn spring-boot:run` を動かしているターミナルで `Ctrl + C` を押して停止
+  2. プロンプトが戻ったことを確認（例: `PS ...>` が表示される）
+  3. 次を実行して再起動
+     ```bash
+     cd ~/order-management-springboot/stages/day1
+     mvn spring-boot:run
+     ```
+  4. ブラウザで確認（`server.port` を `8081` にした場合は `http://localhost:8081/`）
 
 ---
 

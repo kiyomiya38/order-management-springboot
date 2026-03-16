@@ -170,8 +170,6 @@ mkdir -p ~/order-management-springboot/stages/day2/src/main/resources/static
 - まず見る場所:
   - `<dependencies>` の4つの依存関係
   - `<description>`（Day2用に識別）
-- 変更して試す:
-  - `<description>` を変更してもアプリが起動できることを確認
 - よくあるミス:
   - `data-jpa` や `h2` の追加漏れでDB関連クラスが動かない
 
@@ -232,8 +230,6 @@ logging:
 - まず見る場所:
   - `url: jdbc:h2:mem:attendance...`
   - `open-in-view: false`（画面描画時の不要なDBアクセス抑制）
-- 変更して試す:
-  - `server.port` のデフォルトを `8081` にして起動確認
 - よくあるミス:
   - `jdbc:h2:mem:attendance` のスペルミス
   - YAMLインデント崩れ
@@ -274,6 +270,25 @@ public class AttendanceManagementApplication {
 ---
 
 ## 6. Domain（Entity / Enum）を作成
+
+### 6-0. Domainを作る理由（最初に読む）
+この章は、画面やボタン処理を作る前に「勤怠アプリで扱うデータの型」を先に決めるための章です。
+
+理由:
+- 業務ルールの対象（ユーザー、勤怠、状態）をコード上で明確にするため
+- Repository / Service が同じデータ定義を前提に実装できるようにするため
+- DBテーブルとの対応を早い段階で固定し、後続実装の手戻りを減らすため
+
+### 6-0.5. DB対応表（1分で把握）
+| Domain（Java） | 役割 | DBでの対応 |
+|---|---|---|
+| `User` | 利用者情報（最小） | `users` テーブル |
+| `Attendance` | 日次の勤怠記録 | `attendances` テーブル |
+| `AttendanceStatus` | 勤怠状態の固定値 | `attendances.status` 列（文字列） |
+
+関係（重要）:
+- `User` 1件に対して、`Attendance` は複数件（1対多）
+- ただし同じユーザー・同じ日付での重複は `@UniqueConstraint(user_id, work_date)` で禁止
 
 ### 6-1. 勤怠ステータス
 作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java`
@@ -486,6 +501,26 @@ public class Attendance {
 
 ## 7. Repositoryを作成
 
+### 7-0. Repositoryとは何か（最初に読む）
+Repository は、DBアクセス専用の窓口です。  
+Controller や Service から直接SQLを書く代わりに、「保存」「検索」などの処理をRepositoryへ依頼します。
+
+役割:
+- DB操作の責務を1か所へ集約する
+- Serviceは業務ルール判断に集中できる
+- `JpaRepository` 継承で基本CRUD（作成・参照・更新・削除）を自動利用できる
+
+この章での対応:
+- `UserRepository`:
+  - `User` テーブルの操作窓口
+- `AttendanceRepository`:
+  - `Attendance` テーブルの操作窓口
+
+処理の流れ（イメージ）:
+1. Controller がリクエストを受ける
+2. Service が業務ルールを判定する
+3. Repository がDBへ保存/検索する
+
 ### 7-1. `UserRepository`
 作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/repository/UserRepository.java`
 
@@ -541,6 +576,23 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 ---
 
 ## 8. 例外とServiceを作成
+
+### 8-0. 例外とServiceとは何か（最初に読む）
+この章では、「業務ルールをどこで判定するか」と「違反時にどう扱うか」を決めます。
+
+用語:
+- 例外（Exception）:
+  - 通常処理を続けられない状態を表す仕組み
+  - Day2では業務ルール違反（例: 二重出勤、未出勤で退勤）を `BusinessException` で表現する
+- Service:
+  - 業務ルールを実行する層
+  - Controllerから受けた操作を判定し、必要なDB操作をRepositoryへ依頼する
+
+役割分担（重要）:
+1. Controller: リクエスト受付、画面への受け渡し
+2. Service: 業務ルール判定（出勤できるか、退勤できるか）
+3. Repository: DB検索・保存
+4. Exception: ルール違反をエラーとして呼び出し元へ通知
 
 ### 8-1. `BusinessException`
 作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/exception/BusinessException.java`
@@ -649,6 +701,19 @@ public class AttendanceService {
 ---
 
 ## 9. 初期データ投入（固定ユーザー）
+### 9-0. 何をしているか（最初に読む）
+この章では、アプリ起動時に「研修用の固定ユーザー `user1`」をDBへ自動登録します。
+
+なぜ必要か:
+- Day2時点ではログイン機能/ユーザー登録画面をまだ作っていないため
+- Controller/Serviceが「操作対象ユーザー」を前提に動くため
+- 毎回手動でSQL投入しなくても、演習をすぐ始められるため
+
+実際の動き:
+1. 起動時に `user1` が存在するか確認
+2. 存在しなければ `users` テーブルへ1件登録
+3. 既に存在する場合は何もしない（重複防止）
+
 作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
 
 ```java
