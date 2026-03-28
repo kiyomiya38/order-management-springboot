@@ -1,160 +1,205 @@
-# Springなしで同等アプリを作る学習ロードマップ（Java初心者向け）
+# Springなしで同等アプリを作る学習ロードマップ（完成UI先行版）
 
 ## 0. このロードマップの目的
-- 目的: Day5までで作った勤怠管理アプリを、Spring Bootを使わずに自力で再実装できる状態になる。
-- 学習方針: 「動くものを小さく作る -> 役割ごとに分割 -> 例外・認証・入力チェックを追加」の順で進める。
-- 到達イメージ: ルーティング、DI、バリデーション、セキュリティの「必要性」を体感して説明できる。
+- `C:/Users/Shinesoft/order-management-springboot/src` の最終アプリ機能を、Spring Bootなしで段階的に再実装する。
+- 文法を先に網羅せず、必要になった瞬間に最小限だけ学ぶ。
+- 最初に完成版UI（見た目のみ）を作り、その同じコードへ機能を追加していく。
+- 各Lessonの合格判定はブラウザ操作シナリオで行う（コンソールは中間確認）。
 
 ---
 
-## 1. 前提
-- Java 17 を使用
-- ビルドは最初は `javac` / `java` で実施（Mavenなし）
-- 永続化は最初はメモリ（Map/List）、余力があればファイル保存へ拡張
-- WebサーバーはJDK標準の `com.sun.net.httpserver.HttpServer` を使用
+## 1. 開発スタイル（固定）
+1. 作業フォルダは固定: `~/order-management-springboot/practice/springless-final-web`
+2. `lesson1` で完成版UIを先に作る（画面見た目のみ）
+3. `lesson2` 以降は同じコードを編集し、1機能ずつ有効化する
+4. 画面を壊さずに機能を追加する（常に `http://localhost:8080/` は表示可能）
 
 ---
 
-## 2. 完成条件（最終ゴール）
-- `/login` でログインできる
-- 一般ユーザーは「打刻画面」で出勤/退勤できる
-- 管理者は「ユーザー管理」と「勤怠一覧」を操作できる
-- 入力チェック（必須・文字数など）でエラーメッセージを返せる
-- 未ログイン時は保護URLへアクセスできない
-- コードが `controller / service / repository / domain` で分かれている
+## 2. 各Lessonの進め方
+1. `src` の対応コードを先に読む（15〜30分）
+2. 追加する機能を1つ決める
+3. 必要な文法だけ学ぶ
+4. 同じコードに追記する
+5. ブラウザで1シナリオ確認する
+6. `src` との差分を3行でメモする
 
 ---
 
-## 3. 学習ロードマップ（全8フェーズ）
-
-## Phase 1: Java基礎の補強（オブジェクト・クラス設計）
-- 目安: 6〜8時間
-- 学ぶこと:
-  - class / field / method / constructor
-  - `private final` と依存注入の手作業版
-  - Enum、例外、`List`/`Map`、`LocalDate`/`LocalDateTime`
-- 作るもの:
-  - `User`, `Attendance`, `AttendanceStatus` のドメインクラス
-  - `BusinessException`
-- 完了条件:
-  - 何も見ずに `new User(...)` と `new Attendance(...)` が書ける
-  - 「コンストラクタは何のためか」を言葉で説明できる
-
-## Phase 2: コンソール版の勤怠アプリ（業務ルールを先に固める）
-- 目安: 8〜10時間
-- 学ぶこと:
-  - Service層で業務ルールを表現する方法
-  - Repositoryインターフェースの意味
-- 作るもの:
-  - `UserRepository`（メモリ実装）
-  - `AttendanceRepository`（メモリ実装）
-  - `AttendanceService`（出勤・退勤・当日取得）
-- 完了条件:
-  - 「未出勤で退勤するとエラー」が動く
-  - `main` メソッドからサービスを呼び出し、期待どおりの結果を確認できる
-
-## Phase 3: JDK標準HttpServerでWeb化（ルーティングを手作業で体験）
-- 目安: 10〜14時間
-- 学ぶこと:
-  - URLとHTTPメソッドで処理を分岐する実装
-  - GET/POSTの違い、フォーム送信の受け取り
-- 作るもの:
-  - 最小ルーター（`/`, `/clock-in`, `/clock-out`）
-  - HTML文字列を返す簡易View
-- 完了条件:
-  - ブラウザで打刻できる
-  - 直接POST時の業務エラーを画面に表示できる
-
-## Phase 4: 手動DI（依存注入）と層分離を整理
-- 目安: 4〜6時間
-- 学ぶこと:
-  - 「どこで依存を組み立てるか」
-  - Controllerは受け取り、Serviceは業務、Repositoryは保存の責務分離
-- 作るもの:
-  - `AppConfig` 的な組み立てクラス（手動new集中管理）
-- 完了条件:
-  - Controller内で `new Repository()` を直接しない構成にできる
-  - 「Spring DIが何を自動化しているか」を説明できる
-
-## Phase 5: ログイン機能と認可（簡易セッション）
-- 目安: 12〜16時間
-- 学ぶこと:
-  - CookieベースのセッションID管理（簡易版）
-  - ロール（ADMIN/USER）による画面制御
-- 作るもの:
-  - `/login`, `/logout`
-  - `SessionStore`（`sessionId -> userId`）
-  - 認可チェック（`/admin/*` は ADMINのみ）
-- 完了条件:
-  - 未ログイン時に保護画面へ行けない
-  - 一般ユーザーで管理画面に行けない
-
-## Phase 6: 入力バリデーション（手動チェック）
-- 目安: 6〜8時間
-- 学ぶこと:
-  - フォーム値の検証とエラー返却
-  - 「どこで検証するか」（Controller/Serviceの役割）
-- 作るもの:
-  - ユーザー登録・編集フォーム
-  - 必須、文字数、重複チェック
-- 完了条件:
-  - 不正入力で処理を止め、わかるメッセージを表示できる
-  - 正常入力でだけ保存される
-
-## Phase 7: テスト導入（JUnit）
-- 目安: 8〜10時間
-- 学ぶこと:
-  - 単体テストの意味（回帰防止）
-  - 業務ルールをテストで固定する考え方
-- 作るもの:
-  - `AttendanceServiceTest`（正常系・異常系）
-  - `UserServiceTest`（重複登録など）
-- 完了条件:
-  - `mvn test` またはIDE実行でテストが通る
-  - ルールを壊す変更をするとテストが落ちることを確認できる
-
-## Phase 8: リファクタリングと振り返り（Spring価値の言語化）
-- 目安: 4〜6時間
-- 学ぶこと:
-  - 重複削減、責務の明確化、例外ハンドリング整理
-  - 手作業で苦労した点をSpring機能に対応づける
-- 作るもの:
-  - 「手作業版 vs Spring版」比較メモ
-- 完了条件:
-  - 4機能を自分の言葉で説明できる:
-    - ルーティング
-    - DI
-    - バリデーション
-    - セキュリティ
+## 3. 最終ゴール（src同等）
+1. ログイン/ログアウト（一般ユーザー・管理者）
+2. 一般ユーザーの打刻（出勤/退勤）と当日状態表示
+3. 一般ユーザーの勤怠一覧表示
+4. 管理者のユーザー管理（一覧/作成/編集/削除）
+5. 管理者の勤怠管理（一覧/編集）
+6. 入力バリデーション（必須・形式・業務ルール）
+7. 永続化（DB接続、再起動後もデータ保持）
+8. テストで主要業務ルールを固定
 
 ---
 
-## 4. 目安工数（初心者想定）
-- 最小完走（Phase 1〜6）: 46〜62時間
-- 推奨完走（Phase 1〜8）: 58〜78時間
-- 1日2時間ペースの目安:
-  - 最小完走: 約4〜5週間
-  - 推奨完走: 約5〜7週間
+## 4. 学習ロードマップ（全8Phase）
+
+## Phase 1: 完成版UIを先に作る（見た目のみ）
+### 先に読む `src`
+- `web/*Controller`
+- `templates/index.html`, `templates/login.html`, `templates/attendances.html`, `templates/users.html`, `templates/admin-attendances.html`
+
+### 追加する機能
+- `HttpServer` を起動し、以下の画面を静的HTMLで表示
+- `/`（トップ）, `/login`, `/attendances`, `/admin/users`, `/admin/attendances`
+- 画面間リンクをつなぐ（処理はまだダミー）
+
+### このPhaseで使う最小文法
+- クラス、メソッド、文字列、条件分岐
+
+### 動作確認
+- 各URLがブラウザで表示される
+- どの画面からもトップへ戻れる
 
 ---
 
-## 5. 学習の進め方（失敗しにくい運用）
-- 1フェーズごとにブランチを切る（例: `feature/plainjava-phase3`）
-- フェーズ完了ごとに「できること」をREADMEに1行で追記
-- 1回の作業で「新概念は1〜2個」までに限定
-- エラー時は「再現手順」「原因」「修正内容」を3行メモで残す
+## Phase 2: 打刻機能を有効化（トップ画面）
+### 先に読む `src`
+- `service/AttendanceService`
+- `domain/Attendance`, `domain/AttendanceStatus`
+- `exception/BusinessException`
+
+### 追加する機能
+- 出勤/退勤の状態遷移ルールを実装
+- トップ画面のボタンを実処理へ接続
+- 業務違反時のエラーメッセージ表示
+
+### このPhaseで使う最小文法
+- `if / else`, `throw`, `try-catch`, `enum`
+
+### 動作確認
+- 未出勤 -> 出勤 -> 退勤 が通る
+- 二重出勤、未出勤退勤でエラー表示
 
 ---
 
-## 6. 追加で用意するとよい教材
-- HTTP基礎（GET/POST, ステータスコード, Cookie）
-- Javaの日時API（`LocalDateTime`）
-- 例外設計（業務例外とシステム例外の分け方）
-- JUnit基礎（`@Test`, `assertThrows`）
+## Phase 3: 勤怠一覧画面を有効化
+### 先に読む `src`
+- `web/AttendanceController`
+- `templates/attendances.html`
+
+### 追加する機能
+- 一覧データをメモリから取得して表示
+- PRG（POST-Redirect-GET）を導入
+
+### このPhaseで使う最小文法
+- `List`, for-each, `Optional`
+
+### 動作確認
+- 打刻後に一覧へ反映される
+- リロードで二重送信が起きない
 
 ---
 
-## 7. 最終的に得られる理解
-- Spring Bootで「何が省略されていたか」を体験ベースで理解できる
-- フレームワークに頼らない設計力（責務分離）が身につく
-- 以降のSpring学習で設定や注釈の意味がつながる
+## Phase 4: 手動DIと層分離
+### 先に読む `src`
+- `config/*`
+- `web/*Controller`, `service/*Service`, `repository/*Repository`
+
+### 追加する機能
+- `AppConfig` で依存を集中組み立て
+- Controller / Service / Repository の責務分離
+
+### このPhaseで使う最小文法
+- `interface`, `implements`, `private final`
+
+### 動作確認
+- 既存画面が壊れない
+- 差し替え変更が `AppConfig` 中心になる
+
+---
+
+## Phase 5: ログイン/ログアウトと認可
+### 先に読む `src`
+- `config/SecurityConfig`
+- `web/AuthController`
+
+### 追加する機能
+- `/login`, `/logout` の実装
+- Cookieセッション管理
+- `ADMIN` / `USER` のURLアクセス制御
+
+### このPhaseで使う最小文法
+- `Map`, UUID, 文字列処理
+
+### 動作確認
+- 未ログインは `/login` へ誘導される
+- 権限外URLが拒否される
+
+---
+
+## Phase 6: 管理者画面（ユーザー管理・勤怠管理）を有効化
+### 先に読む `src`
+- `web/UserController`
+- `web/AdminAttendanceController`
+- `web/form/*`
+
+### 追加する機能
+- ユーザー管理（一覧/作成/編集/削除）
+- 管理者勤怠編集
+- 入力バリデーション
+
+### このPhaseで使う最小文法
+- 文字列バリデーション、`switch` 式、`Optional#orElseThrow`
+
+### 動作確認
+- 管理画面の主要操作が実行できる
+- 不正入力時に画面へ理由が表示される
+
+---
+
+## Phase 7: テスト導入
+### 先に読む `src`
+- `test/.../AttendanceServiceTest`
+- `service/AttendanceService`, `service/UserService`
+
+### 追加する機能
+- 業務ルールの正常系/異常系テスト
+- 回帰を防ぐ最小テストスイート
+
+### このPhaseで使う最小文法
+- JUnit, `assertEquals`, `assertThrows`
+
+### 動作確認
+- テストが通る
+- ルール破壊時にテストが落ちる
+
+---
+
+## Phase 8: 永続化 + 最終リファクタリング + Spring対応づけ
+### 先に読む `src`
+- `application.yml`
+- `repository/*`
+- `domain/*`
+
+### 追加する機能
+- メモリ保存を JDBC 実装へ差し替え
+- DB接続で永続化
+- 手動実装とSpring実装の対応表を完成
+
+### このPhaseで使う最小文法
+- JDBC, `try-with-resources`, SQLバインド
+
+### 動作確認
+- 再起動後もデータが残る
+- Spring版への置き換えポイントを説明できる
+
+---
+
+## 5. Phase完了の判定基準
+1. ブラウザでそのPhaseの主要シナリオが動く
+2. エラー時の挙動を説明できる
+3. `src` との差分を説明できる
+
+---
+
+## 6. この構成で得られること
+- 最初に全体画面が見えるため、機能追加の意味が追いやすい
+- 同じコードを育てるため、改善の履歴が分かりやすい
+- Spring版との対応関係を「機能単位」で説明しやすい
