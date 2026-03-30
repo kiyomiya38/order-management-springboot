@@ -20,6 +20,21 @@
     <div th:if="${message != null and !#strings.isEmpty(message)}" class="alert alert-info" th:text="${message}"></div>
 
     <section class="panel">
+      <div class="table-tools row">
+        <label>
+          ユーザー名検索
+          <input id="user-search-input" type="search" placeholder="例: tanaka" autocomplete="off" />
+        </label>
+        <label>
+          ロール絞り込み
+          <select id="role-filter-select">
+            <option value="">すべて</option>
+            <option value="ROLE_USER">ROLE_USER</option>
+            <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+          </select>
+        </label>
+        <p id="user-filter-result" class="muted filter-result"></p>
+      </div>
       <table>
         <thead>
           <tr>
@@ -33,20 +48,30 @@
           <tr th:if="${#lists.isEmpty(users)}">
             <td colspan="4" class="muted">ユーザーがいません。</td>
           </tr>
-          <tr th:each="u : ${users}">
+          <tr th:each="u : ${users}"
+              class="js-user-row"
+              th:attr="data-username=${#strings.toLowerCase(u.username)},data-role=${u.role}">
             <td th:text="${u.id}">1</td>
             <td th:text="${u.username}">user1</td>
             <td th:text="${u.role}">ROLE_USER</td>
             <td>
               <a th:href="@{|/users/${u.id}/edit|}">編集</a>
-              <form method="post" th:action="@{|/users/${u.id}/delete|}" style="display:inline">
+              <form method="post"
+                    th:action="@{|/users/${u.id}/delete|}"
+                    style="display:inline"
+                    class="js-delete-user-form"
+                    th:attr="data-username=${u.username}">
                 <button type="submit" class="danger">削除</button>
               </form>
             </td>
+          </tr>
+          <tr id="no-match-row" hidden>
+            <td colspan="4" class="muted">条件に一致するユーザーがいません。</td>
           </tr>
         </tbody>
       </table>
     </section>
   </div>
+  <script th:src="@{/users.js}" defer></script>
 </body>
 </html>

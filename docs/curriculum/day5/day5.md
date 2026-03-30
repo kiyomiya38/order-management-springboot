@@ -428,10 +428,12 @@ mvn compile
 - `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/form/UserForm.java`
 - `~/order-management-springboot/stages/day5/src/main/resources/templates/users.html`
 - `~/order-management-springboot/stages/day5/src/main/resources/templates/user-form.html`
+- `~/order-management-springboot/stages/day5/src/main/resources/static/users.js`
 
 既存編集ファイル（フルパス）:
 - `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 - `~/order-management-springboot/stages/day5/src/main/resources/templates/index.html`
+- `~/order-management-springboot/stages/day5/src/main/resources/static/styles.css`
 
 コードの意味（このフェーズで理解すること）:
 - `UserService.java`:
@@ -768,6 +770,199 @@ public class UserForm {
 - `users` モデル属性をテーブル描画に使う
 - 編集はリンク、削除はPOSTフォームで送る
 - 画面上部で成功/失敗メッセージを表示する
+
+#### Phase 2-4A: `users.html` / `users.js` / `styles.css` を編集（削除確認 + 検索/絞り込み）
+このステップで追加すること:
+1. ユーザー削除前に確認ダイアログを表示する
+2. ユーザー一覧を「ユーザー名」「ロール」で画面遷移なしで絞り込めるようにする
+
+編集ファイル:
+- `~/order-management-springboot/stages/day5/src/main/resources/templates/users.html`
+- `~/order-management-springboot/stages/day5/src/main/resources/static/users.js`
+- `~/order-management-springboot/stages/day5/src/main/resources/static/styles.css`
+
+1) `users.html` を以下に置き換えてください。
+
+```html
+<!doctype html> <!-- HTML5文書宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"> <!-- Thymeleaf有効化 -->
+<head>
+  <meta charset="utf-8" /> <!-- 文字コード -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> <!-- モバイル表示対応 -->
+  <title>アカウント管理</title> <!-- ページタイトル -->
+  <link rel="stylesheet" th:href="@{/styles.css}" /> <!-- 共通CSS -->
+</head>
+<body>
+  <div class="container"> <!-- 全体レイアウト -->
+    <header>
+      <h1>アカウント管理</h1>
+      <div class="row">
+        <a th:href="@{/}">トップへ戻る</a> <!-- トップへ戻る -->
+        <a th:href="@{/users/new}">新規作成</a> <!-- 新規作成画面へ -->
+      </div>
+    </header>
+
+    <div th:if="${error != null and !#strings.isEmpty(error)}" class="alert alert-error" th:text="${error}"></div> <!-- エラー -->
+    <div th:if="${message != null and !#strings.isEmpty(message)}" class="alert alert-info" th:text="${message}"></div> <!-- 成功通知 -->
+
+    <section class="panel">
+      <div class="table-tools row"> <!-- 検索/絞り込み -->
+        <label>ユーザー名検索
+          <input id="user-search-input" type="search" placeholder="例: tanaka" autocomplete="off" />
+        </label>
+        <label>ロール絞り込み
+          <select id="role-filter-select">
+            <option value="">すべて</option>
+            <option value="ROLE_USER">ROLE_USER</option>
+            <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+          </select>
+        </label>
+        <p id="user-filter-result" class="muted filter-result"></p> <!-- 表示件数 -->
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>ユーザー名</th>
+            <th>ロール</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:if="${#lists.isEmpty(users)}"> <!-- データ0件時の表示 -->
+            <td colspan="4" class="muted">ユーザーがいません。</td>
+          </tr>
+          <tr th:each="u : ${users}"
+              class="js-user-row"
+              th:attr="data-username=${#strings.toLowerCase(u.username)},data-role=${u.role}"> <!-- JS絞り込み用データ -->
+            <td th:text="${u.id}">1</td>
+            <td th:text="${u.username}">user1</td>
+            <td th:text="${u.role}">ROLE_USER</td>
+            <td>
+              <a th:href="@{|/users/${u.id}/edit|}">編集</a> <!-- 編集画面 -->
+              <form method="post"
+                    th:action="@{|/users/${u.id}/delete|}"
+                    style="display:inline"
+                    class="js-delete-user-form"
+                    th:attr="data-username=${u.username}"> <!-- 削除確認用データ -->
+                <button type="submit" class="danger">削除</button>
+              </form>
+            </td>
+          </tr>
+          <tr id="no-match-row" hidden> <!-- 絞り込み結果0件 -->
+            <td colspan="4" class="muted">条件に一致するユーザーがいません。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+  <script th:src="@{/users.js}" defer></script> <!-- users一覧画面専用JS -->
+</body>
+</html>
+```
+
+2) `users.js` を新規作成してください。
+
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  setupDeleteConfirmation(); // 削除確認
+  setupUserTableFilter(); // 一覧絞り込み
+});
+
+function setupDeleteConfirmation() {
+  const deleteForms = document.querySelectorAll("form.js-delete-user-form");
+
+  deleteForms.forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      const username = form.dataset.username || "このユーザー";
+      const accepted = window.confirm(`ユーザー「${username}」を削除します。よろしいですか？`);
+      if (!accepted) {
+        event.preventDefault(); // キャンセル時は送信しない
+      }
+    });
+  });
+}
+
+function setupUserTableFilter() {
+  const searchInput = document.getElementById("user-search-input");
+  const roleSelect = document.getElementById("role-filter-select");
+  const resultText = document.getElementById("user-filter-result");
+  const noMatchRow = document.getElementById("no-match-row");
+  const rows = Array.from(document.querySelectorAll("tr.js-user-row"));
+
+  if (!(searchInput instanceof HTMLInputElement) ||
+      !(roleSelect instanceof HTMLSelectElement) ||
+      !(resultText instanceof HTMLElement) ||
+      !(noMatchRow instanceof HTMLTableRowElement) ||
+      rows.length === 0) {
+    return;
+  }
+
+  const applyFilter = () => {
+    const keyword = searchInput.value.trim().toLowerCase();
+    const selectedRole = roleSelect.value;
+    let visibleCount = 0;
+
+    rows.forEach((row) => {
+      const username = (row.dataset.username || "").toLowerCase();
+      const role = row.dataset.role || "";
+      const matchedKeyword = keyword === "" || username.includes(keyword);
+      const matchedRole = selectedRole === "" || role === selectedRole;
+      const visible = matchedKeyword && matchedRole;
+      row.hidden = !visible;
+
+      if (visible) {
+        visibleCount += 1;
+      }
+    });
+
+    noMatchRow.hidden = visibleCount > 0;
+    resultText.textContent = `表示件数: ${visibleCount}件 / ${rows.length}件`;
+  };
+
+  searchInput.addEventListener("input", applyFilter);
+  roleSelect.addEventListener("change", applyFilter);
+  applyFilter(); // 初期表示
+}
+```
+
+3) `styles.css` の `.row` 定義の直後に、以下を追記してください。
+
+```css
+.table-tools {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.table-tools label {
+  min-width: 220px;
+}
+
+.filter-result {
+  margin: 0;
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .table-tools {
+    align-items: stretch;
+  }
+
+  .table-tools label {
+    min-width: 100%;
+  }
+
+  .filter-result {
+    margin-left: 0;
+  }
+}
+```
+
+理解ポイント:
+- 削除確認ダイアログは「誤操作防止」の最小UI改善
+- 一覧絞り込みはサーバーへ再リクエストせず、クライアント側で表示だけ切り替える
+- `data-*` 属性を使うと、テンプレートの値をJavaScriptで安全に参照できる
 
 #### Phase 2-5: `user-form.html` を作る（ユーザー作成/編集画面）
 作成ファイル:
@@ -1721,6 +1916,7 @@ mvn test
 ```bash
 find ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance -type f | sort
 find ~/order-management-springboot/stages/day5/src/main/resources/templates -type f | sort
+find ~/order-management-springboot/stages/day5/src/main/resources/static -type f | sort
 find ~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance -type f | sort
 ```
 
@@ -1730,6 +1926,7 @@ find ~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/atten
 - User管理: `web/UserController.java`, `service/UserService.java`, `web/form/UserForm.java`
 - 管理者勤怠編集: `web/AdminAttendanceController.java`, `web/form/AdminAttendanceForm.java`
 - 画面: `login.html`, `users.html`, `user-form.html`, `admin-attendances.html`, `admin-attendance-form.html`
+- JavaScript: `static/users.js`
 - テスト: `AttendanceServiceTest.java`
 
 理解ポイント（5分）:
@@ -1763,7 +1960,9 @@ mvn spring-boot:run
 1. ログアウト
 2. `admin / admin123` でログイン
 3. `http://localhost:8080/users` で新規作成/編集/削除を確認
-4. `http://localhost:8080/admin/attendances` で勤怠編集を確認
+4. 削除ボタン押下時に確認ダイアログが出ることを確認（キャンセル時は削除されない）
+5. `users` 画面の検索欄とロール選択で、一覧が画面遷移なしで絞り込まれることを確認
+6. `http://localhost:8080/admin/attendances` で勤怠編集を確認
 
 理解ポイント（15分）:
 - この確認の目的:
@@ -1811,6 +2010,9 @@ mvn test
 
 4. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
 - 管理者だけが勤怠編集できる流れ
+
+5. `~/order-management-springboot/stages/day5/src/main/resources/static/users.js`
+- 削除確認ダイアログと一覧絞り込み（クライアント側UI改善）
 
 ---
 

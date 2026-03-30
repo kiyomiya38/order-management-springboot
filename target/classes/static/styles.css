@@ -68,6 +68,34 @@ h1 {
   align-items: center;
 }
 
+.table-tools {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.table-tools label {
+  min-width: 220px;
+}
+
+.filter-result {
+  margin: 0;
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .table-tools {
+    align-items: stretch;
+  }
+
+  .table-tools label {
+    min-width: 100%;
+  }
+
+  .filter-result {
+    margin-left: 0;
+  }
+}
+
 label {
   display: flex;
   flex-direction: column;
