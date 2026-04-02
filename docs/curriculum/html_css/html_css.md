@@ -1,13 +1,13 @@
-# Day0（事前学習）HTML / CSS / Java 基礎（1日）
+﻿# HTML / CSS 基礎
 
-## 目的（Day0でできるようになること）
+## 目的（この資料でできるようになること）
 - HTMLの基本構造を理解し、静的ページを自分で作れる
 - CSSの基本ルールを理解し、見た目を整えられる
 - Javaの基本構文（クラス/メソッド/変数/条件分岐/ループ/コレクション）を体験できる
-- Day1のSpring Boot演習に進む前提知識を持てる
+- Spring Boot演習に進む前提知識を持てる
 
 ## 0. 環境セットアップ（Windows / Git Bash）
-Day0の最初に環境を揃えます。すでに導入済みの場合は確認だけ実施してください。
+最初に環境を揃えます。すでに導入済みの場合は確認だけ実施してください。
 
 ### 0-1. 必要ツール一覧
 - JDK 17（Java実行環境）
@@ -83,21 +83,21 @@ Java version: 17.x, vendor: ...
    ```
 
 ### 0-6. 作業フォルダ
-Day0は本体アプリ本体とは別に、練習用フォルダで進めます。
+この資料は本体アプリとは別に、練習用フォルダで進めます。
 
 ```bash
-mkdir -p practice/day0/html
-mkdir -p practice/day0/java
+mkdir -p ~/order-management-springboot/practice/html_css/html
+mkdir -p ~/order-management-springboot/practice/html_css/java
 ```
 
 VS Codeで開く（GUI）:
 1. VS Code を起動
 2. `ファイル` → `フォルダーを開く`
-3. `.../order-management-springboot/practice/day0` を選択
+3. `~/order-management-springboot/practice/html_css` を選択
 
 ---
 
-## 1. HTML / CSS 基礎（午前）
+## 1. HTML / CSS 基礎
 
 ### 1-1. HTMLとは（初心者向けに具体的に）
 HTML は **「ブラウザに表示する画面の骨組み（構造）」** を書くための言語です。  
@@ -140,7 +140,7 @@ HTMLだけでは「見た目」はほぼ変えられません。
 「HTMLのタグを見れば、**だいたい何が表示されるか想像できる**」状態を目指します。
 
 ### 1-2. 最初のHTMLを作る
-作成ファイル: `practice/day0/html/index.html`  
+作成ファイル: `~/order-management-springboot/practice/html_css/html/index.html`  
 この演習は「タグを1つ追加するごとにブラウザ確認」を行います。
 
 共通操作（毎ステップ共通）:
@@ -406,7 +406,7 @@ HTMLだけでは「見た目」はほぼ変えられません。
 - 「表示だけの画面」から「入力できる画面」へ段階を進めている
 - `section`を分けることで、勤怠表示エリアと入力エリアを分離している
 
-#### 補足: `form` / `action` / `method`（Day1以降で使用）
+#### 補足: `form` / `action` / `method`（次のSpring Boot演習で使用）
 Step 6 の入力欄とボタンは、次のように `form` で囲むと送信できる形になる。
 
 ```html
@@ -630,70 +630,10 @@ Step 9開始時の `index.html`（全文）:
 - `head`の設定が表示品質に直結することを確認する検証ステップ
 - CSSリンク有無の比較で「HTML構造」と「見た目装飾」が分離されていることを体感する
 
-#### Step 10: 最終形（この時点の `index.html` 完成版）
-```html
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <title>勤怠管理 - HTML/CSS練習</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <div class="container">
-    <header>
-      <h1>勤怠管理（HTML/CSS練習）</h1>
-      <p class="subtitle">このページはタグを理解するための練習用です。</p>
-    </header>
-
-    <section class="panel">
-      <div class="panel-header">
-        <h2>今日の勤怠</h2>
-        <span class="status-badge">未出勤</span>
-      </div>
-      <p>日付: 2026-02-05</p>
-      <p>出勤時刻: -</p>
-      <p>退勤時刻: -</p>
-    </section>
-
-    <section class="panel">
-      <h2>簡単なフォーム</h2>
-      <label>
-        名前:
-        <input type="text" name="username" />
-      </label>
-      <button>送信</button>
-    </section>
-
-    <h2>やること</h2>
-    <ul>
-      <li>出勤する</li>
-      <li>退勤する</li>
-      <li>一覧を確認する</li>
-    </ul>
-
-    <h2>勤怠サンプル一覧</h2>
-    <table>
-      <tr>
-        <th>日付</th>
-        <th>出勤</th>
-        <th>退勤</th>
-      </tr>
-      <tr>
-        <td>2026-02-05</td>
-        <td>09:00</td>
-        <td>18:00</td>
-      </tr>
-    </table>
-  </div>
-</body>
-</html>
-```
-
 ---
 
 ### 1-3. CSSを作る
-作成ファイル: `practice/day0/html/styles.css`  
+作成ファイル: `~/order-management-springboot/practice/html_css/html/styles.css`  
 HTMLと同じく、CSSも「1つずつ追加して毎回ブラウザ確認」で進めます。
 
 #### CSSとは（HTMLとの違い）
@@ -1203,6 +1143,4 @@ th, td {
 
 ---
 
-## 2. Java 基礎（午後）
-このセクション以降は [day0-java.md](./day0-java.md) を参照してください。
 

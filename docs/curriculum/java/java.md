@@ -1,4 +1,4 @@
-## 2. Java 基礎（午後）
+﻿# JAVA 基礎
 
 ### この資料の使い方（最初に読んでください）
 対象:
@@ -15,14 +15,14 @@
 この資料のゴール:
 - 1人で `.java` ファイルを作成し、コンパイルと実行を繰り返せる
 - `if/else`、`for`、クラス/メソッド、List/Map を最低限使える
-- Day1 の Spring Boot 演習に入る前の基礎操作で迷わない
+- Spring Boot 演習に入る前の基礎操作で迷わない
 
 ### 2-0. 最初の5分チェック（必須）
 最初にここだけ実行し、環境と作業場所を固定します。
 
 1. 演習フォルダへ移動
 ```bash
-cd ~/order-management-springboot/practice/day0/java
+cd ~/order-management-springboot/practice/java
 pwd
 ls
 ```
@@ -34,7 +34,7 @@ javac -version
 ```
 
 3. 期待状態
-- `pwd` で `.../order-management-springboot/practice/day0/java` が表示される
+- `pwd` で `.../order-management-springboot/practice/java` が表示される
 - `java -version` と `javac -version` がどちらも表示される
 - `javac` が not found にならない
 
@@ -84,12 +84,12 @@ public class Sample {
 - 変数: 値を一時的に保持する入れ物
 - 条件分岐/ループ: ルールに応じた処理制御
 
-#### Day0とDay1の違い（`package` / `import`）
-- Day0は文法理解を優先するため、`package` なしで最小実行している
-- Day1以降は実アプリ構成に合わせて `package com.shinesoft...;` を付ける
+#### 最小実行と実アプリ構成の違い（`package` / `import`）
+- この資料では文法理解を優先するため、`package` なしで最小実行している
+- Spring Boot演習以降は実アプリ構成に合わせて `package com.shinesoft...;` を付ける
 - `import` は別パッケージのクラスを使う宣言（`List` / `Map` で既に体験済み）
 
-例（Day1以降の形）:
+例（Spring Boot演習以降の形）:
 ```java
 package com.shinesoft.attendance.web;
 
@@ -105,7 +105,7 @@ import java.time.LocalDate;
 完了条件:
 - `Hello.java` がコンパイル成功する
 - `java Hello` 実行で `Hello Java` が1行表示される
-作成ファイル: `practice/day0/java/Hello.java`  
+作成ファイル: `~/order-management-springboot/practice/java/Hello.java`  
 HTML/CSSと同様に「Stepごとにコードを更新して実行確認」します。
 
 #### Step 0: 空のクラスを作る
@@ -119,7 +119,7 @@ public class Hello {
 確認:
 - コンパイルが通るか
   ```bash
-  cd ~/order-management-springboot/practice/day0/java
+  cd ~/order-management-springboot/practice/java
   javac -encoding UTF-8 Hello.java
   ```
 
@@ -187,7 +187,7 @@ public class Hello {
 
 完了条件:
 - `Calc.java` が実行でき、`合計: 3600`（3 * 1200）と表示される
-作成ファイル: `practice/day0/java/Calc.java`
+作成ファイル: `~/order-management-springboot/practice/java/Calc.java`
 
 #### Step 0: 骨組みを作る
 `Calc.java` を次の内容で作成:
@@ -237,7 +237,7 @@ public class Calc {
 
 実行:
 ```bash
-cd ~/order-management-springboot/practice/day0/java
+cd ~/order-management-springboot/practice/java
 javac -encoding UTF-8 Calc.java
 java Calc
 ```
@@ -254,7 +254,7 @@ java Calc
 完了条件:
 - `workedHours = 8` で `本日は勤務完了` が表示される
 - `workedHours = 6` に変えると `勤務中です` が表示される
-作成ファイル: `practice/day0/java/StatusCheck.java`
+作成ファイル: `~/order-management-springboot/practice/java/StatusCheck.java`
 
 #### Step 0: 変数だけ作る
 `StatusCheck.java` を次の内容で作成:
@@ -324,7 +324,7 @@ java StatusCheck
 
 完了条件:
 - `勤務日: 1日目` 〜 `勤務日: 3日目` が3行表示される
-作成ファイル: `practice/day0/java/LoopDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/LoopDemo.java`
 
 #### Step 0: 1回だけ表示
 ```java
@@ -370,7 +370,7 @@ java LoopDemo
 
 完了条件:
 - `Order.java` / `OrderDemo.java` を実行し、`Laptop 合計: 240000` が表示される
-作成ファイル: `practice/day0/java/Order.java`
+作成ファイル: `~/order-management-springboot/practice/java/Order.java`
 
 #### Step 0: フィールドだけ作る
 `Order.java` を次の内容で作成:
@@ -406,7 +406,7 @@ public class Order {
 - `int calcTotal()` は `int` を返すメソッド
 - `return` は呼び出し元へ値を返す命令
 
-作成ファイル: `practice/day0/java/OrderDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/OrderDemo.java`
 
 #### Step 2: 利用側クラスを作る（完成）
 `OrderDemo.java` を次の内容で作成:
@@ -448,7 +448,7 @@ java OrderDemo
 完了条件:
 - `MathUtilDemo` 実行で `合計: 3000` が表示される
 - 引数を変えると結果が変わることを確認できる
-作成ファイル: `practice/day0/java/MathUtil.java`
+作成ファイル: `~/order-management-springboot/practice/java/MathUtil.java`
 
 #### Step 0: 引数なしメソッド
 `MathUtil.java` を次の内容で作成:
@@ -476,7 +476,7 @@ public class MathUtil {
 - 引数を使うと「外から渡された値」で計算できる
 - `static` はクラス名から直接呼び出せる
 
-作成ファイル: `practice/day0/java/MathUtilDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/MathUtilDemo.java`
 
 #### Step 2: 呼び出し側を作る
 `MathUtilDemo.java` を次の内容で作成:
@@ -511,7 +511,7 @@ java MathUtilDemo
 完了条件:
 - 商品名が複数行表示される
 - `Mouse数量: 5` が表示される
-作成ファイル: `practice/day0/java/ListMapDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/ListMapDemo.java`
 
 #### Step 0: Listだけ作る
 `ListMapDemo.java` を次の内容で作成:
@@ -608,7 +608,7 @@ java ListMapDemo
 3. `clockOut` を追加して遷移完了させる
 「勤怠の状態遷移」をJavaだけで再現します。
 
-作成ファイル: `practice/day0/java/Attendance.java`
+作成ファイル: `~/order-management-springboot/practice/java/Attendance.java`
 
 #### Step 0: 状態フィールドだけ作る
 `Attendance.java` を次の内容で作成:
@@ -651,7 +651,7 @@ public class Attendance {
 - `clockIn` と `clockOut` にルールを集約
 - `"文字列".equals(status)` は null安全な比較
 
-作成ファイル: `practice/day0/java/AttendanceDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/AttendanceDemo.java`
 
 #### Step 2: 検証用mainを作る
 `AttendanceDemo.java` を次の内容で作成:
@@ -678,7 +678,7 @@ public class AttendanceDemo {
 
 実行:
 ```bash
-cd ~/order-management-springboot/practice/day0/java
+cd ~/order-management-springboot/practice/java
 javac -encoding UTF-8 *.java
 java AttendanceDemo
 ```
@@ -690,7 +690,7 @@ java AttendanceDemo
 ### 2-9. 手動ライブラリ追加を体験（15〜20分）
 目的:
 - Mavenを使わずに「ライブラリを使える状態にする」手順を体験する
-- Day1の `pom.xml` が何を簡略化しているかを理解する
+- Spring Boot演習の `pom.xml` が何を簡略化しているかを理解する
 
 完了条件:
 - `lib/manual-banner-1.0.jar` を自分で作成できる
@@ -699,12 +699,12 @@ java AttendanceDemo
 #### Step 0: ミニライブラリを自作する
 最初にディレクトリを作成:
 ```bash
-cd ~/order-management-springboot/practice/day0/java
+cd ~/order-management-springboot/practice/java
 mkdir -p libsrc/com/shinesoft/util
 mkdir -p lib/classes
 ```
 
-作成ファイル: `practice/day0/java/libsrc/com/shinesoft/util/BannerUtil.java`
+作成ファイル: `~/order-management-springboot/practice/java/libsrc/com/shinesoft/util/BannerUtil.java`
 
 ```java
 package com.shinesoft.util;
@@ -728,7 +728,7 @@ jar --list --file lib/manual-banner-1.0.jar
 ```
 
 #### Step 1: ライブラリ利用側を作る
-作成ファイル: `practice/day0/java/ManualLibDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/ManualLibDemo.java`
 
 ```java
 import com.shinesoft.util.BannerUtil;
@@ -761,18 +761,18 @@ java -cp ".;lib/manual-banner-1.0.jar" ManualLibDemo
 
 学習ポイント:
 - jar を作る、配置する、`-cp` を指定する、実行時にも `-cp` を指定する、を毎回管理する必要がある
-- Day1ではこの管理を `pom.xml` と `mvn` が肩代わりする
+- Spring Boot演習ではこの管理を `pom.xml` と `mvn` が肩代わりする
 
 ### 2-10. 手動Web起動を体験（20〜25分）
 目的:
 - Spring BootなしでWebサーバーを立てると、どこまで手作業が必要か体験する
-- Day1の `@Controller` / `@GetMapping` が何を簡略化するか理解する
+- Spring Boot演習の `@Controller` / `@GetMapping` が何を簡略化するか理解する
 
 完了条件:
 - `http://localhost:8080/` にアクセスしてHTMLが表示される
 - `Ctrl + C` で停止できる
 
-作成ファイル: `practice/day0/java/MiniWebServer.java`
+作成ファイル: `~/order-management-springboot/practice/java/MiniWebServer.java`
 
 ```java
 import java.io.IOException;
@@ -791,7 +791,7 @@ public class MiniWebServer {
 
     private static void handleTop(HttpExchange exchange) throws IOException {
         String html = "<!doctype html><html lang=\"ja\"><head><meta charset=\"utf-8\"><title>Mini</title></head>"
-                + "<body><h1>Day0 Manual Web</h1><p>手動でWeb起動しています。</p></body></html>";
+                + "<body><h1>Manual Web</h1><p>手動でWeb起動しています。</p></body></html>";
         byte[] body = html.getBytes(StandardCharsets.UTF_8);
 
         exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
@@ -804,24 +804,24 @@ public class MiniWebServer {
 
 実行:
 ```bash
-cd ~/order-management-springboot/practice/day0/java
+cd ~/order-management-springboot/practice/java
 javac -encoding UTF-8 --add-modules jdk.httpserver MiniWebServer.java
 java --add-modules jdk.httpserver MiniWebServer
 ```
 
 確認:
 - ブラウザで `http://localhost:8080/` を開く
-- 画面に `Day0 Manual Web` が表示される
+- 画面に `Manual Web` が表示される
 - 停止は `Ctrl + C`
 
 学習ポイント:
 - ルーティング、レスポンスヘッダ、ステータスコード、ボディ返却を自分で書く必要がある
-- Day1では `@GetMapping("/")` と `return "index"` で同じ意図をより短く表現できる
+- Spring Boot演習では `@GetMapping("/")` と `return "index"` で同じ意図をより短く表現できる
 
-### 2-11. Day1で出るJava構文を先取り（45〜60分）
+### 2-11. Spring Boot演習で出るJava構文を先取り（45〜60分）
 目的:
-- Day1 `maven-sandbox` で急に出るJava記法を、Spring本体に入る前に体験する
-- 「何をしているコードか」を読める状態でDay1に進む
+- Spring Boot演習の `maven-sandbox` で出るJava記法を、Spring本体に入る前に体験する
+- 「何をしているコードか」を読める状態で次の演習に進む
 
 完了条件:
 - `private final` とコンストラクタ注入の形を説明できる
@@ -831,15 +831,15 @@ java --add-modules jdk.httpserver MiniWebServer
 
 #### Step 0: 作業フォルダを作る
 このStepで新しく覚えること:
-- Day1向けの予習コードを通常演習と分離する理由
+- Spring Boot演習向けの予習コードを通常演習と分離する理由
 
 ```bash
-cd ~/order-management-springboot/practice/day0/java           # Day0のJava演習フォルダへ移動する
-mkdir -p day1-bridge/teststyle # 予習コード用フォルダとStep4用のpackageフォルダを作る
+cd ~/order-management-springboot/practice/java           # Java演習フォルダへ移動する
+mkdir -p ~/order-management-springboot/practice/java/spring-bridge/teststyle # 予習コード用フォルダとStep4用のpackageフォルダを作る
 ```
 
 意味:
-- `day1-bridge` を作ることで、Day0の基本演習ファイルと混ざらず復習しやすくなる
+- `spring-bridge` を作ることで、基本演習ファイルと混ざらず復習しやすくなる
 - `teststyle` は Step 4 の `package teststyle;` とフォルダを一致させるため
 
 #### Step 1: コンストラクタ + `private final`（DIの形）
@@ -848,7 +848,7 @@ mkdir -p day1-bridge/teststyle # 予習コード用フォルダとStep4用のpac
 - コンストラクタで依存を受け取る形（コンストラクタ注入の土台）
 - このStepでは `trim()` / `isBlank()` など文字列整形は扱わない（Step 2で扱う）
 
-作成ファイル: `practice/day0/java/day1-bridge/ConstructorDiDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/spring-bridge/ConstructorDiDemo.java`
 
 ```java
 public class ConstructorDiDemo { // このサンプルを実行するメインクラス
@@ -880,7 +880,7 @@ public class ConstructorDiDemo { // このサンプルを実行するメイン�
 
 実行:
 ```bash
-cd ~/order-management-springboot/practice/day0/java/day1-bridge
+cd ~/order-management-springboot/practice/java/spring-bridge
 javac -encoding UTF-8 ConstructorDiDemo.java
 java ConstructorDiDemo
 ```
@@ -909,7 +909,7 @@ Hello, Shinesoft
 - `final` フィールドに後から再代入しようとしてエラーになる
 - コンストラクタの引数名と `this.` の意味を混同する
 
-Day1でどこに出るか:
+Spring Boot演習でどこに出るか:
 - `maven-sandbox/README.md` の `GreetingController` で `private final` とコンストラクタ注入が出る
 
 #### Step 2: `||`, `isBlank()`, `trim()` の挙動
@@ -917,7 +917,7 @@ Day1でどこに出るか:
 - `||`（OR条件）の評価
 - 文字列の空判定と整形
 
-作成ファイル: `practice/day0/java/day1-bridge/StringRuleDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/spring-bridge/StringRuleDemo.java`
 
 ```java
 public class StringRuleDemo { // 文字列の判定と整形ルールを確認するクラス
@@ -966,7 +966,7 @@ Alice
 - `isBlank()` と `isEmpty()` の違いを混同する
 - `null` チェックより先に `isBlank()` を呼んで `NullPointerException` になる
 
-Day1でどこに出るか:
+Spring Boot演習でどこに出るか:
 - `GreetingService` / `GreetingCalculator` の `name == null || name.isBlank()` と `trim()`
 
 #### Step 3: アノテーション記法 + `@RequestParam` 風の属性
@@ -974,7 +974,7 @@ Day1でどこに出るか:
 - `@...` の基本形（アノテーション宣言と付与）
 - `name = "..."`, `required = false` のような属性指定の読み方
 
-作成ファイル: `practice/day0/java/day1-bridge/AnnotationAndRequestParamDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/spring-bridge/AnnotationAndRequestParamDemo.java`
 
 ```java
 import java.lang.annotation.ElementType; // アノテーションを付けられる対象（型/メソッド/引数など）を表す
@@ -1048,7 +1048,7 @@ RequestParamLike.required: false
 - `@GetMappingLike("/hello")`:
   - `value` 属性への省略記法（`value = "/hello"` と同義）
 - `@RequestParamLike(name = "name", required = false)`:
-  - 属性を明示した記法。Day1の `@RequestParam` と同じ読み方
+  - 属性を明示した記法。Spring Boot演習の `@RequestParam` と同じ読み方
 - `method.getAnnotation(...)` / `param.getAnnotation(...)`:
   - 付与したアノテーション情報を読み取って出力している
 
@@ -1062,7 +1062,7 @@ RequestParamLike.required: false
 - `@interface` を通常クラスと勘違いする
 - `@Retention(RetentionPolicy.RUNTIME)` を外して実行時に取得できなくなる
 
-Day1でどこに出るか:
+Spring Boot演習でどこに出るか:
 - `@Controller`, `@GetMapping`, `@RequestParam(name=..., required=false)` の見方そのもの
 
 #### Step 4: `@Test` 風 + `import static` + `assertEquals`
@@ -1071,7 +1071,7 @@ Day1でどこに出るか:
 - `assertEquals` で期待値と実際値を比較する考え方
 - `@Test` 相当の「テストメソッド目印」記法
 
-作成ファイル: `practice/day0/java/day1-bridge/teststyle/AssertLite.java`
+作成ファイル: `~/order-management-springboot/practice/java/spring-bridge/teststyle/AssertLite.java`
 
 ```java
 package teststyle; // このクラスが teststyle パッケージに属することを宣言する
@@ -1085,7 +1085,7 @@ public class AssertLite { // 最小限のアサート機能だけを持つ補助
 } // AssertLiteクラスの終わり
 ```
 
-作成ファイル: `practice/day0/java/day1-bridge/teststyle/TestStyleDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/spring-bridge/teststyle/TestStyleDemo.java`
 
 ```java
 package teststyle; // このクラスが teststyle パッケージに属することを宣言する
@@ -1160,19 +1160,19 @@ PASSED: 2
 - `package teststyle;` とフォルダ名 `teststyle/` を一致させない
 - `import static` の対象を通常 `import` と同じ感覚で書いてエラーになる
 
-Day1でどこに出るか:
+Spring Boot演習でどこに出るか:
 - JUnit の `@Test` と `Assertions.assertEquals(...)` の読み方
 
-対応関係（Day1へ）
+対応関係（Spring Boot演習へ）
 - `ControllerLike` / `GetMappingLike` / `RequestParamLike` -> `@Controller` / `@GetMapping` / `@RequestParam`
 - `TestCase` / `AssertLite.assertEquals` -> `@Test` / `Assertions.assertEquals`
 - `private final` + コンストラクタ受け取り -> コンストラクタ注入（DI）の基本形
 
-### 2-12. Day1への橋渡し（5分）
+### 2-12. Spring Boot演習への橋渡し（5分）
 1. 2-9で手作業だった項目を3つ書く（例: jar作成、配置、`-cp` 指定）
 2. 2-10で手作業だった項目を3つ書く（例: ルーティング、ヘッダ設定、HTML返却）
-3. 2-11で先取りしたJava記法が、Day1のどの行で使われるかを3つ書く
-4. それぞれがDay1で何に置き換わるかを書く
+3. 2-11で先取りしたJava記法が、Spring Boot演習のどの行で使われるかを3つ書く
+4. それぞれがSpring Boot演習で何に置き換わるかを書く
 
 対応の目安:
 - 手動jar管理 -> `pom.xml` + `mvn` の依存管理
@@ -1183,9 +1183,9 @@ Day1でどこに出るか:
 
 ## 3. 今日のゴール
 - Javaの基本構文を「自分で動かして理解できた」状態になる
-- Day1で出るJava記法（アノテーション、コンストラクタ注入、`private final`、`||`/`isBlank`/`trim`、`import static`、`assertEquals`）を読める
-- 手動ライブラリ追加と手動Web起動を体験し、Day1で置き換わる部分を説明できる
-- Day1のSpring Boot演習に進む準備ができた
+- Spring Boot演習で出るJava記法（アノテーション、コンストラクタ注入、`private final`、`||`/`isBlank`/`trim`、`import static`、`assertEquals`）を読める
+- 手動ライブラリ追加と手動Web起動を体験し、Spring Boot演習で置き換わる部分を説明できる
+- Spring Boot演習に進む準備ができた
 
 ---
 

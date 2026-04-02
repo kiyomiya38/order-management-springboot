@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JavaScript DOM演習</title>
+  <style>
+    body { font-family: sans-serif; margin: 24px; }
+    .container { max-width: 920px; margin: 0 auto; }
+    .row { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+    label { display: flex; flex-direction: column; gap: 6px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border-bottom: 1px solid #ddd; text-align: left; padding: 8px; }
+    .muted { color: #666; }
+  </style>
+  <script src="./script.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <h1>ユーザー管理（JavaScript練習）</h1>
+
+    <section class="row">
+      <label>
+        ユーザー名で検索
+        <input id="user-search-input" type="search" placeholder="例: tanaka" autocomplete="off" />
+      </label>
+
+      <label>
+        ロールで絞り込み
+        <select id="role-filter-select">
+          <option value="">すべて</option>
+          <option value="ROLE_USER">ROLE_USER</option>
+          <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+        </select>
+      </label>
+
+      <p id="user-filter-result" class="muted"></p>
+    </section>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>ユーザー名</th>
+          <th>ロール</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="js-user-row" data-username="tanaka" data-role="ROLE_USER">
+          <td>1</td>
+          <td>tanaka</td>
+          <td>ROLE_USER</td>
+          <td>
+            <form class="js-delete-user-form" data-username="tanaka">
+              <button type="submit">削除</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="js-user-row" data-username="suzuki" data-role="ROLE_USER">
+          <td>2</td>
+          <td>suzuki</td>
+          <td>ROLE_USER</td>
+          <td>
+            <form class="js-delete-user-form" data-username="suzuki">
+              <button type="submit">削除</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="js-user-row" data-username="admin" data-role="ROLE_ADMIN">
+          <td>3</td>
+          <td>admin</td>
+          <td>ROLE_ADMIN</td>
+          <td>
+            <form class="js-delete-user-form" data-username="admin">
+              <button type="submit">削除</button>
+            </form>
+          </td>
+        </tr>
+        <tr id="no-match-row" hidden>
+          <td colspan="4" class="muted">条件に一致するユーザーがいません。</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
