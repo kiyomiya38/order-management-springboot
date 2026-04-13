@@ -1,16 +1,16 @@
-# Day2（7/10）出勤機能の実装（Entity / Repository / Service）
+# Lesson2（7/10）出勤機能の実装（Entity / Repository / Service）
 
-## 目的（Day2でできるようになること）
+## 目的（Lesson2でできるようになること）
 - 出勤ボタン押下で DB に勤怠レコードを登録できる
 - `Controller -> Service -> Repository -> DB` の流れを追える
 - 同日の二重出勤を業務ルールとして弾ける
 
 ## 前提
-- Day1 を完了している
+- Lesson1 を完了している
 - `java -version` と `mvn -version` が通る
 - このリポジトリのルートで作業する
 
-## Day2で作るもの
+## Lesson2で作るもの
 - 画面: `/`（トップ画面）
 - 機能:
   - `POST /clock-in` で出勤登録
@@ -29,40 +29,40 @@ git --version
 ---
 
 ## 1. 作業フォルダ
-Day2 は `~/order-management-springboot/stages/day2` に自分でコードを作成します。
+Lesson2 は `~/order-management-springboot/stages/lesson02` に自分でコードを作成します。
 
 ```bash
-mkdir -p ~/order-management-springboot/stages/day2
-cd ~/order-management-springboot/stages/day2
+mkdir -p ~/order-management-springboot/stages/lesson02
+cd ~/order-management-springboot/stages/lesson02
 ```
 
 以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
-例: `~/order-management-springboot/stages/day2/pom.xml`
+例: `~/order-management-springboot/stages/lesson02/pom.xml`
 
 ### VS Codeでフォルダを開く（GUI）
 1. VS Code を起動
 2. `ファイル` -> `フォルダーを開く`
-3. `~/order-management-springboot/stages/day2` を選択
+3. `~/order-management-springboot/stages/lesson02` を選択
 
 ---
 
 ## 2. ディレクトリ構成を作成
 ```bash
-mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance
-mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/web
-mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/service
-mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/domain
-mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/repository
-mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/exception
-mkdir -p ~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/config
-mkdir -p ~/order-management-springboot/stages/day2/src/main/resources/templates
-mkdir -p ~/order-management-springboot/stages/day2/src/main/resources/static
+mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance
+mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/web
+mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/service
+mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/domain
+mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/repository
+mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/exception
+mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/config
+mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/templates
+mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
 ```
 
 ---
 
 ## 3. `pom.xml` を作成（Maven設定）
-作成ファイル: `~/order-management-springboot/stages/day2/pom.xml`
+作成ファイル: `~/order-management-springboot/stages/lesson02/pom.xml`
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -79,7 +79,7 @@ mkdir -p ~/order-management-springboot/stages/day2/src/main/resources/static
   <version>0.0.1-SNAPSHOT</version>
   <!-- name/description は人が見て判別しやすくするための情報 -->
   <name>attendance-management</name>
-  <description>Attendance Management MVP Day2</description>
+  <description>Attendance Management MVP Lesson2</description>
 
   <!-- 共通値を変数化。${...} で再利用できる -->
   <properties>
@@ -163,20 +163,20 @@ mkdir -p ~/order-management-springboot/stages/day2/src/main/resources/static
 
 理解ポイント（10分）:
 - このファイルの役割:
-  - Day2のビルド設定を管理する（Web + 画面 + DB）
-- Day1からの追加点:
+  - Lesson2のビルド設定を管理する（Web + 画面 + DB）
+- Lesson1からの追加点:
   - `spring-boot-starter-data-jpa`（DBアクセス）
   - `h2`（研修用のローカルDB）
 - まず見る場所:
   - `<dependencies>` の4つの依存関係
-  - `<description>`（Day2用に識別）
+  - `<description>`（Lesson2用に識別）
 - よくあるミス:
   - `data-jpa` や `h2` の追加漏れでDB関連クラスが動かない
 
 ---
 
 ## 4. `application.yml` を作成
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/resources/application.yml`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/resources/application.yml`
 
 ```yaml
 # Spring Framework全体の設定
@@ -189,15 +189,15 @@ spring:
     url: jdbc:h2:mem:attendance;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     # JDBCドライバ
     driver-class-name: org.h2.Driver
-    # Day2では簡易構成として固定ユーザーを使用
+    # Lesson2では簡易構成として固定ユーザーを使用
     username: sa
     password:
   jpa:
     hibernate:
       # Entity定義に合わせてテーブルを自動更新（学習用設定）
       ddl-auto: update
-    # 画面描画中の遅延読み込みを防ぐためfalse
-    open-in-view: false
+    # 画面描画時の関連参照で LazyInitializationException を避けるため true
+    open-in-view: true
   thymeleaf:
     # 学習中はキャッシュ無効（HTML変更を反映しやすくする）
     cache: false
@@ -223,13 +223,13 @@ logging:
 理解ポイント（10分）:
 - このファイルの役割:
   - DB接続や起動時設定をまとめる
-- Day2で重要な設定:
+- Lesson2で重要な設定:
   - `spring.datasource.*`（H2接続先）
   - `spring.jpa.hibernate.ddl-auto: update`（テーブル自動更新）
   - `spring.h2.console.enabled: true`（H2コンソール有効化）
 - まず見る場所:
   - `url: jdbc:h2:mem:attendance...`
-  - `open-in-view: false`（画面描画時の不要なDBアクセス抑制）
+  - `open-in-view: true`（画面描画時の関連参照エラー回避）
 - よくあるミス:
   - `jdbc:h2:mem:attendance` のスペルミス
   - YAMLインデント崩れ
@@ -237,7 +237,7 @@ logging:
 ---
 
 ## 5. Applicationクラス
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
 
 ```java
 // このクラスが属するパッケージ（フォルダ構成と一致させる）
@@ -262,8 +262,8 @@ public class AttendanceManagementApplication {
 理解ポイント（5分）:
 - このファイルの役割:
   - Spring Bootの起動エントリポイント
-- Day1との関係:
-  - Day2でもこのクラスは同じ（起点は変わらない）
+- Lesson1との関係:
+  - Lesson2でもこのクラスは同じ（起点は変わらない）
 - 確認すること:
   - `@SpringBootApplication` と `main` があること
 
@@ -291,7 +291,7 @@ public class AttendanceManagementApplication {
 - ただし同じユーザー・同じ日付での重複は `@UniqueConstraint(user_id, work_date)` で禁止
 
 ### 6-1. 勤怠ステータス
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java`
 
 ```java
 // 勤怠状態を固定値で管理する列挙型（Enum）
@@ -309,7 +309,7 @@ public enum AttendanceStatus {
 ```
 
 ### 6-2. ユーザー
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/domain/User.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/domain/User.java`
 
 ```java
 // Entity（DBテーブル）を置くパッケージ
@@ -353,7 +353,7 @@ public class User {
 ```
 
 ### 6-3. 勤怠
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/domain/Attendance.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/domain/Attendance.java`
 
 ```java
 // Entityクラスを置くパッケージ
@@ -522,7 +522,7 @@ Controller や Service から直接SQLを書く代わりに、「保存」「検
 3. Repository がDBへ保存/検索する
 
 ### 7-1. `UserRepository`
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/repository/UserRepository.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/repository/UserRepository.java`
 
 ```java
 // Repositoryインターフェースを置くパッケージ
@@ -543,7 +543,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ```
 
 ### 7-2. `AttendanceRepository`
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
 
 ```java
 // Repositoryインターフェースを置くパッケージ
@@ -583,7 +583,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 用語:
 - 例外（Exception）:
   - 通常処理を続けられない状態を表す仕組み
-  - Day2では業務ルール違反（例: 二重出勤、未出勤で退勤）を `BusinessException` で表現する
+  - Lesson2では業務ルール違反（例: 二重出勤、未出勤で退勤）を `BusinessException` で表現する
 - Service:
   - 業務ルールを実行する層
   - Controllerから受けた操作を判定し、必要なDB操作をRepositoryへ依頼する
@@ -595,7 +595,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 4. Exception: ルール違反をエラーとして呼び出し元へ通知
 
 ### 8-1. `BusinessException`
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/exception/BusinessException.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/exception/BusinessException.java`
 
 ```java
 // 業務ルール違反を表す独自例外
@@ -611,7 +611,7 @@ public class BusinessException extends RuntimeException {
 ```
 
 ### 8-2. `AttendanceService`
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
 
 ```java
 // Serviceクラスを置くパッケージ
@@ -705,7 +705,7 @@ public class AttendanceService {
 この章では、アプリ起動時に「研修用の固定ユーザー `user1`」をDBへ自動登録します。
 
 なぜ必要か:
-- Day2時点ではログイン機能/ユーザー登録画面をまだ作っていないため
+- Lesson2時点ではログイン機能/ユーザー登録画面をまだ作っていないため
 - Controller/Serviceが「操作対象ユーザー」を前提に動くため
 - 毎回手動でSQL投入しなくても、演習をすぐ始められるため
 
@@ -714,7 +714,7 @@ public class AttendanceService {
 2. 存在しなければ `users` テーブルへ1件登録
 3. 既に存在する場合は何もしない（重複防止）
 
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
 
 ```java
 // 設定クラスを置くパッケージ
@@ -759,7 +759,7 @@ public class DataSeeder {
 ---
 
 ## 10. Controllerを作成
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 ```java
 // 画面（Web）層のクラスを置くパッケージ
@@ -785,7 +785,7 @@ import com.shinesoft.attendance.service.AttendanceService;
 // 画面表示を担当するController
 @Controller
 public class HomeController {
-    // Day2では固定ユーザーで進める（ログイン機能はDay5で実装）
+    // Lesson2では固定ユーザーで進める（ログイン機能はLesson5で実装）
     private static final Long TRAINING_USER_ID = 1L;
     // 日時表示フォーマット
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -877,7 +877,7 @@ public class HomeController {
 ---
 
 ## 11. テンプレートを作成
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/resources/templates/index.html`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/resources/templates/index.html`
 
 ```html
 <!-- HTML5の文書宣言 -->
@@ -889,7 +889,7 @@ public class HomeController {
   <meta charset="utf-8" />
   <!-- スマホ表示用の基本設定 -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>勤怠管理（Day2）</title>
+  <title>勤怠管理（Lesson2）</title>
   <!-- static/styles.css を読み込む -->
   <link rel="stylesheet" th:href="@{/styles.css}" />
 </head>
@@ -898,7 +898,7 @@ public class HomeController {
   <div class="container">
     <header>
       <h1>勤怠管理システム（MVP）</h1>
-      <p class="subtitle">Day2: 出勤機能（DB保存）</p>
+      <p class="subtitle">Lesson2: 出勤機能（DB保存）</p>
     </header>
 
     <!-- messageがある時だけ成功通知を表示 -->
@@ -945,7 +945,7 @@ public class HomeController {
 ---
 
 ## 12. CSSを作成
-作成ファイル: `~/order-management-springboot/stages/day2/src/main/resources/static/styles.css`
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/resources/static/styles.css`
 
 ```css
 /* 画面全体で使う色変数 */
@@ -1061,7 +1061,7 @@ button:hover { opacity: 0.9; }
 
 理解ポイント（10分）:
 - このファイルの役割:
-  - Day2画面の見た目を整える
+  - Lesson2画面の見た目を整える
 - 重要ポイント:
   - `.alert-error` / `.alert-info` で結果表示の見分けを付ける
   - `.status-badge` で状態を視覚化
@@ -1074,7 +1074,7 @@ button:hover { opacity: 0.9; }
 
 ## 13. 起動
 ```bash
-cd ~/order-management-springboot/stages/day2
+cd ~/order-management-springboot/stages/lesson02
 mvn spring-boot:run
 ```
 
@@ -1103,7 +1103,7 @@ mvn spring-boot:run
 - `研修ユーザーが存在しません`:
   - `DataSeeder` が正しく作成されているか確認
 - `mvn` が通らない:
-  - Day0 の環境セットアップに戻って `JAVA_HOME` / `Path` を確認
+  - Lesson0 の環境セットアップに戻って `JAVA_HOME` / `Path` を確認
 
 ---
 

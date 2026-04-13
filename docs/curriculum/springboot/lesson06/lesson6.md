@@ -1,4 +1,4 @@
-﻿# Spring Boot 実サーバー移行演習（VirtualBox 2VM / NAT + Host-Only / MariaDB）
+# Spring Boot 実サーバー移行演習（VirtualBox 2VM / NAT + Host-Only / MariaDB）
 
 ## 目的
 - ローカル開発中の `~/order-management-springboot/src` アプリを、実サーバー構成に近い形でデプロイする

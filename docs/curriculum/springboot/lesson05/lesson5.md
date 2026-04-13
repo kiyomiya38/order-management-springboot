@@ -1,14 +1,14 @@
-# Day5（7/15）ログイン + 管理者機能 + テスト（Day4から拡張）
+# Lesson5（7/15）ログイン + 管理者機能 + テスト（Lesson4から拡張）
 
-## 目的（Day5でできるようになること）
+## 目的（Lesson5でできるようになること）
 - ログイン機能（Spring Security）を実装できる
 - 一般ユーザー / 管理者でアクセス権が分かれることを確認できる
 - 管理者のアカウント管理・勤怠編集ができる
 - `mvn test` でServiceテストを実行できる
 
 ## 前提
-- Day4 を完了している
-- `~/order-management-springboot/stages/day4` のトップ/一覧が動作する
+- Lesson4 を完了している
+- `~/order-management-springboot/stages/lesson04` のトップ/一覧が動作する
 
 ---
 
@@ -21,32 +21,32 @@ git --version
 
 ---
 
-## 1. 作業フォルダを準備（Day4を複製）
+## 1. 作業フォルダを準備（Lesson4を複製）
 ```bash
-mkdir -p ~/order-management-springboot/stages/day5
-cp -r ~/order-management-springboot/stages/day4/* ~/order-management-springboot/stages/day5/
-cd ~/order-management-springboot/stages/day5
+mkdir -p ~/order-management-springboot/stages/lesson05
+cp -r ~/order-management-springboot/stages/lesson04/* ~/order-management-springboot/stages/lesson05/
+cd ~/order-management-springboot/stages/lesson05
 ```
 
 以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
-例: `~/order-management-springboot/stages/day5/src/main/java/...`
+例: `~/order-management-springboot/stages/lesson05/src/main/java/...`
 
 ---
 
 ## 2. ディレクトリを追加
 ```bash
-mkdir -p ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config
-mkdir -p ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/form
-mkdir -p ~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance/service
+mkdir -p ~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config
+mkdir -p ~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/form
+mkdir -p ~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance/service
 ```
 
 ---
 
 ## 3. `pom.xml` を編集（依存追加）
-作成ファイル: `~/order-management-springboot/stages/day5/pom.xml`
+作成ファイル: `~/order-management-springboot/stages/lesson05/pom.xml`
 
 この章でやること（具体手順）:
-1. `~/order-management-springboot/stages/day5/pom.xml` を開く
+1. `~/order-management-springboot/stages/lesson05/pom.xml` を開く
 2. 実利用側の `<dependencies>`（`spring-boot-starter-web` などが並んでいるブロック）を探す
 3. その `</dependencies>` の直前に、以下3つを追記する
 
@@ -68,14 +68,14 @@ mkdir -p ~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/a
 </dependency>
 ```
 
-Day4からの追加依存:
+Lesson4からの追加依存:
 - `spring-boot-starter-security`
 - `spring-boot-starter-validation`
 - `spring-boot-starter-test`（testスコープ）
 
 確認コマンド:
 ```bash
-cd ~/order-management-springboot/stages/day5
+cd ~/order-management-springboot/stages/lesson05
 # 依存が追記されているか確認（Git Bash）
 grep -nE "spring-boot-starter-security|spring-boot-starter-validation|spring-boot-starter-test" pom.xml
 # コンパイル確認（成功時は BUILD SUCCESS）
@@ -84,7 +84,7 @@ mvn compile
 
 理解ポイント（10分）:
 - この変更の目的:
-  - Day5で必要な「認証」「入力検証」「テスト」を有効化する
+  - Lesson5で必要な「認証」「入力検証」「テスト」を有効化する
 - 依存の意味:
   - `spring-boot-starter-security`: ログイン/権限制御
   - `spring-boot-starter-validation`: `@Valid` / `@NotBlank` など入力検証
@@ -94,9 +94,9 @@ mvn compile
 
 ---
 
-## 4. Day5差分を手動追記（理解優先の3フェーズ）
-Day5は差分が多いため、手動で一気に作ると混乱しやすいです。  
-この章では、Day4コードから段階的に追記して「何が増えたか」を理解しながら進めます。
+## 4. Lesson5差分を手動追記（理解優先の3フェーズ）
+Lesson5は差分が多いため、手動で一気に作ると混乱しやすいです。  
+この章では、Lesson4コードから段階的に追記して「何が増えたか」を理解しながら進めます。
 
 作業量の目安:
 - 初学者: 6〜9時間（1日相当）
@@ -110,13 +110,13 @@ Day5は差分が多いため、手動で一気に作ると混乱しやすいで�
 
 ### Phase 1: 認証の土台（ログインと権限制御）
 新規作成ファイル（フルパス）:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AuthController.java`
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/login.html`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/AuthController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/login.html`
 
 既存編集ファイル（フルパス）:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/domain/User.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/domain/User.java`
 
 コードの意味（このフェーズで理解すること）:
 - `SecurityConfig.java`:
@@ -133,7 +133,7 @@ Day5は差分が多いため、手動で一気に作ると混乱しやすいで�
 
 #### Phase 1-1: `SecurityConfig.java` を1行ずつ理解しながら作る
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
 
 手順:
 1. まずは「URLごとのアクセス制御」と「ログイン画面指定」だけを入れる
@@ -216,7 +216,7 @@ public class SecurityConfig {
 
 #### Phase 1-2: `AuthController.java` を作る（ログイン画面の入口）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AuthController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/AuthController.java`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -252,7 +252,7 @@ public class AuthController {
 
 #### Phase 1-3: `login.html` を作る（ログインフォーム画面）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/login.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/login.html`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -301,7 +301,7 @@ public class AuthController {
 
 #### Phase 1-4: `DataSeeder.java` を編集（初期ユーザー投入）
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
 
 全文を以下に置き換えてください。
 
@@ -351,7 +351,7 @@ public class DataSeeder implements CommandLineRunner {
 
 #### Phase 1-5: `User.java` を編集（認証に必要な項目を持つ）
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/domain/User.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/domain/User.java`
 
 全文を以下に置き換えてください。
 
@@ -417,23 +417,23 @@ public class User {
 
 完了チェック:
 ```bash
-cd ~/order-management-springboot/stages/day5
+cd ~/order-management-springboot/stages/lesson05
 mvn compile
 ```
 
 ### Phase 2: 管理者のユーザー管理
 新規作成ファイル（フルパス）:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/service/UserService.java`
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/UserController.java`
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/form/UserForm.java`
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/users.html`
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/user-form.html`
-- `~/order-management-springboot/stages/day5/src/main/resources/static/users.js`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/service/UserService.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/UserController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/form/UserForm.java`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/users.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/user-form.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/static/users.js`
 
 既存編集ファイル（フルパス）:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/HomeController.java`
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/index.html`
-- `~/order-management-springboot/stages/day5/src/main/resources/static/styles.css`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/index.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/static/styles.css`
 
 コードの意味（このフェーズで理解すること）:
 - `UserService.java`:
@@ -450,7 +450,7 @@ mvn compile
 
 #### Phase 2-1: `UserService.java` を作る（ユーザー管理の業務ロジック）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/service/UserService.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/service/UserService.java`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -531,7 +531,7 @@ public class UserService {
 
 #### Phase 2-2: `UserController.java` を作る（管理者画面の入口）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/UserController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/UserController.java`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -656,7 +656,7 @@ public class UserController {
 
 #### Phase 2-3: `UserForm.java` を作る（入力値を受ける器）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/form/UserForm.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/form/UserForm.java`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -707,7 +707,7 @@ public class UserForm {
 
 #### Phase 2-4: `users.html` を作る（ユーザー一覧画面）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/users.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/users.html`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -777,9 +777,9 @@ public class UserForm {
 2. ユーザー一覧を「ユーザー名」「ロール」で画面遷移なしで絞り込めるようにする
 
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/users.html`
-- `~/order-management-springboot/stages/day5/src/main/resources/static/users.js`
-- `~/order-management-springboot/stages/day5/src/main/resources/static/styles.css`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/users.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/static/users.js`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/static/styles.css`
 
 1) `users.html` を以下に置き換えてください。
 
@@ -966,7 +966,7 @@ function setupUserTableFilter() {
 
 #### Phase 2-5: `user-form.html` を作る（ユーザー作成/編集画面）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/user-form.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/user-form.html`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -1022,7 +1022,7 @@ function setupUserTableFilter() {
 
 #### Phase 2-6: `HomeController.java` を編集（ログインユーザー情報を表示）
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 全文を以下に置き換えてください。
 
@@ -1127,7 +1127,7 @@ public class HomeController {
 
 #### Phase 2-7: `index.html` を編集（管理者メニューを表示）
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/index.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/index.html`
 
 全文を以下に置き換えてください。
 
@@ -1204,17 +1204,17 @@ mvn compile
 
 ### Phase 3: 管理者の勤怠編集 + テスト
 新規作成ファイル（フルパス）:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/form/AdminAttendanceForm.java`
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/admin-attendances.html`
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/admin-attendance-form.html`
-- `~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/form/AdminAttendanceForm.java`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/admin-attendances.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/admin-attendance-form.html`
+- `~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
 
 既存編集ファイル（フルパス）:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AttendanceController.java`
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/attendances.html`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/AttendanceController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/attendances.html`
 
 コードの意味（このフェーズで理解すること）:
 - `AdminAttendanceController.java`:
@@ -1234,7 +1234,7 @@ mvn compile
 
 #### Phase 3-1: `AdminAttendanceController.java` を作る（管理者勤怠画面の入口）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -1337,7 +1337,7 @@ public class AdminAttendanceController {
 
 #### Phase 3-2: `AdminAttendanceForm.java` を作る（管理者勤怠編集フォーム）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/form/AdminAttendanceForm.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/form/AdminAttendanceForm.java`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -1395,7 +1395,7 @@ public class AdminAttendanceForm {
 
 #### Phase 3-3: `admin-attendances.html` を作る（管理者勤怠一覧）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/admin-attendances.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/admin-attendances.html`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -1464,7 +1464,7 @@ public class AdminAttendanceForm {
 
 #### Phase 3-4: `admin-attendance-form.html` を作る（管理者勤怠編集画面）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/admin-attendance-form.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/admin-attendance-form.html`
 
 新規作成してください（既にある場合は全文置き換え）。
 
@@ -1530,7 +1530,7 @@ public class AdminAttendanceForm {
 
 #### Phase 3-5: `AttendanceService.java` を編集（管理者更新ロジック追加）
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
 
 全文を以下に置き換えてください。
 
@@ -1682,26 +1682,51 @@ public class AttendanceService {
 ```
 
 補足（重要）:
-- 完成版準拠では、`AttendanceRepository` は次のメソッド構成にします。
-- `findById(...)` は `JpaRepository` 標準メソッドをそのまま利用します（追加定義は不要）。
+- `AttendanceRepository.java` は、下記の完成形に「全文置き換え」してください。
+- `findById(...)` は `JpaRepository` 標準メソッドをそのまま利用します（`AttendanceRepository` への追加定義は不要）。
 
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
+
+手順:
+1. `AttendanceRepository.java` を開く。
+2. ファイル内容を次の完成形に全文置き換える。
+3. 保存後に `mvn compile`（可能なら `mvn test` も）を実行してエラーがないことを確認する。
 
 ```java
-Optional<Attendance> findByUser_IdAndWorkDate(Long userId, LocalDate workDate);
-List<Attendance> findByUser_IdOrderByWorkDateDesc(Long userId);
-List<Attendance> findAllByOrderByWorkDateDesc();
+// Repositoryインターフェースを置くパッケージ
+package com.shinesoft.attendance.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.shinesoft.attendance.domain.Attendance;
+
+// AttendanceテーブルのDB操作窓口
+public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
+    // userId + 勤務日で当日レコードを1件取得（出勤/退勤判定に使う）
+    Optional<Attendance> findByUser_IdAndWorkDate(Long userId, LocalDate workDate);
+
+    // 指定ユーザーの履歴を勤務日降順で取得
+    // 直近データを上に表示したい一覧画面向け
+    List<Attendance> findByUser_IdOrderByWorkDateDesc(Long userId);
+
+    // 管理者向けに全ユーザー分の履歴を勤務日降順で取得
+    List<Attendance> findAllByOrderByWorkDateDesc();
+}
 ```
 
 理解ポイント:
-- Day5追加の核は `updateAttendance(...)` と `validateStatusAndTimes(...)`
+- Lesson5追加の核は `updateAttendance(...)` と `validateStatusAndTimes(...)`
 - 管理者編集でも「同日重複」「状態と時刻の整合」を強制する
 - 既存の出勤/退勤ロジックを壊さずに拡張している
 
 #### Phase 3-6: `AttendanceController.java` を編集（ログインユーザー基準で一覧表示）
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AttendanceController.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/AttendanceController.java`
 
 全文を以下に置き換えてください。
 
@@ -1740,12 +1765,12 @@ public class AttendanceController {
 ```
 
 理解ポイント:
-- Day4の固定ユーザーID方式から、ログインユーザー基準へ変更している
+- Lesson4の固定ユーザーID方式から、ログインユーザー基準へ変更している
 - 同じ `/attendances` でも「誰の履歴か」が認証連動で決まる
 
 #### Phase 3-7: `attendances.html` を編集（ログインユーザー表示）
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/main/resources/templates/attendances.html`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/templates/attendances.html`
 
 全文を以下に置き換えてください。
 
@@ -1800,7 +1825,7 @@ public class AttendanceController {
 
 #### Phase 3-8: `AttendanceServiceTest.java` を作る（最低限の回帰テスト）
 作成ファイル:
-- `~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
+- `~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
 
 このファイルを作る理由（先に読む）:
 1. 目的:
@@ -1890,7 +1915,7 @@ class AttendanceServiceTest {
 
 理解ポイント:
 - 「壊れてはいけない業務ルール」をテストで固定する
-- Day5ではまず2本（正常系/異常系）の最小セットを確実に通す
+- Lesson5ではまず2本（正常系/異常系）の最小セットを確実に通す
 
 完了チェック:
 ```bash
@@ -1899,20 +1924,20 @@ mvn test
 ```
 
 詰まった時の比較方法:
-- 例: `stages/day5` のファイルと完成版 `src` の同名ファイルを開き、差分を確認する
+- 例: `stages/lesson05` のファイルと完成版 `src` の同名ファイルを開き、差分を確認する
 - 比較対象の優先度:
-  1. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
-  2. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/service/UserService.java`
-  3. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
+  1. `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
+  2. `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/service/UserService.java`
+  3. `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
 
 ---
 
 ## 5. ファイル作成チェック（必須）
 ```bash
-find ~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance -type f | sort
-find ~/order-management-springboot/stages/day5/src/main/resources/templates -type f | sort
-find ~/order-management-springboot/stages/day5/src/main/resources/static -type f | sort
-find ~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance -type f | sort
+find ~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance -type f | sort
+find ~/order-management-springboot/stages/lesson05/src/main/resources/templates -type f | sort
+find ~/order-management-springboot/stages/lesson05/src/main/resources/static -type f | sort
+find ~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance -type f | sort
 ```
 
 期待する追加カテゴリ:
@@ -1928,13 +1953,13 @@ find ~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/atten
 - このチェックの目的:
   - 必須ファイルの作成漏れを起動前に潰す
 - 重要ポイント:
-  - Day5は「依存追加 + 多数ファイル追加」のため、フェーズ完了ごとのチェックが最短ルート
+  - Lesson5は「依存追加 + 多数ファイル追加」のため、フェーズ完了ごとのチェックが最短ルート
 
 ---
 
 ## 6. 起動
 ```bash
-cd ~/order-management-springboot/stages/day5
+cd ~/order-management-springboot/stages/lesson05
 mvn spring-boot:run
 ```
 
@@ -1991,22 +2016,22 @@ mvn test
 
 ## 9. コード読解ポイント（必須）
 
-1. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
+1. `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
 - `requestMatchers` でURL別権限制御
 - `formLogin` でログイン画面指定
 
-2. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/service/UserService.java`
+2. `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/service/UserService.java`
 - パスワードハッシュ化
 - ユーザー名重複チェック
 
-3. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+3. `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 - `Principal` からログインユーザー取得
 - `isAdmin` で画面表示を分岐
 
-4. `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
+4. `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/AdminAttendanceController.java`
 - 管理者だけが勤怠編集できる流れ
 
-5. `~/order-management-springboot/stages/day5/src/main/resources/static/users.js`
+5. `~/order-management-springboot/stages/lesson05/src/main/resources/static/users.js`
 - 削除確認ダイアログと一覧絞り込み（クライアント側UI改善）
 
 ---
@@ -2018,12 +2043,15 @@ mvn test
 - 管理画面が403:
   - `admin` でログインしているか
   - `ROLE_ADMIN` が設定されているか
+- `http://localhost:8080/admin/attendances` で500（Whitelabel Error Page）:
+  - `application.yml` の `spring.jpa.open-in-view: false` が有効だと、一覧描画時（`att.user.username`）に `LazyInitializationException` が発生する場合がある
+  - `~/order-management-springboot/stages/lesson05/src/main/resources/application.yml` の `open-in-view` を `true` に変更する（またはこの設定行を削除してデフォルト値を使う）
 - テストが失敗:
   - `pom.xml` に `spring-boot-starter-test` があるか
 - `org.springframework.security...` や `jakarta.validation...` が「存在しません」と出る:
   - 原因は依存キャッシュ不整合の可能性が高い
   - Git Bashで次を実行して依存を再取得する
-  - `cd ~/order-management-springboot/stages/day5`
+  - `cd ~/order-management-springboot/stages/lesson05`
   - `rm -rf ~/.m2/repository/org/springframework/security`
   - `rm -rf ~/.m2/repository/jakarta/validation`
   - `rm -rf ~/.m2/repository/org/hibernate/validator`
@@ -2039,9 +2067,9 @@ mvn test
 
 ## 12. 現行`src`との対応（必須）
 この章を追加する理由（先に読む）:
-- Day5手順が完成版 `src` と同じ命名・構成になっていることを最終確認するため
+- Lesson5手順が完成版 `src` と同じ命名・構成になっていることを最終確認するため
 
-一致確認（`stages/day5` と 完成版 `src`）:
+一致確認（`stages/lesson05` と 完成版 `src`）:
 - `AttendanceService#getTodayAttendance(Long)`（`Attendance` または `null`）
 - `AttendanceService#listAttendances(Long)`
 - `AttendanceRepository#findByUser_IdAndWorkDate(...)`
@@ -2050,7 +2078,7 @@ mvn test
 - `AttendanceService#getAttendance(...)` / `updateAttendance(...)` では `AttendanceRepository#findById(...)` を利用
 
 補足（重要）:
-- Day5本文は、上記の完成版命名・構成に合わせて記載済み
+- Lesson5本文は、上記の完成版命名・構成に合わせて記載済み
 - 追加の読み替え作業は不要
 
 確認ポイント:
@@ -2061,12 +2089,12 @@ mvn test
 
 ## 13. `dev` / `prod` プロファイルの読み方（必須）
 この章を追加する理由（先に読む）:
-- Day5作業ディレクトリを、完成版と同じ「共通設定 + プロファイル分離」に揃えるため
+- Lesson5作業ディレクトリを、完成版と同じ「共通設定 + プロファイル分離」に揃えるため
 
-編集ファイル（`stages/day5`）:
-- `~/order-management-springboot/stages/day5/src/main/resources/application.yml`
-- `~/order-management-springboot/stages/day5/src/main/resources/application-dev.yml`
-- `~/order-management-springboot/stages/day5/src/main/resources/application-prod.yml`
+編集ファイル（`stages/lesson05`）:
+- `~/order-management-springboot/stages/lesson05/src/main/resources/application.yml`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/application-dev.yml`
+- `~/order-management-springboot/stages/lesson05/src/main/resources/application-prod.yml`
 
 手順:
 1. `application.yml` を以下に置き換える（共通設定）
@@ -2144,7 +2172,7 @@ logging:
 
 4. プロファイル切替を実行確認する（Git Bash）
 ```bash
-cd ~/order-management-springboot/stages/day5
+cd ~/order-management-springboot/stages/lesson05
 
 # 開発モード（未指定でもdev）
 SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
@@ -2161,10 +2189,10 @@ SPRING_PROFILES_ACTIVE=prod mvn spring-boot:run
 
 ## 14. テスト追加演習（任意）
 この章を追加する理由（先に読む）:
-- Day5本文の最小2テストは重要だが、完成版で追加された業務ルール（退勤と管理者更新）も自動検証すると理解が深まるため
+- Lesson5本文の最小2テストは重要だが、完成版で追加された業務ルール（退勤と管理者更新）も自動検証すると理解が深まるため
 
 編集ファイル:
-- `~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
+- `~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
 - （完成版読解のみの場合）`~/order-management-springboot/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
 
 追加候補:

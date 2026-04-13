@@ -1,11 +1,11 @@
-# Day1（7/9）最小MVCで画面表示（完成版を自分で作成）
+# Lesson1（7/9）最小MVCで画面表示（完成版を自分で作成）
 
-## 目的（Day1でできるようになること）
+## 目的（Lesson1でできるようになること）
 - Spring Boot アプリを「ゼロから」起動できる
 - Thymeleafで画面が表示される仕組み（Controller → Template）が分かる
 
 ## 前提
-- Day0（HTML / Java 基礎）を実施済み
+- Lesson0（HTML / Java 基礎）を実施済み
 - Java 17 / Maven 3.9+ がインストール済み
 - このリポジトリのルートで作業する
 
@@ -19,10 +19,10 @@
 - フレームワーク:
   - 先に決まった流れ（枠組み）があり、その流れに自分のコードを当てはめる
 
-Day0との違い:
-- Day0:
+Lesson0との違い:
+- Lesson0:
   - Web起動やレスポンス処理を手作業で実装した
-- Day1（Spring Boot）:
+- Lesson1（Spring Boot）:
   - `@Controller` / `@GetMapping` などで必要部分だけを書けば動く
 
 なぜ使うか:
@@ -39,11 +39,11 @@ Spring Bootでの具体例:
 - `@Controller` + `@GetMapping("/")` のような規約的な書き方で画面表示までつながる
 - `spring-boot-starter-web` を追加すると、Webに必要な主要ライブラリがまとまって入る
 
-Day0との比較:
-- Day0: ルーティングやレスポンス処理、起動設定を手作業で書いた
-- Day1: 規約に沿って配置・記述すると、設定量を減らして同じ目的を達成できる
+Lesson0との比較:
+- Lesson0: ルーティングやレスポンス処理、起動設定を手作業で書いた
+- Lesson1: 規約に沿って配置・記述すると、設定量を減らして同じ目的を達成できる
 
-## Spring Bootとは（Day1開始前に読む）
+## Spring Bootとは（Lesson1開始前に読む）
 Spring Bootは、JavaでWebアプリを作るためのSpringの実行基盤です。  
 通常は手作業で必要になる設定を減らし、`mvn spring-boot:run` で起動できる状態を短時間で作れます。
 
@@ -64,7 +64,7 @@ Spring Bootは、JavaでWebアプリを作るためのSpringの実行基盤で�
 - Spring Boot（起動・設定を簡単にする）
 - Spring MVC（Web画面/HTTPを扱う機能）
 
-Day1では、以下の最小構成を体験します。
+Lesson1では、以下の最小構成を体験します。
 - `Controller`:
   - URLリクエストを受け取り、画面に渡すデータを用意する
 - `Template`（Thymeleaf）:
@@ -73,17 +73,17 @@ Day1では、以下の最小構成を体験します。
   - Spring Bootアプリの起動エントリポイント（`main`メソッド）
 
 この研修の目的は、Java文法を深掘りすることではなく、後続のDocker/CI/CD/K8sで扱う「動くアプリ土台」を作ることです。  
-そのためDay1は、最小の構成で起動と画面表示に集中します。
+そのためLesson1は、最小の構成で起動と画面表示に集中します。
 
-## Day1で作るもの（最小MVC）
+## Lesson1で作るもの（最小MVC）
 - 画面: `/`（勤怠トップ画面、表示のみ）
-- 機能: まだ出勤/退勤はしない（Day2から）
+- 機能: まだ出勤/退勤はしない（Lesson2から）
 
 ---
 
-## 0. 事前確認（環境セットアップはDay0）
-環境セットアップ手順は `~/order-management-springboot/docs/curriculum/day0/day0.md` の「0. 環境セットアップ」で実施します。  
-Day1開始前に、以下だけ確認してください。
+## 0. 事前確認（環境セットアップはLesson0）
+環境セットアップ手順は `~/order-management-springboot/docs/curriculum/springboot/lesson00/lesson0.md` の「0. 環境セットアップ」で実施します。  
+Lesson1開始前に、以下だけ確認してください。
 
 ```bash
 java -version
@@ -91,12 +91,12 @@ mvn -version
 git --version
 ```
 
-3つともエラーなしで表示されれば Day1 を開始できます。
+3つともエラーなしで表示されれば Lesson1 を開始できます。
 
 ---
 
 ## 1. Maven超入門（最初に読む）
-Day1で使う `mvn` は、Javaプロジェクトの「依存関係管理」と「ビルド自動化」を行うツールです。
+Lesson1で使う `mvn` は、Javaプロジェクトの「依存関係管理」と「ビルド自動化」を行うツールです。
 
 ### Mavenがやっていること（最重要）
 - 依存関係管理:
@@ -136,9 +136,9 @@ Day1で使う `mvn` は、Javaプロジェクトの「依存関係管理」と�
 ### テストとは何をするか
 - `mvn test` は `src/test/java` のテストコードを実行し、期待結果と実際結果を比較する
 - テスト失敗時はビルド失敗として扱われる
-- Day1時点ではテストコード未作成のため、実行対象はほぼない
+- Lesson1時点ではテストコード未作成のため、実行対象はほぼない
 
-### Day1で最低限使うコマンド
+### Lesson1で最低限使うコマンド
 - `mvn -version`: Mavenが使えるか確認
 - `mvn clean`: `target` を削除して作業状態を初期化
 - `mvn spring-boot:run`: 依存解決・コンパイル後にアプリ起動
@@ -154,7 +154,7 @@ Day1で使う `mvn` は、Javaプロジェクトの「依存関係管理」と�
 pwd
 ```
 
-この時点では、まだ `~/order-management-springboot/stages/day1` を作っていないため `pom.xml` はありません。  
+この時点では、まだ `~/order-management-springboot/stages/lesson01` を作っていないため `pom.xml` はありません。  
 `mvn -version` だけ先に実行して、Maven自体が動くことを確認します。
 
 ```bash
@@ -164,45 +164,45 @@ mvn -version
 ---
 
 ## 3. 作業フォルダ
-Day1は `~/order-management-springboot/stages/day1` に **自分でコードを作成** します。  
+Lesson1は `~/order-management-springboot/stages/lesson01` に **自分でコードを作成** します。  
 まずこのフォルダを作成し、このフォルダの中で以降の作業を行ってください。
 
 ```bash
-mkdir -p ~/order-management-springboot/stages/day1
-cd ~/order-management-springboot/stages/day1
+mkdir -p ~/order-management-springboot/stages/lesson01
+cd ~/order-management-springboot/stages/lesson01
 ```
 
 以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
-例: `~/order-management-springboot/stages/day1/pom.xml`
+例: `~/order-management-springboot/stages/lesson01/pom.xml`
 
 ### VS Codeでフォルダを開く（GUI）
 1. VS Code を起動
 2. `ファイル` → `フォルダーを開く`  
-3. `~/order-management-springboot/stages/day1` を選択  
-   - フォルダが無い場合は、エクスプローラーで `~/order-management-springboot/stages/day1` を作成してから開く
+3. `~/order-management-springboot/stages/lesson01` を選択  
+   - フォルダが無い場合は、エクスプローラーで `~/order-management-springboot/stages/lesson01` を作成してから開く
 
 ---
 
 ## 4. ディレクトリ構成を作成
 ```bash
-mkdir -p ~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance
-mkdir -p ~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/web
-mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/templates
-mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
+mkdir -p ~/order-management-springboot/stages/lesson01/src/main/java/com/shinesoft/attendance
+mkdir -p ~/order-management-springboot/stages/lesson01/src/main/java/com/shinesoft/attendance/web
+mkdir -p ~/order-management-springboot/stages/lesson01/src/main/resources/templates
+mkdir -p ~/order-management-springboot/stages/lesson01/src/main/resources/static
 ```
 
 ### VS Codeでディレクトリを作る（GUI）
 1. 左側のエクスプローラーで `src` を右クリック → `新しいフォルダー`
 2. 以下を順に作成  
-   - `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance`  
-   - `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/web`  
-   - `~/order-management-springboot/stages/day1/src/main/resources/templates`  
-   - `~/order-management-springboot/stages/day1/src/main/resources/static`
+   - `~/order-management-springboot/stages/lesson01/src/main/java/com/shinesoft/attendance`  
+   - `~/order-management-springboot/stages/lesson01/src/main/java/com/shinesoft/attendance/web`  
+   - `~/order-management-springboot/stages/lesson01/src/main/resources/templates`  
+   - `~/order-management-springboot/stages/lesson01/src/main/resources/static`
 
 ---
 
 ## 5. `pom.xml` を作成（Maven設定）
-作成ファイル: `~/order-management-springboot/stages/day1/pom.xml`
+作成ファイル: `~/order-management-springboot/stages/lesson01/pom.xml`
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -295,7 +295,7 @@ mkdir -p ~/order-management-springboot/stages/day1/src/main/resources/static
 - 環境変数を使って、実行環境ごとに値を切り替えやすくするため
 - 設定値を1か所に集約し、保守しやすくするため
 
-作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/application.yml`
+作成ファイル: `~/order-management-springboot/stages/lesson01/src/main/resources/application.yml`
 
 ```yaml
 spring: # Spring Framework全体の設定
@@ -339,7 +339,7 @@ app: # 独自設定（spring配下ではない任意キー）
 - `@SpringBootApplication` により、自動設定やコンポーネントスキャンを有効化するため
 - `mvn spring-boot:run` や jar実行時に、どのクラスから起動するかを決めるため
 
-作成ファイル: `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
+作成ファイル: `~/order-management-springboot/stages/lesson01/src/main/java/com/shinesoft/attendance/AttendanceManagementApplication.java`
 
 ```java
 package com.shinesoft.attendance; // パッケージ宣言（配置フォルダと一致させる）
@@ -375,7 +375,7 @@ public class AttendanceManagementApplication {
 ---
 
 ## 8. Controllerを作成
-作成ファイル: `~/order-management-springboot/stages/day1/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+作成ファイル: `~/order-management-springboot/stages/lesson01/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 ```java
 package com.shinesoft.attendance.web; // `web` は画面/HTTPリクエストを扱う層
@@ -393,7 +393,7 @@ public class HomeController {
     public String index(Model model) {
         model.addAttribute("workDate", LocalDate.now()); // HTML側 ${workDate}
         model.addAttribute("statusLabel", "未出勤"); // HTML側 ${statusLabel}
-        model.addAttribute("startTime", null); // Day1では未使用（HTMLでは "-" 表示）
+        model.addAttribute("startTime", null); // Lesson1では未使用（HTMLでは "-" 表示）
         model.addAttribute("endTime", null);
         return "index"; // templates/index.html を表示（先頭に "/" は付けない）
     }
@@ -420,7 +420,7 @@ public class HomeController {
 ---
 
 ## 9. テンプレート（画面）を作成
-作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/templates/index.html`
+作成ファイル: `~/order-management-springboot/stages/lesson01/src/main/resources/templates/index.html`
 
 ```html
 <!doctype html> <!-- HTML5の文書宣言 -->
@@ -435,7 +435,7 @@ public class HomeController {
   <div class="container"> <!-- 画面全体のラッパー -->
     <header>
       <h1>勤怠管理システム（MVP）</h1>
-      <p class="subtitle">研修用 / Day1（画面表示のみ）</p>
+      <p class="subtitle">研修用 / Lesson1（画面表示のみ）</p>
     </header>
 
     <section class="panel"> <!-- 1つ目の情報パネル -->
@@ -455,7 +455,7 @@ public class HomeController {
         <li>未出勤で退勤は不可</li>
         <li>退勤後に再度退勤は不可</li>
       </ul>
-      <p class="muted">※ Day2 以降でボタンや業務ルールを実装します。</p>
+      <p class="muted">※ Lesson2 以降でボタンや業務ルールを実装します。</p>
     </section>
   </div>
 </body>
@@ -479,7 +479,7 @@ public class HomeController {
 ---
 
 ## 10. CSSを作成
-作成ファイル: `~/order-management-springboot/stages/day1/src/main/resources/static/styles.css`
+作成ファイル: `~/order-management-springboot/stages/lesson01/src/main/resources/static/styles.css`
 
 ```css
 :root { /* 全体で使えるCSS変数 */
@@ -538,8 +538,8 @@ h1 { margin: 0 0 4px; } /* タイトル余白（上0 / 右0 / 下4 / 左0） */
   font-size: 12px;
 }
 
-.status-working { background: #fef9c3; color: #854d0e; } /* 状態別の色（Day2以降で利用） */
-.status-finished { background: #dcfce7; color: #166534; } /* 状態別の色（Day2以降で利用） */
+.status-working { background: #fef9c3; color: #854d0e; } /* 状態別の色（Lesson2以降で利用） */
+.status-finished { background: #dcfce7; color: #166534; } /* 状態別の色（Lesson2以降で利用） */
 
 .row { /* 入力項目などを横並びにする共通クラス */
   display: flex;
@@ -637,7 +637,7 @@ th, td { /* 表ヘッダーとセルの共通設定 */
 
 ### 2) 対応関係（重要）
 - `@GetMapping("/")` -> URL `/` を処理
-- `return "index"` -> `~/order-management-springboot/stages/day1/src/main/resources/templates/index.html`
+- `return "index"` -> `~/order-management-springboot/stages/lesson01/src/main/resources/templates/index.html`
 - `model.addAttribute("statusLabel", "未出勤")` -> HTML側 `${statusLabel}` に表示
 
 ### 3) 3分ハンズオン（理解確認）
@@ -661,7 +661,7 @@ th, td { /* 表ヘッダーとセルの共通設定 */
 ---
 
 ## 11. 起動
-`~/order-management-springboot/stages/day1` で実行していることを先に確認してください。
+`~/order-management-springboot/stages/lesson01` で実行していることを先に確認してください。
 
 ```bash
 pwd
@@ -675,7 +675,7 @@ mvn spring-boot:run
 ```
 
 補足: `target` フォルダについて
-- `mvn spring-boot:run` を初めて実行した時点で、`~/order-management-springboot/stages/day1/target` が自動作成される
+- `mvn spring-boot:run` を初めて実行した時点で、`~/order-management-springboot/stages/lesson01/target` が自動作成される
 - `target` は Maven の作業フォルダ（ビルド成果物の出力先）
 - 例: `target/classes` にコンパイル済みの `.class` が出力される
 - 手動で作成する必要はない
@@ -718,7 +718,7 @@ http://localhost:8080/
   2. プロンプトが戻ったことを確認（例: `PS ...>` が表示される）
   3. 次を実行して再起動
      ```bash
-     cd ~/order-management-springboot/stages/day1
+     cd ~/order-management-springboot/stages/lesson01
      mvn spring-boot:run
      ```
   4. ブラウザで確認（`server.port` を `8081` にした場合は `http://localhost:8081/`）
@@ -727,13 +727,13 @@ http://localhost:8080/
 
 ## 13. 今日のゴール
 - MVCの最低限構成（Controller → Template）が動くことを確認
-- Day0の手動実行と比べて、Maven/Spring Bootの便利さを説明できる
-- Day2から「出勤ボタン」を実装する準備ができた
+- Lesson0の手動実行と比べて、Maven/Spring Bootの便利さを説明できる
+- Lesson2から「出勤ボタン」を実装する準備ができた
 
 ---
 
 ## 13.5 リフレクション（3分）
-1. Day0方式で同じ画面表示を作る場合、どの作業が増えるかを3つ書く
+1. Lesson0方式で同じ画面表示を作る場合、どの作業が増えるかを3つ書く
 2. Mavenを使わない場合、依存ライブラリ管理で何がつらいかを1つ書く
 
 ---
@@ -741,7 +741,7 @@ http://localhost:8080/
 ## 14. つまずきポイント
 - `mvn` が通らない → 環境変数を確認
 - `The goal you specified requires a project to execute but there is no POM in this directory`:
-  - 実行場所が `~/order-management-springboot/stages/day1` になっているか確認
+  - 実行場所が `~/order-management-springboot/stages/lesson01` になっているか確認
   - `ls` で `pom.xml` が存在するか確認
 - 画面が出ない → 起動ターミナルのエラーを見る
 

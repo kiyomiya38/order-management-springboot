@@ -1,7 +1,7 @@
-# Day0 ミニ制作: 家計簿Lite（コンソール）
+# Lesson0 ミニ制作: 家計簿Lite（コンソール）
 
 ## 1. 目的
-`day0-java.md` で学んだ範囲だけで、動くコンソールアプリを作る。
+`lesson0.md` で学んだ範囲だけで、動くコンソールアプリを作る。
 
 - クラス/メソッド
 - `if/else`
@@ -15,8 +15,8 @@
 ## 2. 作業フォルダ
 ```bash
 cd ~/order-management-springboot
-mkdir -p practice/day0/java/day0-console-ledger
-cd practice/day0/java/day0-console-ledger
+mkdir -p practice/lesson00/java/lesson0-console-ledger
+cd practice/lesson00/java/lesson0-console-ledger
 ```
 
 ---
@@ -192,7 +192,7 @@ public class LedgerApp {
 
 ## 6. コンパイルと実行
 ```bash
-cd ~/order-management-springboot/practice/day0/java/day0-console-ledger
+cd ~/order-management-springboot/practice/lesson00/java/lesson0-console-ledger
 javac -encoding UTF-8 LedgerEntry.java LedgerService.java LedgerApp.java
 java LedgerApp
 ```

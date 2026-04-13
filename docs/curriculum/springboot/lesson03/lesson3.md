@@ -1,19 +1,19 @@
-# Day3（7/13）退勤機能と業務ルール実装（Day2から拡張）
+# Lesson3（7/13）退勤機能と業務ルール実装（Lesson2から拡張）
 
-## 目的（Day3でできるようになること）
+## 目的（Lesson3でできるようになること）
 - 退勤 (`POST /clock-out`) を実装できる
 - 状態遷移（未出勤 -> 出勤中 -> 退勤済み）をコードで説明できる
 - 業務ルール違反時に画面へエラーメッセージを表示できる
 - 出勤/退勤時の INFO ログを確認できる
 
 ## 前提
-- Day2 を完了している
-- `~/order-management-springboot/stages/day2` のアプリが起動・動作確認できている
+- Lesson2 を完了している
+- `~/order-management-springboot/stages/lesson02` のアプリが起動・動作確認できている
 
-## Day3で作るもの
+## Lesson3で作るもの
 - 画面: `/`
 - 機能:
-  - 出勤（Day2の継続）
+  - 出勤（Lesson2の継続）
   - 退勤（新規）
   - ルール違反表示
     - 未出勤で退勤不可
@@ -30,22 +30,22 @@ git --version
 
 ---
 
-## 1. 作業フォルダを準備（Day2を複製）
-Day3 は Day2 を土台に進めます。`~/order-management-springboot/stages/day3` を作成して Day2 の内容をコピーしてください。
+## 1. 作業フォルダを準備（Lesson2を複製）
+Lesson3 は Lesson2 を土台に進めます。`~/order-management-springboot/stages/lesson03` を作成して Lesson2 の内容をコピーしてください。
 
 ```bash
-mkdir -p ~/order-management-springboot/stages/day3
-cp -r ~/order-management-springboot/stages/day2/* ~/order-management-springboot/stages/day3/
-cd ~/order-management-springboot/stages/day3
+mkdir -p ~/order-management-springboot/stages/lesson03
+cp -r ~/order-management-springboot/stages/lesson02/* ~/order-management-springboot/stages/lesson03/
+cd ~/order-management-springboot/stages/lesson03
 ```
 
 以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
-例: `~/order-management-springboot/stages/day3/src/main/java/...`
+例: `~/order-management-springboot/stages/lesson03/src/main/java/...`
 
 ---
 
 ## 2. `AttendanceService` を編集（退勤ロジック追加）
-作成ファイル: `~/order-management-springboot/stages/day3/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
+作成ファイル: `~/order-management-springboot/stages/lesson03/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
 
 全文を以下に置き換えてください。
 
@@ -89,7 +89,7 @@ public class AttendanceService {
         return attendanceRepository.findByUser_IdAndWorkDate(userId, LocalDate.now());
     }
 
-    // 出勤処理（Day2から継続）
+    // 出勤処理（Lesson2から継続）
     public Attendance clockIn(Long userId) {
         // 1. 今日の日付を取得
         LocalDate today = LocalDate.now();
@@ -119,7 +119,7 @@ public class AttendanceService {
         return saved;
     }
 
-    // 退勤処理（Day3で追加）
+    // 退勤処理（Lesson3で追加）
     public Attendance clockOut(Long userId) {
         // 1. 今日の日付で当日レコードを取得
         LocalDate today = LocalDate.now();
@@ -155,7 +155,7 @@ public class AttendanceService {
 
 理解ポイント（20分）:
 - この変更の目的:
-  - Day2の出勤のみ機能に「退勤」と状態遷移を追加する
+  - Lesson2の出勤のみ機能に「退勤」と状態遷移を追加する
 - 重要ポイント:
   - `findByUser_IdAndWorkDate(...)` で当日レコードを取得
   - レコード未作成時は `退勤するには先に出勤してください`
@@ -169,7 +169,7 @@ public class AttendanceService {
 ---
 
 ## 3. `HomeController` を編集（退勤エンドポイント追加）
-作成ファイル: `~/order-management-springboot/stages/day3/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+作成ファイル: `~/order-management-springboot/stages/lesson03/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
 全文を以下に置き換えてください。
 
@@ -197,7 +197,7 @@ import com.shinesoft.attendance.service.AttendanceService;
 // 画面表示を担当するController
 @Controller
 public class HomeController {
-    // Day3は固定ユーザーで進める（認証はDay5で実装）
+    // Lesson3は固定ユーザーで進める（認証はLesson5で実装）
     private static final Long TRAINING_USER_ID = 1L;
     // 日時表示フォーマット
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -249,7 +249,7 @@ public class HomeController {
         return "redirect:/";
     }
 
-    // 退勤ボタン押下時の処理（Day3で追加）
+    // 退勤ボタン押下時の処理（Lesson3で追加）
     @PostMapping("/clock-out")
     public String clockOut(RedirectAttributes redirectAttributes) {
         try {
@@ -309,7 +309,7 @@ public class HomeController {
 ---
 
 ## 4. `index.html` を編集（退勤ボタン表示）
-作成ファイル: `~/order-management-springboot/stages/day3/src/main/resources/templates/index.html`
+作成ファイル: `~/order-management-springboot/stages/lesson03/src/main/resources/templates/index.html`
 
 全文を以下に置き換えてください。
 
@@ -323,7 +323,7 @@ public class HomeController {
   <meta charset="utf-8" />
   <!-- スマホ表示用の基本設定 -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>勤怠管理（Day3）</title>
+  <title>勤怠管理（Lesson3）</title>
   <!-- /static 配下のCSSを読み込む -->
   <link rel="stylesheet" th:href="@{/styles.css}" />
 </head>
@@ -332,7 +332,7 @@ public class HomeController {
   <div class="container">
     <header>
       <h1>勤怠管理システム（MVP）</h1>
-      <p class="subtitle">Day3: 退勤機能と業務ルール</p>
+      <p class="subtitle">Lesson3: 退勤機能と業務ルール</p>
     </header>
 
     <!-- message がある時のみ成功通知表示 -->
@@ -391,7 +391,7 @@ public class HomeController {
 ---
 
 ## 5. `styles.css` を編集（退勤ボタン用クラス）
-作成ファイル: `~/order-management-springboot/stages/day3/src/main/resources/static/styles.css`
+作成ファイル: `~/order-management-springboot/stages/lesson03/src/main/resources/static/styles.css`
 
 `styles.css` に以下を追加。
 
@@ -427,7 +427,7 @@ public class HomeController {
 
 ## 6. 起動
 ```bash
-cd ~/order-management-springboot/stages/day3
+cd ~/order-management-springboot/stages/lesson03
 mvn spring-boot:run
 ```
 
@@ -442,7 +442,7 @@ mvn spring-boot:run
 先にターミナルを2つ用意して進めます。
 
 - ターミナルA（起動用）:
-  - `cd ~/order-management-springboot/stages/day3`
+  - `cd ~/order-management-springboot/stages/lesson03`
   - `mvn spring-boot:run` を実行し、そのまま起動状態を維持する
 - ターミナルB（確認用）:
   - `curl` や追加確認コマンドを実行する
@@ -514,5 +514,5 @@ curl -X POST http://localhost:8080/clock-out -i
 ---
 
 ## 11. 時間割目安
-- 午前: Day2コードの複製と差分実装（90分）
+- 午前: Lesson2コードの複製と差分実装（90分）
 - 午後: 業務ルール検証とログ確認（90分）+ まとめ（30分）

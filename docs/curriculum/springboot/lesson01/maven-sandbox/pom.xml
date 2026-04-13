@@ -10,7 +10,7 @@
   <artifactId>day1-maven-sandbox</artifactId> <!-- 成果物名 -->
   <version>1.0.0-SNAPSHOT</version> <!-- 開発中バージョン -->
   <name>day1-maven-sandbox</name> <!-- プロジェクト表示名 -->
-  <description>Day1 Maven learning sandbox project</description> <!-- プロジェクト説明 -->
+  <description>Lesson1 Maven learning sandbox project</description> <!-- プロジェクト説明 -->
 
   <properties> <!-- 共通プロパティ定義 -->
     <java.version>17</java.version> <!-- Javaバージョン -->

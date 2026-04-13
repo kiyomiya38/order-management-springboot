@@ -1,4 +1,4 @@
-﻿# Maven Sandbox (Day1)
+# Maven Sandbox (Lesson1)
 
 この教材は、`pom.xml` と `mvn` コマンドを「なぜ必要か」から理解し、最後にSpringの最小MVCまで動かすためのものです。
 対象は **Java初学者** を想定しています。
@@ -43,7 +43,7 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
 
 以下は、このSandboxで使う `pom.xml` の例です。
 
-作成ファイル: `~/order-management-springboot/docs/curriculum/day1/maven-sandbox/pom.xml`
+作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/pom.xml`
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -58,7 +58,7 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
   <artifactId>day1-maven-sandbox</artifactId> <!-- 成果物名（jar名の元） -->
   <version>1.0.0-SNAPSHOT</version> <!-- 開発中バージョン -->
   <name>day1-maven-sandbox</name> <!-- プロジェクト表示名 -->
-  <description>Day1 Maven learning sandbox project</description> <!-- 説明 -->
+  <description>Lesson1 Maven learning sandbox project</description> <!-- 説明 -->
 
   <properties> <!-- 共通で使う値をまとめるセクション -->
     <java.version>17</java.version> <!-- Javaバージョン -->
@@ -132,15 +132,15 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
 
 ### 3-1. 作業場所
 ```bash
-cd ~/order-management-springboot/docs/curriculum/day1/maven-sandbox
+cd ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox
 pwd
 ls
 ```
 
 ### 3-2. ディレクトリ作成
 ```bash
-mkdir -p ~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/main/java/com/shinesoft/sandbox
-mkdir -p ~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/test/java/com/shinesoft/sandbox
+mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox
+mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/test/java/com/shinesoft/sandbox
 ```
 
 なぜ長い階層か:
@@ -148,7 +148,7 @@ mkdir -p ~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/te
 - Javaの`package`とフォルダ構成を一致させるため
 
 ### 3-3. Javaコード作成
-作成ファイル: `~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/main/java/com/shinesoft/sandbox/GreetingCalculator.java`
+作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/GreetingCalculator.java`
 
 ```java
 package com.shinesoft.sandbox; // package宣言（フォルダ構成と一致）
@@ -168,7 +168,7 @@ public class GreetingCalculator {
 ```
 
 ### 3-4. テストコード作成
-作成ファイル: `~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/test/java/com/shinesoft/sandbox/GreetingCalculatorTest.java`
+作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/test/java/com/shinesoft/sandbox/GreetingCalculatorTest.java`
 
 ```java
 package com.shinesoft.sandbox; // テスト対象と同じpackage
@@ -198,7 +198,7 @@ class GreetingCalculatorTest {
 
 実行前に必ず確認:
 ```bash
-cd ~/order-management-springboot/docs/curriculum/day1/maven-sandbox
+cd ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox
 pwd
 ls
 ```
@@ -307,7 +307,7 @@ mvn clean
 - `spring-boot-starter-thymeleaf`: HTMLテンプレート表示
 
 ### 5-2. 起動クラスを作る
-作成ファイル: `~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/main/java/com/shinesoft/sandbox/SandboxApplication.java`
+作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/SandboxApplication.java`
 
 ```java
 package com.shinesoft.sandbox; // アプリ起点のpackage
@@ -325,10 +325,10 @@ public class SandboxApplication {
 
 ### 5-3. Serviceを作る（DI対象）
 ```bash
-mkdir -p ~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/main/java/com/shinesoft/sandbox/service
+mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/service
 ```
 
-作成ファイル: `~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/main/java/com/shinesoft/sandbox/service/GreetingService.java`
+作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/service/GreetingService.java`
 
 ```java
 package com.shinesoft.sandbox.service; // サービス層
@@ -348,10 +348,10 @@ public class GreetingService {
 
 ### 5-4. Controllerを作る（MVC）
 ```bash
-mkdir -p ~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/main/java/com/shinesoft/sandbox/web
+mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/web
 ```
 
-作成ファイル: `~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/main/java/com/shinesoft/sandbox/web/GreetingController.java`
+作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/web/GreetingController.java`
 
 ```java
 package com.shinesoft.sandbox.web; // Web層
@@ -380,10 +380,10 @@ public class GreetingController {
 
 ### 5-5. テンプレートを作る
 ```bash
-mkdir -p ~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/main/resources/templates
+mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/resources/templates
 ```
 
-作成ファイル: `~/order-management-springboot/docs/curriculum/day1/maven-sandbox/src/main/resources/templates/hello.html`
+作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/resources/templates/hello.html`
 
 ```html
 <!DOCTYPE html> <!-- HTML5宣言 -->
@@ -422,7 +422,7 @@ mvn spring-boot:run
 
 対処:
 ```bash
-cd ~/order-management-springboot/docs/curriculum/day1/maven-sandbox
+cd ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox
 ls
 ```
 

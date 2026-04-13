@@ -1,15 +1,15 @@
-# Day4（7/14）勤怠一覧画面とH2確認（Day3から拡張）
+# Lesson4（7/14）勤怠一覧画面とH2確認（Lesson3から拡張）
 
-## 目的（Day4でできるようになること）
+## 目的（Lesson4でできるようになること）
 - 勤怠一覧ページ（`GET /attendances`）を実装できる
 - Repository -> Service -> Controller で一覧データを取得できる
 - H2コンソールで登録済みデータを確認できる
 
 ## 前提
-- Day3 を完了している
-- `~/order-management-springboot/stages/day3` が起動し、出勤/退勤の動作確認が終わっている
+- Lesson3 を完了している
+- `~/order-management-springboot/stages/lesson03` が起動し、出勤/退勤の動作確認が終わっている
 
-## Day4で作るもの
+## Lesson4で作るもの
 - 画面:
   - `/`（トップ）
   - `/attendances`（勤怠一覧）
@@ -28,22 +28,22 @@ git --version
 
 ---
 
-## 1. 作業フォルダを準備（Day3を複製）
-Day4 は Day3 を土台に進めます。
+## 1. 作業フォルダを準備（Lesson3を複製）
+Lesson4 は Lesson3 を土台に進めます。
 
 ```bash
-mkdir -p ~/order-management-springboot/stages/day4
-cp -r ~/order-management-springboot/stages/day3/* ~/order-management-springboot/stages/day4/
-cd ~/order-management-springboot/stages/day4
+mkdir -p ~/order-management-springboot/stages/lesson04
+cp -r ~/order-management-springboot/stages/lesson03/* ~/order-management-springboot/stages/lesson04/
+cd ~/order-management-springboot/stages/lesson04
 ```
 
 以降の `作成ファイル` は、`~/order-management-springboot` からのフルパスで表記します。  
-例: `~/order-management-springboot/stages/day4/src/main/java/...`
+例: `~/order-management-springboot/stages/lesson04/src/main/java/...`
 
 ---
 
 ## 2. `AttendanceRepository` を編集（一覧取得クエリ追加）
-作成ファイル: `~/order-management-springboot/stages/day4/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
+作成ファイル: `~/order-management-springboot/stages/lesson04/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
 
 全文を以下に置き換えてください。
 
@@ -85,7 +85,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 ---
 
 ## 3. `AttendanceService` を編集（一覧取得メソッド追加）
-作成ファイル: `~/order-management-springboot/stages/day4/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
+作成ファイル: `~/order-management-springboot/stages/lesson04/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
 
 全文を以下に置き換えてください。
 
@@ -135,7 +135,7 @@ public class AttendanceService {
         return attendanceRepository.findByUser_IdOrderByWorkDateDesc(userId);
     }
 
-    // 出勤処理（Day3までと同じ）
+    // 出勤処理（Lesson3までと同じ）
     public Attendance clockIn(Long userId) {
         // 1. 今日の日付
         LocalDate today = LocalDate.now();
@@ -162,7 +162,7 @@ public class AttendanceService {
         return saved;
     }
 
-    // 退勤処理（Day3までと同じ）
+    // 退勤処理（Lesson3までと同じ）
     public Attendance clockOut(Long userId) {
         // 1. 当日レコード取得（無ければ未出勤）
         LocalDate today = LocalDate.now();
@@ -195,7 +195,7 @@ public class AttendanceService {
   - 一覧取得の業務処理をServiceに追加する
 - 重要ポイント:
   - `listAttendances(Long userId)` で一覧取得を1か所に集約
-  - 出勤/退勤ロジックはDay3のまま維持
+  - 出勤/退勤ロジックはLesson3のまま維持
 - 設計ポイント:
   - 一覧取得の呼び出し元（Controller）が増えても、Service APIは1つで済む
 - よくあるミス:
@@ -204,7 +204,7 @@ public class AttendanceService {
 ---
 
 ## 4. 一覧用Controllerを新規作成
-作成ファイル: `~/order-management-springboot/stages/day4/src/main/java/com/shinesoft/attendance/web/AttendanceController.java`
+作成ファイル: `~/order-management-springboot/stages/lesson04/src/main/java/com/shinesoft/attendance/web/AttendanceController.java`
 
 新規作成してください。
 
@@ -224,7 +224,7 @@ import com.shinesoft.attendance.service.AttendanceService;
 // 勤怠一覧画面専用Controller
 @Controller
 public class AttendanceController {
-    // Day4までは固定ユーザーを使用（認証はDay5で実装）
+    // Lesson4までは固定ユーザーを使用（認証はLesson5で実装）
     private static final Long TRAINING_USER_ID = 1L;
 
     // 一覧取得ロジックはServiceへ委譲
@@ -259,15 +259,15 @@ public class AttendanceController {
 ---
 
 ## 5. `HomeController` を編集（一覧画面リンク用）
-作成ファイル: `~/order-management-springboot/stages/day4/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+作成ファイル: `~/order-management-springboot/stages/lesson04/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
-`HomeController` は Day3 のままで動作します。  
+`HomeController` は Lesson3 のままで動作します。  
 このステップでは変更不要です。
 
 ---
 
 ## 6. 一覧テンプレートを新規作成
-作成ファイル: `~/order-management-springboot/stages/day4/src/main/resources/templates/attendances.html`
+作成ファイル: `~/order-management-springboot/stages/lesson04/src/main/resources/templates/attendances.html`
 
 新規作成してください。
 
@@ -281,7 +281,7 @@ public class AttendanceController {
   <meta charset="utf-8" />
   <!-- スマホ表示用の基本設定 -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>勤怠一覧（Day4）</title>
+  <title>勤怠一覧（Lesson4）</title>
   <!-- static/styles.css を読み込む -->
   <link rel="stylesheet" th:href="@{/styles.css}" />
 </head>
@@ -290,7 +290,7 @@ public class AttendanceController {
   <div class="container">
     <header>
       <h1>勤怠履歴一覧</h1>
-      <p class="subtitle">Day4: 一覧表示とDB確認</p>
+      <p class="subtitle">Lesson4: 一覧表示とDB確認</p>
       <!-- トップ画面へ戻るリンク -->
       <p><a href="/">トップへ戻る</a></p>
     </header>
@@ -345,7 +345,7 @@ public class AttendanceController {
 ---
 
 ## 7. `index.html` を編集（一覧リンク追加）
-作成ファイル: `~/order-management-springboot/stages/day4/src/main/resources/templates/index.html`
+作成ファイル: `~/order-management-springboot/stages/lesson04/src/main/resources/templates/index.html`
 
 `<section class="panel">` の末尾付近に以下の1行を追加してください。
 
@@ -363,13 +363,13 @@ public class AttendanceController {
 ---
 
 ## 8. `styles.css` を確認
-作成ファイル: `~/order-management-springboot/stages/day4/src/main/resources/static/styles.css`
+作成ファイル: `~/order-management-springboot/stages/lesson04/src/main/resources/static/styles.css`
 
-Day3 の CSS でそのまま表示可能です。  
+Lesson3 の CSS でそのまま表示可能です。  
 追加変更は必須ではありません。
 
 理解ポイント（3分）:
-- Day4でCSSを増やさない理由:
+- Lesson4でCSSを増やさない理由:
   - 今回の主眼は「データ取得と一覧描画」
   - 見た目より層構造とデータフローの理解を優先
 
@@ -377,7 +377,7 @@ Day3 の CSS でそのまま表示可能です。
 
 ## 9. 起動
 ```bash
-cd ~/order-management-springboot/stages/day4
+cd ~/order-management-springboot/stages/lesson04
 mvn spring-boot:run
 ```
 
@@ -429,5 +429,5 @@ SELECT * FROM ATTENDANCES ORDER BY WORK_DATE DESC;
 ---
 
 ## 14. 時間割目安
-- 午前: Day3コード複製 + 一覧機能追加（90分）
+- 午前: Lesson3コード複製 + 一覧機能追加（90分）
 - 午後: H2確認 + コード読解 + まとめ（120分）
