@@ -1061,7 +1061,7 @@ public class HomeController {
                         @ModelAttribute("message") String message,
                         Principal principal) {
         var user = userService.getByUsername(principal.getName()); // ログイン中ユーザーを取得
-        Attendance today = service.findToday(user.getId()).orElse(null); // 当日の勤怠データ
+        Attendance today = service.getTodayAttendance(user.getId()); // 当日の勤怠データ
         AttendanceStatus status = today == null ? AttendanceStatus.NOT_STARTED : today.getStatus(); // 状態決定
 
         model.addAttribute("workDate", LocalDate.now()); // 日付
@@ -1540,7 +1540,6 @@ package com.shinesoft.attendance.service; // Service層パッケージ
 import java.time.LocalDate; // 日付
 import java.time.LocalDateTime; // 日時
 import java.util.List; // 一覧取得
-import java.util.Optional; // 当日勤怠取得で利用
 
 import org.slf4j.Logger; // ログ出力
 import org.slf4j.LoggerFactory;
@@ -1566,27 +1565,28 @@ public class AttendanceService {
         this.userRepository = userRepository;
     }
 
-    public Optional<Attendance> findToday(Long userId) { // 当日勤怠取得（無ければOptional.empty）
-        return attendanceRepository.findByUserIdAndWorkDate(userId, LocalDate.now());
+    public Attendance getTodayAttendance(Long userId) { // 当日勤怠取得（無ければnull）
+        return attendanceRepository.findByUser_IdAndWorkDate(userId, LocalDate.now())
+                .orElse(null);
     }
 
     public Attendance getAttendance(Long id) { // ID指定取得（管理者編集で使用）
-        return attendanceRepository.findByIdWithUser(id)
+        return attendanceRepository.findById(id)
             .orElseThrow(() -> new BusinessException("勤怠が存在しません"));
     }
 
-    public List<Attendance> findAttendances(Long userId) { // ユーザー本人向け一覧
-        return attendanceRepository.findByUserIdOrderByWorkDateDescStartTimeDesc(userId);
+    public List<Attendance> listAttendances(Long userId) { // ユーザー本人向け一覧
+        return attendanceRepository.findByUser_IdOrderByWorkDateDesc(userId);
     }
 
     public List<Attendance> listAllAttendances() { // 管理者向け全件一覧
-        return attendanceRepository.findAllWithUserOrderByWorkDateDescStartTimeDesc();
+        return attendanceRepository.findAllByOrderByWorkDateDesc();
     }
 
     @Transactional
     public Attendance clockIn(Long userId) { // 出勤処理
         LocalDate today = LocalDate.now();
-        Attendance existing = attendanceRepository.findByUserIdAndWorkDate(userId, today).orElse(null);
+        Attendance existing = attendanceRepository.findByUser_IdAndWorkDate(userId, today).orElse(null);
         if (existing != null) {
             throw new BusinessException("すでに出勤済みです");
         }
@@ -1606,7 +1606,7 @@ public class AttendanceService {
     @Transactional
     public Attendance clockOut(Long userId) { // 退勤処理
         LocalDate today = LocalDate.now();
-        Attendance attendance = attendanceRepository.findByUserIdAndWorkDate(userId, today)
+        Attendance attendance = attendanceRepository.findByUser_IdAndWorkDate(userId, today)
                 .orElseThrow(() -> new BusinessException("退勤するには先に出勤してください"));
 
         if (attendance.getStatus() == AttendanceStatus.FINISHED) {
@@ -1630,12 +1630,12 @@ public class AttendanceService {
                                        LocalDateTime startTime,
                                        LocalDateTime endTime,
                                        AttendanceStatus status) {
-        Attendance attendance = attendanceRepository.findByIdWithUser(attendanceId)
+        Attendance attendance = attendanceRepository.findById(attendanceId)
             .orElseThrow(() -> new BusinessException("勤怠が存在しません"));
 
         var user = getUser(userId);
 
-        var existing = attendanceRepository.findByUserIdAndWorkDate(userId, workDate).orElse(null); // 同日重複チェック
+        var existing = attendanceRepository.findByUser_IdAndWorkDate(userId, workDate).orElse(null); // 同日重複チェック
         if (existing != null && !existing.getId().equals(attendanceId)) {
             throw new BusinessException("同じ日付の勤怠が既に存在します");
         }
@@ -1682,21 +1682,16 @@ public class AttendanceService {
 ```
 
 補足（重要）:
-- `open-in-view: false` の設定では、テンプレートで `att.user.username` を参照する時に `user` を事前取得しておく必要があります。
-- そのため `AttendanceRepository` に次の2メソッドを追加してください。
+- 完成版準拠では、`AttendanceRepository` は次のメソッド構成にします。
+- `findById(...)` は `JpaRepository` 標準メソッドをそのまま利用します（追加定義は不要）。
 
 編集ファイル:
 - `~/order-management-springboot/stages/day5/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
 
 ```java
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
-@Query("select a from Attendance a join fetch a.user order by a.workDate desc, a.startTime desc")
-List<Attendance> findAllWithUserOrderByWorkDateDescStartTimeDesc();
-
-@Query("select a from Attendance a join fetch a.user where a.id = :id")
-Optional<Attendance> findByIdWithUser(@Param("id") Long id);
+Optional<Attendance> findByUser_IdAndWorkDate(Long userId, LocalDate workDate);
+List<Attendance> findByUser_IdOrderByWorkDateDesc(Long userId);
+List<Attendance> findAllByOrderByWorkDateDesc();
 ```
 
 理解ポイント:
@@ -1737,7 +1732,7 @@ public class AttendanceController {
     @GetMapping // GET /attendances
     public String list(Model model, Principal principal) {
         var user = userService.getByUsername(principal.getName()); // ログイン中ユーザー
-        model.addAttribute("attendances", service.findAttendances(user.getId())); // 本人の履歴
+        model.addAttribute("attendances", service.listAttendances(user.getId())); // 本人の履歴
         model.addAttribute("username", user.getUsername()); // 画面表示用ユーザー名
         return "attendances"; // templates/attendances.html
     }
@@ -2039,3 +2034,210 @@ mvn test
 ## 11. 時間割目安
 - 午前: Security + ログイン + 役割分離（120分）
 - 午後: 管理者機能 + テスト + まとめ（150分）
+
+---
+
+## 12. 現行`src`との対応（必須）
+この章を追加する理由（先に読む）:
+- Day5手順が完成版 `src` と同じ命名・構成になっていることを最終確認するため
+
+一致確認（`stages/day5` と 完成版 `src`）:
+- `AttendanceService#getTodayAttendance(Long)`（`Attendance` または `null`）
+- `AttendanceService#listAttendances(Long)`
+- `AttendanceRepository#findByUser_IdAndWorkDate(...)`
+- `AttendanceRepository#findByUser_IdOrderByWorkDateDesc(...)`
+- `AttendanceRepository#findAllByOrderByWorkDateDesc()`
+- `AttendanceService#getAttendance(...)` / `updateAttendance(...)` では `AttendanceRepository#findById(...)` を利用
+
+補足（重要）:
+- Day5本文は、上記の完成版命名・構成に合わせて記載済み
+- 追加の読み替え作業は不要
+
+確認ポイント:
+- 「業務ルール（`clockIn` / `clockOut` / `updateAttendance`）」の本質は同じ
+- 命名差分の吸収ではなく、同じ実装をそのまま読解できる状態になっている
+
+---
+
+## 13. `dev` / `prod` プロファイルの読み方（必須）
+この章を追加する理由（先に読む）:
+- Day5作業ディレクトリを、完成版と同じ「共通設定 + プロファイル分離」に揃えるため
+
+編集ファイル（`stages/day5`）:
+- `~/order-management-springboot/stages/day5/src/main/resources/application.yml`
+- `~/order-management-springboot/stages/day5/src/main/resources/application-dev.yml`
+- `~/order-management-springboot/stages/day5/src/main/resources/application-prod.yml`
+
+手順:
+1. `application.yml` を以下に置き換える（共通設定）
+```yaml
+# 全環境共通の設定
+spring:
+  application:
+    # アプリ名（未指定時は attendance-management）
+    name: ${APP_NAME:attendance-management}
+  profiles:
+    # 起動時プロファイル（未指定時は dev）
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  datasource:
+    # DB接続情報は環境変数で切替可能（未指定時はH2）
+    url: ${DB_URL:jdbc:h2:mem:attendance;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  jpa:
+    hibernate:
+      # Entity定義に合わせてテーブルを更新
+      ddl-auto: update
+    # 必要時のみSQLログを有効化
+    show-sql: ${SHOW_SQL:false}
+  thymeleaf:
+    # 画面キャッシュ設定はdev/prodで上書き
+    cache: false
+
+server:
+  # ポートは環境変数で切替可能
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+
+app:
+  name: ${APP_NAME:attendance-management}
+```
+
+2. `application-dev.yml` を新規作成する（開発用）
+```yaml
+# 開発用プロファイル
+spring:
+  h2:
+    console:
+      # 開発中はH2コンソールを有効化
+      enabled: true
+      path: /h2-console
+  thymeleaf:
+    # 画面確認しやすいようにキャッシュOFF
+    cache: false
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+```
+
+3. `application-prod.yml` を新規作成する（本番想定）
+```yaml
+# 本番用プロファイル
+spring:
+  h2:
+    console:
+      # 本番ではH2コンソールを無効化
+      enabled: false
+  thymeleaf:
+    # 本番ではキャッシュON
+    cache: true
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+```
+
+4. プロファイル切替を実行確認する（Git Bash）
+```bash
+cd ~/order-management-springboot/stages/day5
+
+# 開発モード（未指定でもdev）
+SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
+
+# 本番モード（画面キャッシュON / H2コンソールOFF）
+SPRING_PROFILES_ACTIVE=prod mvn spring-boot:run
+```
+
+確認ポイント:
+- `dev` と `prod` で挙動が変わるのは設定であり、Javaコード分岐ではない
+- 本番DB切替は `DB_URL` など環境変数で行う
+
+---
+
+## 14. テスト追加演習（任意）
+この章を追加する理由（先に読む）:
+- Day5本文の最小2テストは重要だが、完成版で追加された業務ルール（退勤と管理者更新）も自動検証すると理解が深まるため
+
+編集ファイル:
+- `~/order-management-springboot/stages/day5/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
+- （完成版読解のみの場合）`~/order-management-springboot/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
+
+追加候補:
+1. 退勤前に出勤していない場合は失敗する
+2. 退勤を2回実行すると失敗する
+3. `NOT_STARTED` に時刻を入れて更新すると失敗する
+4. 同一ユーザー・同一日付へ更新すると失敗する
+
+サンプル（1と2）:
+```java
+@Test
+void clockOut_beforeClockIn_shouldFail() {
+    BusinessException ex = assertThrows(BusinessException.class, () -> service.clockOut(userId));
+    assertEquals("退勤するには先に出勤してください", ex.getMessage());
+}
+
+@Test
+void clockOut_twice_shouldFail() {
+    service.clockIn(userId);
+    service.clockOut(userId);
+
+    BusinessException ex = assertThrows(BusinessException.class, () -> service.clockOut(userId));
+    assertEquals("すでに退勤済みです", ex.getMessage());
+}
+```
+
+サンプル（3）:
+```java
+@Test
+void updateAttendance_notStartedWithTimes_shouldFail() {
+    Attendance attendance = service.clockIn(userId);
+
+    BusinessException ex = assertThrows(BusinessException.class, () ->
+        service.updateAttendance(
+            attendance.getId(),
+            userId,
+            LocalDate.now(),
+            LocalDateTime.now(),
+            null,
+            AttendanceStatus.NOT_STARTED
+        )
+    );
+    assertEquals("未出勤の時刻は空にしてください", ex.getMessage());
+}
+```
+
+補足:
+- 上記を追加する場合は `LocalDate` / `LocalDateTime` の `import` 追加が必要
+- 最終確認は `mvn test`
+
+---
+
+## 15. 参照整合とユーザー削除（必須）
+この章を追加する理由（先に読む）:
+- 完成版では `UserService#delete` が `deleteById` 直実行のため、勤怠があるユーザー削除時の挙動を学習項目として明示する必要があるため
+
+背景:
+- `Attendance` は `user_id` の必須参照（`@ManyToOne(optional = false)`）を持つ
+- そのため、勤怠が存在するユーザーを削除するとDBの参照整合エラーになる場合がある
+
+確認手順（動作観察）:
+1. `user1` でログインして出勤（必要なら退勤）を実行
+2. `admin` でログインして `users` 画面から `user1` を削除
+3. エラーの有無と内容を確認
+
+学習ポイント:
+- 削除APIは「対象データがあるか」だけでなく「関連データが残っていないか」も確認が必要
+- 業務要件によって方針は変わる（削除禁止 / 論理削除 / 連鎖削除）
+
+発展（任意）:
+1. `AttendanceRepository` に件数確認メソッドを追加する
+2. `UserService#delete` で勤怠件数を先にチェックして `BusinessException` を返す
+3. `UserController#delete` で例外メッセージを画面表示する
+
+発展時のゴール:
+- 参照整合エラーを「想定外のDB例外」ではなく「想定内の業務エラー」として扱えるようにする

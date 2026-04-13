@@ -86,7 +86,7 @@ public class AttendanceService {
 
     // 当日の勤怠を取得（無ければOptional.empty）
     public Optional<Attendance> findToday(Long userId) {
-        return attendanceRepository.findByUserIdAndWorkDate(userId, LocalDate.now());
+        return attendanceRepository.findByUser_IdAndWorkDate(userId, LocalDate.now());
     }
 
     // 出勤処理（Day2から継続）
@@ -94,7 +94,7 @@ public class AttendanceService {
         // 1. 今日の日付を取得
         LocalDate today = LocalDate.now();
         // 2. 同日レコードが既にあるか確認
-        Optional<Attendance> existing = attendanceRepository.findByUserIdAndWorkDate(userId, today);
+        Optional<Attendance> existing = attendanceRepository.findByUser_IdAndWorkDate(userId, today);
         if (existing.isPresent()) {
             // 3. 既存レコードがあれば二重出勤として業務エラー
             throw new BusinessException("すでに出勤済みです");
@@ -123,7 +123,7 @@ public class AttendanceService {
     public Attendance clockOut(Long userId) {
         // 1. 今日の日付で当日レコードを取得
         LocalDate today = LocalDate.now();
-        Attendance attendance = attendanceRepository.findByUserIdAndWorkDate(userId, today)
+        Attendance attendance = attendanceRepository.findByUser_IdAndWorkDate(userId, today)
             // レコードが無い = まだ出勤していない
             .orElseThrow(() -> new BusinessException("退勤するには先に出勤してください"));
 
@@ -157,7 +157,7 @@ public class AttendanceService {
 - この変更の目的:
   - Day2の出勤のみ機能に「退勤」と状態遷移を追加する
 - 重要ポイント:
-  - `findByUserIdAndWorkDate(...)` で当日レコードを取得
+  - `findByUser_IdAndWorkDate(...)` で当日レコードを取得
   - レコード未作成時は `退勤するには先に出勤してください`
   - `FINISHED` の再退勤を明示的に禁止
   - 正常時のみ `endTime` と `status` を更新

@@ -87,7 +87,6 @@ Java version: 17.x, vendor: ...
 
 ```bash
 mkdir -p ~/order-management-springboot/practice/html_css/html
-mkdir -p ~/order-management-springboot/practice/html_css/java
 ```
 
 VS Codeで開く（GUI）:

@@ -62,22 +62,22 @@ import com.shinesoft.attendance.domain.Attendance;
 // AttendanceテーブルのDB操作窓口
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     // userId + 勤務日で当日レコードを1件取得（出勤/退勤判定に使う）
-    Optional<Attendance> findByUserIdAndWorkDate(Long userId, LocalDate workDate);
+    Optional<Attendance> findByUser_IdAndWorkDate(Long userId, LocalDate workDate);
 
-    // 指定ユーザーの履歴を「勤務日降順 -> 出勤時刻降順」で取得
+    // 指定ユーザーの履歴を勤務日降順で取得
     // 直近データを上に表示したい一覧画面向け
-    List<Attendance> findByUserIdOrderByWorkDateDescStartTimeDesc(Long userId);
+    List<Attendance> findByUser_IdOrderByWorkDateDesc(Long userId);
 }
 ```
 
 ポイント:
-- `findByUserIdOrderByWorkDateDescStartTimeDesc` で履歴を降順表示する
+- `findByUser_IdOrderByWorkDateDesc` で履歴を降順表示する
 
 理解ポイント（10分）:
 - この変更の目的:
   - 一覧画面向けに「並び替え済みデータ」をRepositoryで取得する
 - 重要ポイント:
-  - `findByUserIdOrderByWorkDateDescStartTimeDesc` はメソッド名でソート条件を表現
+  - `findByUser_IdOrderByWorkDateDesc` はメソッド名でソート条件を表現
   - Service/Controller側にソート処理を書かなくてよくなる
 - よくあるミス:
   - メソッド名の `WorkDate` などプロパティ名のスペルミス
@@ -127,12 +127,12 @@ public class AttendanceService {
 
     // 当日の勤怠を取得（無ければOptional.empty）
     public Optional<Attendance> findToday(Long userId) {
-        return attendanceRepository.findByUserIdAndWorkDate(userId, LocalDate.now());
+        return attendanceRepository.findByUser_IdAndWorkDate(userId, LocalDate.now());
     }
 
     // 一覧画面用: 指定ユーザーの勤怠履歴を取得（降順）
-    public List<Attendance> findAttendances(Long userId) {
-        return attendanceRepository.findByUserIdOrderByWorkDateDescStartTimeDesc(userId);
+    public List<Attendance> listAttendances(Long userId) {
+        return attendanceRepository.findByUser_IdOrderByWorkDateDesc(userId);
     }
 
     // 出勤処理（Day3までと同じ）
@@ -140,7 +140,7 @@ public class AttendanceService {
         // 1. 今日の日付
         LocalDate today = LocalDate.now();
         // 2. 同日データがあれば二重出勤エラー
-        Optional<Attendance> existing = attendanceRepository.findByUserIdAndWorkDate(userId, today);
+        Optional<Attendance> existing = attendanceRepository.findByUser_IdAndWorkDate(userId, today);
         if (existing.isPresent()) {
             throw new BusinessException("すでに出勤済みです");
         }
@@ -166,7 +166,7 @@ public class AttendanceService {
     public Attendance clockOut(Long userId) {
         // 1. 当日レコード取得（無ければ未出勤）
         LocalDate today = LocalDate.now();
-        Attendance attendance = attendanceRepository.findByUserIdAndWorkDate(userId, today)
+        Attendance attendance = attendanceRepository.findByUser_IdAndWorkDate(userId, today)
             .orElseThrow(() -> new BusinessException("退勤するには先に出勤してください"));
 
         // 2. すでに退勤済みなら再退勤を禁止
@@ -194,7 +194,7 @@ public class AttendanceService {
 - この変更の目的:
   - 一覧取得の業務処理をServiceに追加する
 - 重要ポイント:
-  - `findAttendances(Long userId)` で一覧取得を1か所に集約
+  - `listAttendances(Long userId)` で一覧取得を1か所に集約
   - 出勤/退勤ロジックはDay3のまま維持
 - 設計ポイント:
   - 一覧取得の呼び出し元（Controller）が増えても、Service APIは1つで済む
@@ -238,7 +238,7 @@ public class AttendanceController {
     @GetMapping("/attendances")
     public String list(Model model) {
         // 画面表示用の一覧データを取得
-        List<Attendance> rows = attendanceService.findAttendances(TRAINING_USER_ID);
+        List<Attendance> rows = attendanceService.listAttendances(TRAINING_USER_ID);
         // テンプレートへデータを渡す
         model.addAttribute("rows", rows);
         // templates/attendances.html を表示

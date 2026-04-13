@@ -560,7 +560,7 @@ import com.shinesoft.attendance.domain.Attendance;
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     // userId + workDate で当日レコードを検索
     // メソッド名からSQL相当の処理が自動生成される
-    Optional<Attendance> findByUserIdAndWorkDate(Long userId, LocalDate workDate);
+    Optional<Attendance> findByUser_IdAndWorkDate(Long userId, LocalDate workDate);
 }
 ```
 
@@ -569,7 +569,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   - DB操作（検索・保存）の窓口
 - 重要ポイント:
   - `JpaRepository` 継承でCRUDの基本機能を自動取得
-  - `findByUserIdAndWorkDate(...)` はメソッド名からSQL相当が生成される
+  - `findByUser_IdAndWorkDate(...)` はメソッド名からSQL相当が生成される
 - よくあるミス:
   - メソッド名のプロパティ名をEntityと不一致にする
 
@@ -650,7 +650,7 @@ public class AttendanceService {
 
     // 当日の勤怠を取得（無ければOptional.empty）
     public Optional<Attendance> findToday(Long userId) {
-        return attendanceRepository.findByUserIdAndWorkDate(userId, LocalDate.now());
+        return attendanceRepository.findByUser_IdAndWorkDate(userId, LocalDate.now());
     }
 
     // 出勤処理（業務ルール: 同日二重出勤禁止）
@@ -658,7 +658,7 @@ public class AttendanceService {
         // 1. 今日の日付を取得
         LocalDate today = LocalDate.now();
         // 2. 既存データがあるか確認
-        Optional<Attendance> existing = attendanceRepository.findByUserIdAndWorkDate(userId, today);
+        Optional<Attendance> existing = attendanceRepository.findByUser_IdAndWorkDate(userId, today);
         if (existing.isPresent()) {
             // 3. すでに出勤済みなら業務例外
             throw new BusinessException("すでに出勤済みです");

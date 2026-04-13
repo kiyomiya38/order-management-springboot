@@ -20,11 +20,10 @@
 ### 2-0. 最初の5分チェック（必須）
 最初にここだけ実行し、環境と作業場所を固定します。
 
-1. 演習フォルダへ移動
+1. 演習フォルダ作成と移動
 ```bash
+mkdir -p ~/order-management-springboot/practice/java
 cd ~/order-management-springboot/practice/java
-pwd
-ls
 ```
 
 2. Java コマンド確認
@@ -246,6 +245,20 @@ java Calc
 - `quantity` を `5` に変更
 - `price` を `980` に変更
 
+#### 補足: 変数の種類（実務でよく使う型）
+| 型 | 主な用途 | 変数名の例 | 補足（使い分け） |
+|---|---|---|---|
+| `String` | 名前・コード・メールなど文字情報 | `customerName`, `orderCode` | 人が読む値はまず `String` |
+| `int` | 数量・件数・小さめの番号 | `quantity`, `itemCount` | 整数の基本型 |
+| `long` | 大きいID・件数 | `orderId`, `userId` | `int` より大きい整数を扱える |
+| `boolean` | 真偽フラグ | `isPaid`, `isActive` | 状態のON/OFF表現に使う |
+| `BigDecimal` | 金額・税計算 | `unitPrice`, `totalAmount` | 金額は `double` より `BigDecimal` が安全 |
+| `LocalDate` | 日付のみ | `orderDate`, `shipDate` | 時刻不要な日付管理に使う |
+| `LocalDateTime` | 日時 | `createdAt`, `updatedAt` | 監査ログや更新日時で多用 |
+| `List<T>` | 複数データの順序管理 | `orderItems` | 同じ種類の複数要素を保持 |
+| `Map<K,V>` | キーと値の対応管理 | `stockByProductCode` | キー検索が必要な場面で使う |
+| `enum` | 状態の固定候補 | `status`（`PENDING`, `PAID`） | 文字列直書きよりミスを減らせる |
+
 ### 2-3. 条件分岐（if/else）
 
 目的:
@@ -409,6 +422,7 @@ public class Order {
 作成ファイル: `~/order-management-springboot/practice/java/OrderDemo.java`
 
 #### Step 2: 利用側クラスを作る（完成）
+
 `OrderDemo.java` を次の内容で作成:
 
 ```java
@@ -429,6 +443,8 @@ public class OrderDemo {
 - `new Order()` でインスタンスを生成
 - `order.xxx` でフィールドやメソッドにアクセス
 - `order.calcTotal()` でクラス内ロジックを再利用
+
+`Order order = new Order();` の `order` はインスタンスです。インスタンスとは、クラス（設計図）から `new` で作る実体で、フィールド値を個別に持ちます。`Order` クラスを定義するだけでは実体はないため、利用側クラスでは最初にインスタンスを生成し、その後に `order.productName` の設定や `order.calcTotal()` の呼び出しを行います。
 
 実行:
 ```bash
@@ -473,7 +489,11 @@ public class MathUtil {
 ```
 
 コード解説:
+- `int quantity, int price` は仮引数（パラメータ）で、メソッドが値を受け取るための変数名
 - 引数を使うと「外から渡された値」で計算できる
+- 呼び出し時の実引数（例: `calcTotal(2, 1500)`）は、順番に `quantity` と `price` に渡される
+- `return quantity * price;` は計算結果を戻り値として呼び出し元へ返す
+- 戻り値はメソッド宣言の型（ここでは `int`）と一致している必要がある
 - `static` はクラス名から直接呼び出せる
 
 作成ファイル: `~/order-management-springboot/practice/java/MathUtilDemo.java`
@@ -513,6 +533,16 @@ java MathUtilDemo
 - `Mouse数量: 5` が表示される
 作成ファイル: `~/order-management-springboot/practice/java/ListMapDemo.java`
 
+#### 事前理解: `List` と `ArrayList` の関係（1分）
+- `List` はインターフェース（使える操作の約束）
+- `ArrayList` は `List` を実装したクラス（実際に動く本体）
+- `List<String> products = new ArrayList<>();` は「型は `List`、実体は `ArrayList`」という意味
+- `add` / `get` / `size` は `List` の操作として使える
+
+補足:
+- メソッドは `add(...)` のような処理の単位
+- `List` や `ArrayList` はメソッド名ではなく型名（インターフェース/クラス名）
+
 #### Step 0: Listだけ作る
 `ListMapDemo.java` を次の内容で作成:
 
@@ -531,6 +561,18 @@ public class ListMapDemo {
     }
 }
 ```
+実行:
+```bash
+javac -encoding UTF-8 ListMapDemo.java
+java ListMapDemo
+```
+
+コード解説（`import`）:
+- `import` は「別パッケージにあるクラスを使います」と宣言する行
+- `java.util.List` や `java.util.ArrayList` のように、コレクション系クラスは `java.util` パッケージにある
+- `import` すると `List` / `ArrayList` と短く書ける（毎回 `java.util.List` と書かなくてよい）
+- `import` を忘れると `cannot find symbol` などのコンパイルエラーになる
+- `new ArrayList<>()` はメソッド呼び出しではなく、`ArrayList` のインスタンス生成（コンストラクタ呼び出し）
 
 #### Step 1: for-eachで出力
 `ListMapDemo.java` を次の内容に更新:
@@ -552,8 +594,20 @@ public class ListMapDemo {
     }
 }
 ```
+実行:
+```bash
+javac -encoding UTF-8 ListMapDemo.java
+java ListMapDemo
+```
 
 #### Step 2: Mapを追加（完成）
+
+#### 事前理解: `Map` と `HashMap` の関係（1分）
+- `Map` はインターフェース（キーと値を扱う操作の約束）
+- `HashMap` は `Map` を実装したクラス（実際に動く本体）
+- `Map<String, Integer> counts = new HashMap<>();` は「型は `Map`、実体は `HashMap`」という意味
+- `put` / `get` / `containsKey` は `Map` の操作として使える
+
 `ListMapDemo.java` を次の内容に更新:
 
 ```java
@@ -586,6 +640,7 @@ public class ListMapDemo {
 - `List<String>` は順序を持つ複数データ
 - `Map<String, Integer>` はキーと値の組
 - `put` で登録、`get` で取り出し
+- `new HashMap<>()` はメソッド呼び出しではなく、`HashMap` のインスタンス生成（コンストラクタ呼び出し）
 
 実行:
 ```bash
