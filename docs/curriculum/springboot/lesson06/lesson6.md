@@ -7,6 +7,108 @@
 
 この演習では HTTPS は扱いません（HTTPのみ）。
 
+## この演習で作るもの
+- 構成:
+  - `app-vm`（Spring Boot + systemd + Nginx）
+  - `db-vm`（MariaDB）
+- 接続:
+  - ホストPC -> `http://192.168.56.11/login`（Nginx）
+  - Nginx -> `127.0.0.1:8080`（Spring Boot）
+  - Spring Boot -> `10.0.2.12:3306`（MariaDB）
+- 運用要素:
+  - `java -jar` 常駐化（systemd）
+  - 環境変数ファイルでDB接続設定を注入
+  - 疎通テストとトラブルシュート
+
+### 全体構成図（サーバーと通信経路）
+```mermaid
+flowchart LR
+  subgraph HOST[ホストPC]
+    DEV[ブラウザ / ターミナル]
+    SRC[ソースアーカイブ]
+  end
+
+  subgraph APP[app-vm]
+    NGINX[Nginx :80]
+    SPRING[Spring Boot app.jar :8080]
+    SD[systemd attendance.service]
+    ENV[/etc/attendance/attendance.env]
+    APPSRC[/opt/attendance/src]
+  end
+
+  subgraph DBVM[db-vm]
+    MDB[(MariaDB :3306)]
+  end
+
+  DEV -->|HTTP Host-Only 192.168.56.11| NGINX
+  NGINX -->|proxy_pass 127.0.0.1:8080| SPRING
+  SPRING -->|JDBC 10.0.2.12:3306| MDB
+
+  SRC -->|scp / ssh| APPSRC
+  APPSRC -->|mvn package repackage| SPRING
+  SD -->|ExecStart java -jar| SPRING
+  ENV --> SD
+```
+
+### 設定受け渡し最小メモ（JSONは未使用）
+- この演習では API の JSON ではなく、OS設定ファイルと環境変数で値を渡す。
+- 主要な受け渡し:
+  - `application-*.yml`（アプリ設定）
+  - `/etc/attendance/attendance.env`（実行時の上書き値）
+  - `attendance.service`（起動コマンドと環境ファイルの紐付け）
+  - Nginx 設定（外部公開とリバースプロキシ）
+- 例（`attendance.env`）:
+  ```ini
+  SPRING_PROFILES_ACTIVE=prod
+  DB_URL=jdbc:mariadb://10.0.2.12:3306/attendance
+  DB_USER=attendance_app
+  DB_PASSWORD=ChangeMe_Strong_123!
+  ```
+
+### デプロイから画面表示まで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant Host as ホストPC
+  participant AppVM as app-vm
+  participant DbVM as db-vm
+  participant Nginx as Nginx
+  participant App as Spring Boot
+  participant DB as MariaDB
+
+  Host->>Host: ソースをtar作成
+  Host->>AppVM: scpでソース転送
+  DbVM->>DB: MariaDB導入 + DB/ユーザー作成
+  AppVM->>AppVM: Java/Nginx/systemd導入
+  AppVM->>AppVM: pom.xmlへMariaDBドライバ追加
+  AppVM->>AppVM: mvn clean package spring-boot:repackage
+  AppVM->>App: /opt/attendance/app.jar を配置
+  AppVM->>AppVM: attendance.service + attendance.env 設定
+  AppVM->>App: systemctl enable --now attendance
+  AppVM->>Nginx: reverse proxy設定反映
+
+  Host->>Nginx: GET /login (192.168.56.11)
+  Nginx->>App: proxy to 127.0.0.1:8080
+  App->>DB: JDBC接続
+  DB-->>App: 応答
+  App-->>Nginx: 200
+  Nginx-->>Host: 200
+```
+
+### デプロイと疎通の異常系分岐（Connection refused / 502 / DB timeout）
+```mermaid
+flowchart TD
+  A[デプロイ実施] --> B{scp/sshは成功するか}
+  B -->|いいえ| E1[port22拒否: openssh-server起動/22許可/IP確認]
+  B -->|はい| C{attendance.serviceはactiveか}
+  C -->|いいえ| E2[app起動失敗: journalctl確認]
+  E2 --> E2a[MariaDBドライバ漏れ / env誤り / JAR不正]
+  C -->|はい| D{Nginx経由で/loginが応答するか}
+  D -->|いいえ| E3[502/404: proxy_pass/default_site確認]
+  D -->|はい| F{app-vmからDB 3306到達か}
+  F -->|いいえ| E4[DB timeout: bind-address/許可ホスト/UFW確認]
+  F -->|はい| OK[完了条件達成]
+```
+
 ---
 
 ## 1. 構成

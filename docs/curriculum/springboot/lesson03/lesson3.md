@@ -19,6 +19,134 @@
     - 未出勤で退勤不可
     - 退勤済みで再退勤不可
 
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph APP[Lesson3の主な構成]
+    C[HomeController]
+    S[AttendanceService]
+    AR[AttendanceRepository]
+    UR[UserRepository]
+    D[Attendance / AttendanceStatus / User]
+    T[index.html]
+    CSS[styles.css]
+    DB[(H2 DB)]
+  end
+
+  B -->|GET /| C
+  B -->|POST /clock-in| C
+  B -->|POST /clock-out| C
+  C --> S
+  C --> T
+  S --> AR
+  S --> UR
+  D --> AR
+  AR --> DB
+  UR --> DB
+  T -->|HTML| B
+  B -->|GET /styles.css| CSS
+  CSS -->|CSS| B
+```
+
+### データ受け渡し最小メモ（JSONはLesson3でも未使用）
+- Lesson3もフォーム送信中心で、`fetch` + JSON API は使わない。
+- `POST /clock-in` と `POST /clock-out` を送信し、結果は `redirect:/` で画面に戻す。
+- 成功/失敗メッセージは `RedirectAttributes` で受け渡す。
+- 例:
+  ```java
+  redirectAttributes.addAttribute("message", "退勤を記録しました");
+  redirectAttributes.addAttribute("error", e.getMessage());
+  return "redirect:/";
+  ```
+- 画面表示の制御は `canClockIn` / `canClockOut` を `Model` に詰めて行う。
+
+### 状態遷移を含む時系列（正常系）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant Ctrl as HomeController
+  participant Service as AttendanceService
+  participant Repo as AttendanceRepository
+  participant DB as H2
+  participant View as templates/index.html
+
+  User->>Br: http://localhost:8080/ を開く
+  Br->>Ctrl: GET /
+  Ctrl->>Service: findToday(user1)
+  Service->>Repo: findByUser_IdAndWorkDate(...)
+  Repo->>DB: SELECT
+  DB-->>Repo: 当日データなし
+  Ctrl->>View: canClockIn=true canClockOut=false
+  View-->>Br: 200 HTML（未出勤）
+
+  User->>Br: 出勤ボタン押下
+  Br->>Ctrl: POST /clock-in
+  Ctrl->>Service: clockIn(user1)
+  Service->>Repo: SELECT（当日重複確認）
+  Service->>Repo: INSERT（startTime, status=WORKING）
+  Repo->>DB: INSERT
+  Ctrl-->>Br: redirect:/?message=出勤を記録しました
+  Br->>Ctrl: GET /
+  Ctrl->>Service: findToday(user1)
+  Service->>Repo: SELECT
+  DB-->>Repo: status=WORKING
+  Ctrl->>View: canClockIn=false canClockOut=true
+  View-->>Br: 200 HTML（出勤中）
+
+  User->>Br: 退勤ボタン押下
+  Br->>Ctrl: POST /clock-out
+  Ctrl->>Service: clockOut(user1)
+  Service->>Repo: SELECT（当日データ取得）
+  Service->>Repo: UPDATE（endTime, status=FINISHED）
+  Repo->>DB: UPDATE
+  Ctrl-->>Br: redirect:/?message=退勤を記録しました
+  Br->>Ctrl: GET /
+  Ctrl->>Service: findToday(user1)
+  Service->>Repo: SELECT
+  DB-->>Repo: status=FINISHED
+  Ctrl->>View: canClockIn=false canClockOut=false
+  View-->>Br: 200 HTML（退勤済み）
+```
+
+### ルーティングと異常系の分岐（404/405/業務エラー）
+```mermaid
+flowchart TD
+  A[リクエスト受信] --> P{Pathはどれか}
+
+  P -->|/| M1{MethodはGETか}
+  M1 -->|いいえ| E405A[405 Method Not Allowed]
+  M1 -->|はい| OK1[index表示]
+
+  P -->|/clock-in| M2{MethodはPOSTか}
+  M2 -->|いいえ| E405B[405 Method Not Allowed]
+  M2 -->|はい| CI{当日レコードは存在するか}
+  CI -->|はい| EBiz1[BusinessException すでに出勤済みです]
+  EBiz1 --> R1[redirect:/?error=...]
+  CI -->|いいえ| OK2[出勤保存してredirect:/?message=...]
+
+  P -->|/clock-out| M3{MethodはPOSTか}
+  M3 -->|いいえ| E405C[405 Method Not Allowed]
+  M3 -->|はい| CO1{当日レコードは存在するか}
+  CO1 -->|いいえ| EBiz2[BusinessException 退勤するには先に出勤してください]
+  EBiz2 --> R2[redirect:/?error=...]
+  CO1 -->|はい| CO2{statusはFINISHEDか}
+  CO2 -->|はい| EBiz3[BusinessException すでに退勤済みです]
+  EBiz3 --> R3[redirect:/?error=...]
+  CO2 -->|いいえ| CO3{statusはWORKINGか}
+  CO3 -->|いいえ| EBiz4[BusinessException 退勤するには先に出勤してください]
+  EBiz4 --> R4[redirect:/?error=...]
+  CO3 -->|はい| OK3[退勤保存してredirect:/?message=...]
+
+  P -->|/styles.css| S{静的ファイルは存在するか}
+  S -->|はい| OK4[200 CSS]
+  S -->|いいえ| E404A[404 Not Found]
+
+  P -->|それ以外| E404B[404 Not Found]
+```
+
 ---
 
 ## 0. 事前確認

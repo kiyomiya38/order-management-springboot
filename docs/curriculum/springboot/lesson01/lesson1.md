@@ -79,6 +79,93 @@ Lesson1では、以下の最小構成を体験します。
 - 画面: `/`（勤怠トップ画面、表示のみ）
 - 機能: まだ出勤/退勤はしない（Lesson2から）
 
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph PJ[Lesson1の主な構成]
+    APP[AttendanceManagementApplication main + @SpringBootApplication]
+    YML[application.yml]
+    DISP[DispatcherServlet]
+    CTRL[HomeController + @GetMapping(/)]
+    MODEL[Model]
+    VIEW[templates/index.html (Thymeleaf)]
+    STATIC["static/styles.css"]
+  end
+
+  APP --> DISP
+  YML --> APP
+
+  B -->|GET /| DISP
+  DISP --> CTRL
+  CTRL --> MODEL
+  CTRL -->|return index| VIEW
+  MODEL --> VIEW
+  VIEW -->|HTMLレスポンス| B
+
+  B -->|GET /styles.css| DISP
+  DISP --> STATIC
+  STATIC -->|CSSレスポンス| B
+```
+
+### 値受け渡し最小メモ（JSONはLesson1では未使用）
+- このLessonでは `fetch` や JSON API はまだ使わない。
+- Controller から Template へは `Model`（キーと値）で渡す。
+- 例:
+  ```java
+  model.addAttribute("statusLabel", "未出勤");
+  return "index";
+  ```
+- 受け取り側（Template）:
+  ```html
+  <span th:text="${statusLabel}">未出勤</span>
+  ```
+
+### 画面表示までの時系列（正常系）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant Tomcat as Spring Boot（Tomcat + DispatcherServlet）
+  participant Ctrl as HomeController
+  participant Tpl as templates/index.html（Thymeleaf）
+  participant Css as static/styles.css
+
+  User->>Br: http://localhost:8080/ を開く
+  Br->>Tomcat: GET /
+  Tomcat->>Ctrl: @GetMapping(/) を呼び出し
+  Ctrl->>Ctrl: model.addAttribute(...)
+  Ctrl-->>Tomcat: return index
+  Tomcat->>Tpl: テンプレートを解決して描画
+  Tpl-->>Tomcat: 描画済みHTML
+  Tomcat-->>Br: 200 HTML
+
+  Br->>Tomcat: GET /styles.css
+  Tomcat->>Css: staticリソースを取得
+  Css-->>Tomcat: CSS
+  Tomcat-->>Br: 200 CSS
+  Br-->>User: 画面表示
+```
+
+### ルーティングと異常系の分岐（404/405/500）
+```mermaid
+flowchart TD
+  A[リクエスト受信] --> P{Pathはどれか}
+
+  P -->|/| M{MethodはGETか}
+  M -->|いいえ| E405[405 Method Not Allowed]
+  M -->|はい| T{templates/index.html は存在するか}
+  T -->|はい| OK1[200 HTMLを返却]
+  T -->|いいえ| E500[500 テンプレート解決失敗]
+
+  P -->|/styles.css| S{static/styles.css は存在するか}
+  S -->|はい| OK2[200 CSSを返却]
+  S -->|いいえ| E404A[404 Not Found]
+
+  P -->|それ以外| E404B[404 Not Found]
+```
+
 ---
 
 ## 0. 事前確認（環境セットアップはLesson0）

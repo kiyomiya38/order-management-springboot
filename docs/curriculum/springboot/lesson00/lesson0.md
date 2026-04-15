@@ -10,6 +10,87 @@
 
 画面（GUI）やDBは使わない。
 
+## 1.5 Lesson0で作るもの（コンソール）
+- アプリ入口: `LedgerApp`（`main`）
+- 処理: `LedgerService`（登録 / 一覧 / 集計 / 予算チェック）
+- データ: `LedgerEntry`（`type` / `category` / `amount` / `memo`）
+- 動作: サンプル登録 -> バリデーション確認 -> 一覧表示 -> 集計表示 -> 予算チェック
+
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> T[ターミナル]
+
+  subgraph APP[Lesson0の主な構成]
+    MAIN[LedgerApp main]
+    SERVICE[LedgerService]
+    ENTRY[LedgerEntry]
+    LIST[entries List]
+    MAP[categoryTotals Map]
+  end
+
+  T -->|java LedgerApp| MAIN
+  MAIN --> SERVICE
+  SERVICE --> ENTRY
+  SERVICE --> LIST
+  SERVICE --> MAP
+  SERVICE -->|println 出力| T
+```
+
+### データ受け渡し最小メモ（JSONは未使用）
+- このLessonは Web API ではないため JSON は使わない。
+- 値の受け渡しは「メソッド引数」と「オブジェクト」で行う。
+- 登録時の例:
+  ```java
+  service.addEntry("EXPENSE", "食費", 18000, "スーパー");
+  ```
+- 内部で `LedgerEntry` を作成して `entries` に追加する。
+- 結果はコンソールへ `System.out.println(...)` で表示する。
+
+### 実行時の時系列（正常系）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Term as ターミナル
+  participant App as LedgerApp
+  participant Service as LedgerService
+  participant List as entries(List)
+
+  User->>Term: java LedgerApp
+  Term->>App: main 開始
+  App->>Service: addEntry(...)
+  Service->>Service: 入力バリデーション
+  Service->>List: LedgerEntry を追加
+  Service-->>Term: [OK] 登録...
+
+  App->>Service: printAll()
+  Service-->>Term: 取引一覧を表示
+
+  App->>Service: printSummary()
+  Service-->>Term: 収入合計 / 支出合計 / 収支 / カテゴリ別
+
+  App->>Service: printBudgetAdvice(45000)
+  Service-->>Term: WARN または INFO を表示
+```
+
+### 入力検証と判定の分岐（ERROR/WARN/INFO）
+```mermaid
+flowchart TD
+  A[addEntry 呼び出し] --> T{typeはINCOMEまたはEXPENSEか}
+  T -->|いいえ| E1[[ERROR 種別不正]]
+  T -->|はい| AM{amountは1以上か}
+  AM -->|いいえ| E2[[ERROR 金額不正]]
+  AM -->|はい| C{categoryは空でないか}
+  C -->|いいえ| E3[[ERROR カテゴリ必須]]
+  C -->|はい| OK[LedgerEntry作成してentriesへ追加]
+  OK --> M[OK 登録メッセージ]
+
+  B[printBudgetAdvice 呼び出し] --> X{支出合計と予算上限を比較}
+  X -->|支出 > 予算| W[[WARN 予算超過]]
+  X -->|支出 = 予算| I1[[INFO 予算ちょうど]]
+  X -->|支出 < 予算| I2[[INFO 予算内]]
+```
+
 ---
 
 ## 2. 作業フォルダ

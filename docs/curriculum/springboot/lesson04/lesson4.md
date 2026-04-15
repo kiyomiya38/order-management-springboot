@@ -17,6 +17,127 @@
   - 勤怠履歴の降順表示（日付, 出勤時刻, 退勤時刻, 状態）
   - トップから一覧への遷移リンク
 
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph APP[Lesson4の主な構成]
+    HC[HomeController]
+    AC[AttendanceController]
+    S[AttendanceService]
+    AR[AttendanceRepository]
+    UR[UserRepository]
+    T1[index.html]
+    T2[attendances.html]
+    CSS[styles.css]
+    DB[(H2 DB)]
+    H2C[H2 Console]
+  end
+
+  B -->|GET /| HC
+  B -->|POST /clock-in| HC
+  B -->|POST /clock-out| HC
+  B -->|GET /attendances| AC
+
+  HC --> S
+  AC --> S
+  S --> AR
+  S --> UR
+  AR --> DB
+  UR --> DB
+
+  HC --> T1
+  AC --> T2
+  T1 -->|HTML| B
+  T2 -->|HTML| B
+
+  B -->|GET /styles.css| CSS
+  CSS -->|CSS| B
+
+  B -->|GET /h2-console| H2C
+  H2C --> DB
+```
+
+### データ受け渡し最小メモ（JSONはLesson4でも未使用）
+- Lesson4もサーバーサイド描画中心で、`fetch` + JSON API は使わない。
+- 画面表示データは `Model` でテンプレートへ渡す。
+- 例（一覧）:
+  ```java
+  List<Attendance> rows = attendanceService.listAttendances(1L);
+  model.addAttribute("rows", rows);
+  return "attendances";
+  ```
+- `rows` を `th:each` でテーブル表示し、`#temporals.format` で日時を整形する。
+
+### トップ画面から一覧表示まで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant Home as HomeController
+  participant ListC as AttendanceController
+  participant Service as AttendanceService
+  participant Repo as AttendanceRepository
+  participant DB as H2
+  participant TopView as index.html
+  participant ListView as attendances.html
+
+  User->>Br: http://localhost:8080/ を開く
+  Br->>Home: GET /
+  Home->>Service: findToday(user1)
+  Service->>Repo: findByUser_IdAndWorkDate(...)
+  Repo->>DB: SELECT
+  DB-->>Repo: 当日データ
+  Home->>TopView: Modelを詰めて return index
+  TopView-->>Br: 200 HTML
+
+  User->>Br: 勤怠一覧を見る を押下
+  Br->>ListC: GET /attendances
+  ListC->>Service: listAttendances(user1)
+  Service->>Repo: findByUser_IdOrderByWorkDateDesc(...)
+  Repo->>DB: SELECT ORDER BY WORK_DATE DESC
+  DB-->>Repo: rows
+  Repo-->>Service: rows
+  Service-->>ListC: rows
+  ListC->>ListView: model.addAttribute(rows)
+  ListView-->>Br: 200 HTML（一覧テーブル）
+```
+
+### ルーティングと異常系の分岐（404/405/業務エラー）
+```mermaid
+flowchart TD
+  A[リクエスト受信] --> P{Pathはどれか}
+
+  P -->|/| M1{MethodはGETか}
+  M1 -->|はい| OK1[index表示]
+  M1 -->|いいえ| E405A[405 Method Not Allowed]
+
+  P -->|/clock-in| M2{MethodはPOSTか}
+  M2 -->|いいえ| E405B[405 Method Not Allowed]
+  M2 -->|はい| CI{同日レコードありか}
+  CI -->|はい| EBiz1[BusinessException すでに出勤済みです]
+  CI -->|いいえ| OK2[出勤保存してredirect]
+
+  P -->|/clock-out| M3{MethodはPOSTか}
+  M3 -->|いいえ| E405C[405 Method Not Allowed]
+  M3 -->|はい| CO1{当日レコードありか}
+  CO1 -->|いいえ| EBiz2[BusinessException 先に出勤してください]
+  CO1 -->|はい| CO2{statusはWORKINGか}
+  CO2 -->|いいえ| EBiz3[BusinessException すでに退勤済みです]
+  CO2 -->|はい| OK3[退勤更新してredirect]
+
+  P -->|/attendances| M4{MethodはGETか}
+  M4 -->|はい| OK4[rowsを取得して一覧表示]
+  M4 -->|いいえ| E405D[405 Method Not Allowed]
+
+  P -->|/styles.css| S{静的ファイルは存在するか}
+  S -->|はい| OK5[200 CSS]
+  S -->|いいえ| E404A[404 Not Found]
+
+  P -->|それ以外| E404B[404 Not Found]
+```
+
 ---
 
 ## 0. 事前確認

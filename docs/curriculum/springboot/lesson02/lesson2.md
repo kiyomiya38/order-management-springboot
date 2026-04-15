@@ -17,6 +17,129 @@
   - 当日の状態表示（未出勤 / 出勤中）
   - 二重出勤時にエラーメッセージ表示
 
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph APP[Lesson2の主な構成]
+    A[AttendanceManagementApplication]
+    Y[application.yml]
+    C[HomeController]
+    S[AttendanceService]
+    UR[UserRepository]
+    AR[AttendanceRepository]
+    SEED[DataSeeder]
+    D[Domain User / Attendance / AttendanceStatus]
+    T[index.html]
+    CSS[styles.css]
+    DB[(H2 DB)]
+  end
+
+  Y --> A
+  A --> C
+  A --> S
+  A --> UR
+  A --> AR
+  A --> SEED
+  S --> UR
+  S --> AR
+  UR --> DB
+  AR --> DB
+  D --> AR
+  C --> T
+
+  B -->|GET /| C
+  B -->|POST /clock-in| C
+  C --> S
+  T -->|HTML| B
+  B -->|GET /styles.css| CSS
+  CSS -->|CSS| B
+```
+
+### データ受け渡し最小メモ（JSONはLesson2では未使用）
+- このLessonはフォーム送信中心で、`fetch` + JSON API はまだ使わない。
+- `POST /clock-in` はフォーム送信（`application/x-www-form-urlencoded`）で、本文データはほぼ不要。
+- Controller は `Model` でテンプレートへ値を渡す。
+- 例:
+  ```java
+  model.addAttribute("statusLabel", toStatusLabel(today));
+  model.addAttribute("canClockIn", today.isEmpty());
+  return "index";
+  ```
+- エラー/成功メッセージは `RedirectAttributes` で `redirect:/` に引き継ぐ。
+
+### 画面表示から出勤登録まで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant Ctrl as HomeController
+  participant Service as AttendanceService
+  participant ARepo as AttendanceRepository
+  participant URepo as UserRepository
+  participant DB as H2
+  participant View as templates/index.html
+
+  User->>Br: http://localhost:8080/ を開く
+  Br->>Ctrl: GET /
+  Ctrl->>Service: findToday(user1)
+  Service->>ARepo: findByUser_IdAndWorkDate(...)
+  ARepo->>DB: SELECT
+  DB-->>ARepo: 当日データなし
+  ARepo-->>Service: Optional.empty
+  Service-->>Ctrl: Optional.empty
+  Ctrl->>View: Modelを詰めて return index
+  View-->>Br: 200 HTML（未出勤 / 出勤ボタン表示）
+
+  User->>Br: 出勤ボタン押下
+  Br->>Ctrl: POST /clock-in
+  Ctrl->>Service: clockIn(user1)
+  Service->>ARepo: findByUser_IdAndWorkDate(...)
+  ARepo->>DB: SELECT
+  DB-->>ARepo: 当日データなし
+  Service->>URepo: findById(user1)
+  URepo->>DB: SELECT
+  DB-->>URepo: user1
+  Service->>ARepo: save(attendance)
+  ARepo->>DB: INSERT
+  DB-->>ARepo: saved
+  Service-->>Ctrl: saved attendance
+  Ctrl-->>Br: redirect:/?message=出勤を記録しました
+  Br->>Ctrl: GET /
+  Ctrl->>Service: findToday(user1)
+  Service->>ARepo: findByUser_IdAndWorkDate(...)
+  ARepo->>DB: SELECT
+  DB-->>ARepo: 当日データあり
+  Ctrl->>View: status=出勤中 で描画
+  View-->>Br: 200 HTML（出勤中 / ボタン非表示）
+```
+
+### ルーティングと異常系の分岐（404/405/業務エラー）
+```mermaid
+flowchart TD
+  A[リクエスト受信] --> P{Pathはどれか}
+
+  P -->|/| M1{MethodはGETか}
+  M1 -->|いいえ| E405A[405 Method Not Allowed]
+  M1 -->|はい| OK1[findTodayしてindex表示]
+
+  P -->|/clock-in| M2{MethodはPOSTか}
+  M2 -->|いいえ| E405B[405 Method Not Allowed]
+  M2 -->|はい| D1{当日勤怠は既に存在するか}
+  D1 -->|はい| EBiz[BusinessException すでに出勤済みです]
+  EBiz --> R1[redirect:/?error=...]
+  D1 -->|いいえ| D2{user1は存在するか}
+  D2 -->|いいえ| E500[IllegalStateException 研修ユーザーが存在しません]
+  D2 -->|はい| OK2[勤怠を保存してredirect:/?message=...]
+
+  P -->|/styles.css| S{静的ファイルは存在するか}
+  S -->|はい| OK3[200 CSS]
+  S -->|いいえ| E404A[404 Not Found]
+
+  P -->|それ以外| E404B[404 Not Found]
+```
+
 ---
 
 ## 0. 事前確認

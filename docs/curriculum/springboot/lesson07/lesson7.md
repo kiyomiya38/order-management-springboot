@@ -8,6 +8,106 @@
 
 この演習はローカル環境で行います（HTTPSは扱いません）。
 
+## この演習で作るもの
+- 構成:
+  - `app`（Spring Boot）コンテナ
+  - `db`（MariaDB）コンテナ
+  - `db_data`（永続化Volume）
+- 接続:
+  - ブラウザ -> `http://localhost:8080/login`
+  - `app` -> `db:3306`（Compose内部ネットワーク）
+- 運用要素:
+  - `Dockerfile`（マルチステージビルド）
+  - `docker-compose.yml`（依存・環境変数・ヘルスチェック）
+  - 再起動後もDBデータが残ることの確認
+
+### 全体構成図（コンテナと通信経路）
+```mermaid
+flowchart LR
+  subgraph HOST[ローカルPC]
+    DEV[ブラウザ / ターミナル]
+    SRC[ソースコード]
+    DC[Docker Compose]
+  end
+
+  subgraph DOCKER[Docker Engine]
+    APP[app コンテナ\nSpring Boot :8080]
+    DB[db コンテナ\nMariaDB :3306]
+    VOL[(db_data volume)]
+  end
+
+  SRC -->|docker build| APP
+  DEV -->|HTTP localhost:8080| APP
+  APP -->|JDBC db:3306| DB
+  DB --> VOL
+  DC --> APP
+  DC --> DB
+```
+
+### 設定受け渡し最小メモ（JSONは未使用）
+- この演習は API の JSON ではなく、Compose設定と環境変数で接続情報を渡す。
+- 主要な受け渡し:
+  - `Dockerfile`（ビルド手順）
+  - `docker-compose.yml`（起動構成・依存関係・ポート・環境変数）
+  - `DB_URL` / `DB_USER` / `DB_PASSWORD` / `DB_DRIVER`（app -> db接続設定）
+  - `db_data` volume（DBデータ永続化）
+- 例（Compose環境変数）:
+  ```yaml
+  DB_URL: jdbc:mariadb://db:3306/attendance?useUnicode=true&characterEncoding=utf8
+  DB_USER: attendance_app
+  DB_PASSWORD: ChangeMe_Strong_123!
+  DB_DRIVER: org.mariadb.jdbc.Driver
+  ```
+
+### ビルドからログイン画面表示まで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant CLI as docker compose
+  participant Build as Docker Build
+  participant App as appコンテナ
+  participant Db as dbコンテナ
+  participant Vol as db_data volume
+  participant Browser as ブラウザ
+
+  User->>CLI: docker compose config
+  CLI-->>User: 構文OK
+
+  User->>CLI: docker compose up -d --build
+  CLI->>Build: Dockerfileでappイメージ作成
+  Build-->>CLI: build完了
+  CLI->>Db: db起動
+  Db->>Vol: DBデータ領域をマウント
+  Db-->>CLI: healthy
+  CLI->>App: app起動（depends_on: db healthy）
+  App->>Db: JDBC接続
+  Db-->>App: 接続成功
+
+  User->>Browser: http://localhost:8080/login
+  Browser->>App: GET /login
+  App-->>Browser: 200 login画面
+```
+
+### 起動・疎通の異常系分岐（manifest / DB接続 / ポート競合）
+```mermaid
+flowchart TD
+  A[docker compose up -d --build] --> B{app は Up か}
+  B -->|いいえ| C{ログに manifest エラーか}
+  C -->|はい| E1[spring-boot:repackage漏れ]
+  C -->|いいえ| D{DB接続エラーか}
+  D -->|はい| E2[MariaDBドライバ or DB環境変数不一致]
+  D -->|いいえ| E3[その他起動エラーをlogsで調査]
+
+  B -->|はい| F{localhost:8080/login 応答するか}
+  F -->|いいえ| G{app再起動ループ or ポート競合か}
+  G -->|はい| E4[compose ps / logs で原因切り分け]
+  G -->|いいえ| E5[ネットワーク設定確認]
+
+  F -->|はい| H{再起動後もデータ残るか}
+  H -->|いいえ| E6[down -v 実行やvolume設定ミス]
+  H -->|はい| OK[完了条件達成]
+```
+
 ---
 
 ## 1. 構成

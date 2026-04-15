@@ -10,6 +10,168 @@
 - Lesson4 を完了している
 - `~/order-management-springboot/stages/lesson04` のトップ/一覧が動作する
 
+## Lesson5で作るもの
+- 画面:
+  - `/login`（ログイン）
+  - `/`（トップ）
+  - `/attendances`（本人の勤怠一覧）
+  - `/users`（管理者のユーザー管理）
+  - `/admin/attendances`（管理者の勤怠管理）
+- 機能:
+  - 認証（ログイン / ログアウト）
+  - 認可（一般ユーザーと管理者のアクセス制御）
+  - 管理者によるユーザー作成/更新/削除
+  - 管理者による勤怠編集（整合性チェック）
+  - `mvn test` による最低限の業務ルール回帰確認
+
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph SEC[認証/認可]
+    SC[SecurityConfig]
+    AUTHC[AuthController]
+    SEED[DataSeeder]
+  end
+
+  subgraph WEB[Controller]
+    HC[HomeController]
+    ATC[AttendanceController]
+    UC[UserController]
+    AAC[AdminAttendanceController]
+  end
+
+  subgraph SVC[Service]
+    AS[AttendanceService]
+    US[UserService]
+  end
+
+  subgraph REPO[Repository]
+    AR[AttendanceRepository]
+    UR[UserRepository]
+  end
+
+  subgraph VIEW[Template / Static]
+    LOGIN[login.html]
+    INDEX[index.html]
+    ATS[attendances.html]
+    USERS[users.html / user-form.html]
+    ADM[admin-attendances.html / admin-attendance-form.html]
+    CSS[styles.css]
+    JS[users.js]
+  end
+
+  TEST[AttendanceServiceTest] --> AS
+  SEED --> UR
+
+  B -->|GET /login| AUTHC
+  B -->|GET /| HC
+  B -->|GET /attendances| ATC
+  B -->|GET/POST /users...| UC
+  B -->|GET/POST /admin/attendances...| AAC
+
+  SC --> WEB
+  WEB --> SVC
+  SVC --> REPO
+  REPO --> DB[(H2 DB)]
+
+  AUTHC --> LOGIN
+  HC --> INDEX
+  ATC --> ATS
+  UC --> USERS
+  AAC --> ADM
+
+  B -->|GET /styles.css| CSS
+  B -->|GET /users.js| JS
+```
+
+### データ受け渡し最小メモ（JSONはLesson5でも中心ではない）
+- Lesson5の主軸はサーバーサイド描画とフォーム送信。
+- 認証は `POST /login`（Spring Security標準パラメータ `username` / `password`）で実行される。
+- 画面データは `Model` で渡し、成功/失敗メッセージは `RedirectAttributes` で引き継ぐ。
+- 例:
+  ```java
+  model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
+  redirectAttributes.addFlashAttribute("message", "ユーザーを更新しました");
+  return "redirect:/users";
+  ```
+- `users.js` は「削除確認ダイアログ」「一覧絞り込み」のUI補助で使う。
+
+### ログインから権限別画面まで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant Sec as SecurityFilterChain
+  participant Auth as AuthController
+  participant URepo as UserRepository
+  participant Home as HomeController
+  participant UCtrl as UserController
+  participant AServ as AttendanceService
+
+  User->>Br: /login を開く
+  Br->>Sec: GET /login
+  Sec->>Auth: permitAll で許可
+  Auth-->>Br: login.html
+
+  User->>Br: user1 / password でログイン
+  Br->>Sec: POST /login
+  Sec->>URepo: UserDetailsServiceで user1 検索
+  URepo-->>Sec: user1(ROLE_USER)
+  Sec-->>Br: 認証成功して /
+
+  Br->>Sec: GET /
+  Sec->>Home: 認証済みで許可
+  Home->>AServ: 当日勤怠取得
+  Home-->>Br: index.html（一般ユーザーメニュー）
+
+  User->>Br: /users を開く
+  Br->>Sec: GET /users
+  Sec-->>Br: 403 Forbidden（ROLE_ADMINのみ許可）
+
+  User->>Br: admin / admin123 で再ログイン
+  Br->>Sec: POST /login
+  Sec->>URepo: admin 検索
+  URepo-->>Sec: admin(ROLE_ADMIN)
+  Sec-->>Br: 認証成功して /
+
+  Br->>Sec: GET /users
+  Sec->>UCtrl: ROLE_ADMIN なので許可
+  UCtrl-->>Br: users.html
+```
+
+### ルーティングと異常系の分岐（302/403/業務エラー）
+```mermaid
+flowchart TD
+  A[リクエスト受信] --> AUTH{ログイン済みか}
+  AUTH -->|いいえ| OPEN{公開URLか}
+  OPEN -->|/login /styles.css /h2-console| OK0[200許可]
+  OPEN -->|それ以外| R302[302 /login へリダイレクト]
+
+  AUTH -->|はい| P{Pathはどれか}
+
+  P -->|/users...| R1{ROLE_ADMINか}
+  R1 -->|いいえ| E403A[403 Forbidden]
+  R1 -->|はい| OK1[ユーザー管理画面/処理]
+
+  P -->|/admin/attendances...| R2{ROLE_ADMINか}
+  R2 -->|いいえ| E403B[403 Forbidden]
+  R2 -->|はい| V1{入力・業務ルール整合OKか}
+  V1 -->|いいえ| EBiz1[バリデーション/BusinessException]
+  V1 -->|はい| OK2[更新成功]
+
+  P -->|/clock-in| C1{当日勤怠が既にあるか}
+  C1 -->|はい| EBiz2[すでに出勤済みです]
+  C1 -->|いいえ| OK3[出勤保存]
+
+  P -->|/clock-out| C2{退勤可能な状態か}
+  C2 -->|いいえ| EBiz3[先に出勤してください / すでに退勤済みです]
+  C2 -->|はい| OK4[退勤保存]
+
+  P -->|それ以外の認証必須URL| OK5[通常処理へ]
+```
+
 ---
 
 ## 0. 事前確認
