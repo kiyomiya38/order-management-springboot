@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,19 +49,19 @@ cd ~/order-management-springboot/practice/java/handson19
 `StreamApiDemo.java` を次の内容で作成:
 
 ```java
-import java.util.List;
+import java.util.List; // List 利用のための import
 
-public class StreamApiDemo {
+public class StreamApiDemo { // Stream API 入門クラス
     public static void main(String[] args) {
-        List<String> statuses = List.of("PAID", "PENDING", "PAID", "CANCELLED");
+        List<String> statuses = List.of("PAID", "PENDING", "PAID", "CANCELLED"); // 注文状態一覧
 
-        long paidCount = statuses.stream()
-                .filter(s -> s.equals("PAID"))
-                .count();
+        long paidCount = statuses.stream() // List から Stream を生成
+                .filter(s -> s.equals("PAID")) // PAID だけに絞り込む
+                .count(); // 件数を数える
 
-        System.out.println("PAID件数: " + paidCount);
-    }
-}
+        System.out.println("PAID件数: " + paidCount); // 集計結果を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -75,17 +79,17 @@ java StreamApiDemo
 `StreamApiDemo.java` を次の内容に更新:
 
 ```java
-import java.util.List;
+import java.util.List; // List 利用のための import
 
-public class StreamApiDemo {
+public class StreamApiDemo { // map と forEach の利用例
     public static void main(String[] args) {
-        List<String> orderCodes = List.of("ord-001", "ord-002", "ord-003");
+        List<String> orderCodes = List.of("ord-001", "ord-002", "ord-003"); // 小文字コード一覧
 
-        orderCodes.stream()
-                .map(String::toUpperCase)
-                .forEach(code -> System.out.println("注文コード: " + code));
-    }
-}
+        orderCodes.stream() // Stream を生成
+                .map(String::toUpperCase) // 各要素を大文字へ変換
+                .forEach(code -> System.out.println("注文コード: " + code)); // 変換後要素を1件ずつ表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -103,20 +107,20 @@ java StreamApiDemo
 `StreamApiDemo.java` を次の内容に更新:
 
 ```java
-import java.util.List;
+import java.util.List; // List 利用のための import
 
-public class StreamApiDemo {
+public class StreamApiDemo { // 数値集計の利用例
     public static void main(String[] args) {
-        List<Integer> amounts = List.of(1200, 3000, 800, 4500);
+        List<Integer> amounts = List.of(1200, 3000, 800, 4500); // 金額一覧
 
-        int total = amounts.stream()
-                .filter(a -> a >= 1000)
-                .mapToInt(Integer::intValue)
-                .sum();
+        int total = amounts.stream() // Stream を生成
+                .filter(a -> a >= 1000) // 1000円以上に絞り込む
+                .mapToInt(Integer::intValue) // IntStream へ変換
+                .sum(); // 合計値を計算
 
-        System.out.println("1000円以上の合計: " + total);
-    }
-}
+        System.out.println("1000円以上の合計: " + total); // 集計結果を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -146,3 +150,4 @@ java StreamApiDemo
   -> `map` と `mapToInt` の違いを確認
 - 処理が読みづらい
   -> 1行1処理（filter/map/sum）で改行して書く
+

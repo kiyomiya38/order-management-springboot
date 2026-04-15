@@ -454,9 +454,11 @@ public class App {
             .replace("\t", "\\t");
     }
 
+    // record: ユーザー情報を不変データとして簡潔に表現する
     private record User(long id, String username, String role) {
     }
 
+    // enum: 状態値を固定し、文字列の表記ゆれを防ぐ
     private enum AttendanceStatus {
         NOT_STARTED,
         WORKING,
@@ -481,9 +483,11 @@ public class App {
     }
 
     private static final class UserStore {
+        // AtomicLong: 同時アクセス時も安全に連番を採番する
         private final AtomicLong sequence = new AtomicLong(0);
         private final List<User> users = new ArrayList<>();
 
+        // synchronized: 共有リスト更新の競合を防ぐ
         public synchronized User create(String username, String role) {
             User user = new User(sequence.incrementAndGet(), username, role);
             users.add(user);
@@ -1236,6 +1240,7 @@ java App
 1. 出勤/退勤の状態遷移がサーバー側で制御される流れを説明できる
 2. 当日状態表示と履歴表示の連動処理を説明できる
 3. ユーザー一覧の検索・絞り込みと削除確認分岐を説明できる
+4. `enum` / `AtomicLong` / `synchronized` が必要な理由を説明できる
 
 ## 10.5 目的達成演習の具体手順
 共通手順（各課題で共通）:

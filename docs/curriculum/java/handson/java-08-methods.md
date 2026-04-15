@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,15 +49,15 @@ cd ~/order-management-springboot/practice/java/handson08
 `MethodDemo.java` を次の内容で作成:
 
 ```java
-public class MethodDemo {
-    static void printStartMessage() {
-        System.out.println("受注処理を開始します");
+public class MethodDemo { // メソッド分割の基本を学ぶクラス
+    static void printStartMessage() { // 引数なし・戻り値なしのメソッド
+        System.out.println("受注処理を開始します"); // 開始メッセージを表示
     }
 
-    public static void main(String[] args) {
-        printStartMessage();
-    }
-}
+    public static void main(String[] args) { // 実行開始地点
+        printStartMessage(); // 定義したメソッドを呼び出す
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -71,16 +75,16 @@ java MethodDemo
 `MethodDemo.java` を次の内容に更新:
 
 ```java
-public class MethodDemo {
-    static int calcTotal(int quantity, int unitPrice) {
-        return quantity * unitPrice;
+public class MethodDemo { // 引数と戻り値を使うメソッド例
+    static int calcTotal(int quantity, int unitPrice) { // quantity と unitPrice を受け取り int を返す
+        return quantity * unitPrice; // 合計金額を呼び出し元へ返す
     }
 
     public static void main(String[] args) {
-        int total = calcTotal(3, 1200);
-        System.out.println("合計: " + total);
-    }
-}
+        int total = calcTotal(3, 1200); // 実引数を渡してメソッド実行
+        System.out.println("合計: " + total); // 戻り値を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -102,23 +106,23 @@ java MethodDemo
 `MethodDemo.java` を次の内容に更新:
 
 ```java
-public class MethodDemo {
-    static int calcTotal(int quantity, int unitPrice) {
-        return quantity * unitPrice;
+public class MethodDemo { // オーバーロードを学ぶクラス
+    static int calcTotal(int quantity, int unitPrice) { // 引数2つ版
+        return quantity * unitPrice; // 送料なし合計
     }
 
-    static int calcTotal(int quantity, int unitPrice, int shippingFee) {
-        return quantity * unitPrice + shippingFee;
+    static int calcTotal(int quantity, int unitPrice, int shippingFee) { // 引数3つ版（同名メソッド）
+        return quantity * unitPrice + shippingFee; // 送料込み合計
     }
 
     public static void main(String[] args) {
-        int total1 = calcTotal(3, 1200);
-        int total2 = calcTotal(3, 1200, 800);
+        int total1 = calcTotal(3, 1200); // 引数2つ版が呼ばれる
+        int total2 = calcTotal(3, 1200, 800); // 引数3つ版が呼ばれる
 
-        System.out.println("送料なし合計: " + total1);
-        System.out.println("送料込み合計: " + total2);
-    }
-}
+        System.out.println("送料なし合計: " + total1); // 結果を表示
+        System.out.println("送料込み合計: " + total2); // 結果を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -136,21 +140,21 @@ java MethodDemo
 `MethodDemo.java` を次の内容に更新:
 
 ```java
-public class MethodDemo {
-    static int calcSubtotal(int quantity, int unitPrice) {
-        return quantity * unitPrice;
+public class MethodDemo { // 実務で使う計算メソッド構成例
+    static int calcSubtotal(int quantity, int unitPrice) { // 小計計算メソッド
+        return quantity * unitPrice; // 小計を返す
     }
 
-    static int calcBillingAmount(int quantity, int unitPrice, int shippingFee, int discount) {
-        int subtotal = calcSubtotal(quantity, unitPrice);
-        return subtotal + shippingFee - discount;
+    static int calcBillingAmount(int quantity, int unitPrice, int shippingFee, int discount) { // 請求金額計算メソッド
+        int subtotal = calcSubtotal(quantity, unitPrice); // 小計計算を再利用
+        return subtotal + shippingFee - discount; // 送料を足し、割引を引いた請求金額を返す
     }
 
     public static void main(String[] args) {
-        int billingAmount = calcBillingAmount(4, 1800, 800, 500);
-        System.out.println("請求金額: " + billingAmount);
-    }
-}
+        int billingAmount = calcBillingAmount(4, 1800, 800, 500); // 必要値を渡して請求金額を計算
+        System.out.println("請求金額: " + billingAmount); // 計算結果を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -162,6 +166,10 @@ java MethodDemo
 期待結果:
 - `javac` がエラーなく完了する
 - `java` の実行結果が、このStepのコード内容と一致する
+
+補足（実務）:
+- この章の金額計算メソッドは学習用に `int` を使っている
+- 実務の金額計算では `BigDecimal` の利用を検討する
 
 
 ---
@@ -180,3 +188,4 @@ java MethodDemo
   -> 宣言型を見直す
 - 引数順序のミス
   -> 呼び出し側の順番をコメントで明示
+

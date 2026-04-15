@@ -25,3 +25,4 @@
 - `docs/curriculum/java/java.md` と同じ進行スタイル
 - 実務で使う内容を優先
 - 各章を独立した markdown ファイルで管理
+- 前提環境は JDK 17（17.x）

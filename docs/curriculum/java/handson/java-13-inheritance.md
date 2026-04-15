@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,24 +49,24 @@ cd ~/order-management-springboot/practice/java/handson13
 `InheritanceDemo.java` を次の内容で作成:
 
 ```java
-class Employee {
-    String name;
+class Employee { // 親クラス: 社員共通の情報と処理を持つ
+    String name; // 社員名
 
-    void printName() {
-        System.out.println("名前: " + name);
+    void printName() { // 名前表示メソッド
+        System.out.println("名前: " + name); // フィールド name を表示
     }
 }
 
-class Manager extends Employee {
+class Manager extends Employee { // 子クラス: Employee を継承
 }
 
-public class InheritanceDemo {
+public class InheritanceDemo { // 実行クラス
     public static void main(String[] args) {
-        Manager m = new Manager();
-        m.name = "Tanaka";
-        m.printName();
-    }
-}
+        Manager m = new Manager(); // 子クラスのインスタンスを生成
+        m.name = "Tanaka"; // 親クラスのフィールドを利用
+        m.printName(); // 親クラスのメソッドを利用
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -80,31 +84,31 @@ java InheritanceDemo
 `InheritanceDemo.java` を次の内容に更新:
 
 ```java
-class Employee {
-    String name;
+class Employee { // 親クラス
+    String name; // 社員名
 
-    void printName() {
+    void printName() { // 親クラス共通の表示メソッド
         System.out.println("名前: " + name);
     }
 }
 
-class Manager extends Employee {
-    String teamName;
+class Manager extends Employee { // 子クラス
+    String teamName; // Manager 固有のフィールド
 
-    void printTeam() {
+    void printTeam() { // Manager 固有のメソッド
         System.out.println("チーム: " + teamName);
     }
 }
 
-public class InheritanceDemo {
+public class InheritanceDemo { // 実行クラス
     public static void main(String[] args) {
-        Manager m = new Manager();
-        m.name = "Tanaka";
-        m.teamName = "Platform";
-        m.printName();
-        m.printTeam();
-    }
-}
+        Manager m = new Manager(); // Manager を生成
+        m.name = "Tanaka"; // 親クラス由来のフィールド設定
+        m.teamName = "Platform"; // 子クラス固有フィールド設定
+        m.printName(); // 親クラスメソッド呼び出し
+        m.printTeam(); // 子クラスメソッド呼び出し
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -122,32 +126,32 @@ java InheritanceDemo
 `InheritanceDemo.java` を次の内容に更新:
 
 ```java
-class Employee {
-    String name;
+class Employee { // 親クラス
+    String name; // 社員名
 
-    String roleLabel() {
+    String roleLabel() { // 役割名を返すメソッド（親の既定実装）
         return "社員";
     }
 
-    void printProfile() {
-        System.out.println(roleLabel() + ": " + name);
+    void printProfile() { // プロフィール表示メソッド
+        System.out.println(roleLabel() + ": " + name); // roleLabel は実体に応じた実装が呼ばれる
     }
 }
 
-class Manager extends Employee {
+class Manager extends Employee { // 子クラス
     @Override
-    String roleLabel() {
+    String roleLabel() { // 親メソッドを上書き（オーバーライド）
         return "管理者";
     }
 }
 
-public class InheritanceDemo {
+public class InheritanceDemo { // 実行クラス
     public static void main(String[] args) {
-        Manager m = new Manager();
-        m.name = "Tanaka";
-        m.printProfile();
-    }
-}
+        Manager m = new Manager(); // Manager を生成
+        m.name = "Tanaka"; // 名前設定
+        m.printProfile(); // オーバーライド結果を含めて表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -177,3 +181,4 @@ java InheritanceDemo
   -> クラス定義の責務を整理
 - 継承しすぎて複雑化
   -> 共通化が明確な場合に限定する
+

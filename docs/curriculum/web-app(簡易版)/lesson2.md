@@ -316,17 +316,21 @@ public class App {
             .replace("\t", "\\t");
     }
 
+    // record: 値をまとめる不変データ型（getter相当が自動で使える）
     private record Todo(long id, String title, boolean completed) {
     }
 
     private static final class TodoStore {
+        // AtomicLong: 同時アクセス時も安全に連番を採番する
         private final AtomicLong sequence = new AtomicLong(0);
         private final List<Todo> todos = new ArrayList<>();
 
+        // synchronized: 共有データ（todos）更新の競合を防ぐ
         public synchronized List<Todo> list() {
             return new ArrayList<>(todos);
         }
 
+        // synchronized: 同時作成でもID重複やデータ破損を防ぐ
         public synchronized Todo create(String title) {
             Todo todo = new Todo(sequence.incrementAndGet(), title, false);
             todos.add(todo);
@@ -765,6 +769,7 @@ java App
 1. CRUD（Create / Read / Update / Delete）と API / コードの対応を説明できる
 2. JavaScript で画面遷移なし更新が成立する理由を説明できる
 3. 削除確認ダイアログで「キャンセル時は削除しない」分岐を説明できる
+4. `record` / `AtomicLong` / `synchronized` の役割分担を説明できる
 
 ## 10.5 目的達成演習の具体手順
 共通手順（各課題で共通）:

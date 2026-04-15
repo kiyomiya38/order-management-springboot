@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,11 +49,11 @@ cd ~/order-management-springboot/practice/java/handson09
 作成ファイル: `OrderItem.java`
 
 ```java
-public class OrderItem {
-    String productName;
-    int quantity;
-    int unitPrice;
-}
+public class OrderItem { // 注文1件分のデータを保持するクラス
+    String productName; // 商品名
+    int quantity; // 数量
+    int unitPrice; // 単価
+} // クラス定義の終わり
 ```
 
 コンパイル確認:
@@ -66,11 +70,11 @@ javac -encoding UTF-8 OrderItem.java
 作成ファイル: `OrderCalculator.java`
 
 ```java
-public class OrderCalculator {
-    int calcSubtotal(OrderItem item) {
-        return item.quantity * item.unitPrice;
+public class OrderCalculator { // 注文金額を計算するクラス
+    int calcSubtotal(OrderItem item) { // OrderItem を受け取り小計を返す
+        return item.quantity * item.unitPrice; // 数量 x 単価を計算
     }
-}
+} // クラス定義の終わり
 ```
 
 コンパイル確認:
@@ -87,19 +91,19 @@ javac -encoding UTF-8 OrderItem.java OrderCalculator.java
 作成ファイル: `OrderApp.java`
 
 ```java
-public class OrderApp {
+public class OrderApp { // 実行クラス（エントリーポイント）
     public static void main(String[] args) {
-        OrderItem item = new OrderItem();
-        item.productName = "Laptop";
-        item.quantity = 2;
-        item.unitPrice = 120000;
+        OrderItem item = new OrderItem(); // 注文データ用インスタンスを作成
+        item.productName = "Laptop"; // 商品名を設定
+        item.quantity = 2; // 数量を設定
+        item.unitPrice = 120000; // 単価を設定
 
-        OrderCalculator calculator = new OrderCalculator();
-        int subtotal = calculator.calcSubtotal(item);
+        OrderCalculator calculator = new OrderCalculator(); // 計算クラスを生成
+        int subtotal = calculator.calcSubtotal(item); // 小計を計算
 
-        System.out.println(item.productName + " 小計: " + subtotal);
-    }
-}
+        System.out.println(item.productName + " 小計: " + subtotal); // 結果を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -113,19 +117,67 @@ java OrderApp
 Laptop 小計: 240000
 ```
 
-### Step 4: package と import を体験する（任意）
+### Step 4: package と import を使って実行する（仕上げ）
 作成フォルダ:
 ```bash
-mkdir -p src/model src/service src/app
+mkdir -p src/model src/service src/app out
 ```
 
-確認:
+作成ファイル: `src/model/OrderItem.java`
+```java
+package model; // model パッケージに属することを宣言
+
+public class OrderItem { // 注文データを表すクラス
+    public String productName; // 商品名
+    public int quantity; // 数量
+    public int unitPrice; // 単価
+} // クラス定義の終わり
+```
+
+作成ファイル: `src/service/OrderCalculator.java`
+```java
+package service; // service パッケージに属することを宣言
+
+import model.OrderItem; // model パッケージの OrderItem を利用
+
+public class OrderCalculator { // 金額計算を担当するサービスクラス
+    public int calcSubtotal(OrderItem item) { // 注文データを受け取り小計を返す
+        return item.quantity * item.unitPrice; // 数量 x 単価を計算
+    }
+} // クラス定義の終わり
+```
+
+作成ファイル: `src/app/OrderApp.java`
+```java
+package app; // app パッケージに属することを宣言
+
+import model.OrderItem; // model パッケージのクラスを利用
+import service.OrderCalculator; // service パッケージのクラスを利用
+
+public class OrderApp { // パッケージ構成版の実行クラス
+    public static void main(String[] args) {
+        OrderItem item = new OrderItem(); // 注文データを生成
+        item.productName = "Laptop"; // 商品名を設定
+        item.quantity = 2; // 数量を設定
+        item.unitPrice = 120000; // 単価を設定
+
+        OrderCalculator calculator = new OrderCalculator(); // 計算クラスを生成
+        int subtotal = calculator.calcSubtotal(item); // 小計を計算
+        System.out.println(item.productName + " 小計: " + subtotal); // 結果を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
+```
+
+実行:
 ```bash
-find src -maxdepth 2 -type d
+javac -encoding UTF-8 -d out src/model/OrderItem.java src/service/OrderCalculator.java src/app/OrderApp.java
+java -cp out app.OrderApp
 ```
 
-期待結果:
-- 作成したディレクトリが表示される
+期待出力:
+```text
+Laptop 小計: 240000
+```
 
 
 学習ポイント:
@@ -148,3 +200,4 @@ find src -maxdepth 2 -type d
   -> `java OrderApp` でクラス名を正確に指定
 - パッケージ導入時にエラー
   -> `package` 宣言とフォルダ階層を一致させる
+

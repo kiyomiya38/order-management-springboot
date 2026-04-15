@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -46,24 +50,24 @@ cd ~/order-management-springboot/practice/java/handson04
 `OperatorDemo.java` を次の内容で作成:
 
 ```java
-public class OperatorDemo {
-    public static void main(String[] args) {
-        int quantity = 3;
-        int unitPrice = 1200;
+public class OperatorDemo { // クラス宣言。ファイル名は OperatorDemo.java にする
+    public static void main(String[] args) { // 実行開始地点
+        int quantity = 3; // 数量
+        int unitPrice = 1200; // 単価
 
-        int subtotal = quantity * unitPrice;   // 乗算
-        int plus = subtotal + 500;             // 加算
-        int minus = subtotal - 200;            // 減算
-        int divide = subtotal / 3;             // 除算（整数）
-        int mod = subtotal % 7;                // 余り
+        int subtotal = quantity * unitPrice; // 乗算: 小計 = 数量 x 単価
+        int plus = subtotal + 500; // 加算: 小計に 500 を足す
+        int minus = subtotal - 200; // 減算: 小計から 200 を引く
+        int divide = subtotal / 3; // 除算: int 同士なので小数点以下は切り捨て
+        int mod = subtotal % 7; // 剰余: 7 で割った余り
 
-        System.out.println("小計: " + subtotal);
-        System.out.println("加算結果: " + plus);
-        System.out.println("減算結果: " + minus);
-        System.out.println("除算結果: " + divide);
-        System.out.println("余り: " + mod);
-    }
-}
+        System.out.println("小計: " + subtotal); // 小計を表示
+        System.out.println("加算結果: " + plus); // 加算結果を表示
+        System.out.println("減算結果: " + minus); // 減算結果を表示
+        System.out.println("除算結果: " + divide); // 除算結果を表示
+        System.out.println("余り: " + mod); // 余りを表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -81,22 +85,22 @@ java OperatorDemo
 `OperatorDemo.java` を次の内容に更新:
 
 ```java
-public class OperatorDemo {
+public class OperatorDemo { // 比較演算子と論理演算子を使った判定例
     public static void main(String[] args) {
-        int quantity = 3;
-        int unitPrice = 1200;
-        int subtotal = quantity * unitPrice;
-        boolean paid = false;
+        int quantity = 3; // 数量
+        int unitPrice = 1200; // 単価
+        int subtotal = quantity * unitPrice; // 小計
+        boolean paid = false; // 支払状態
 
-        boolean isHighAmount = subtotal >= 3000;
-        boolean canShip = isHighAmount && paid;
-        boolean needsReview = subtotal > 5000 || quantity >= 10;
+        boolean isHighAmount = subtotal >= 3000; // 小計が 3000 以上なら true
+        boolean canShip = isHighAmount && paid; // 高額条件と支払済みの両方を満たす場合のみ true
+        boolean needsReview = subtotal > 5000 || quantity >= 10; // 高額または大量注文なら true
 
-        System.out.println("高額注文か: " + isHighAmount);
-        System.out.println("出荷可能か: " + canShip);
-        System.out.println("審査が必要か: " + needsReview);
-    }
-}
+        System.out.println("高額注文か: " + isHighAmount); // 比較結果を表示
+        System.out.println("出荷可能か: " + canShip); // 論理積 (&&) の結果を表示
+        System.out.println("審査が必要か: " + needsReview); // 論理和 (||) の結果を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -119,15 +123,15 @@ java OperatorDemo
 `OperatorDemo.java` を次の内容に更新:
 
 ```java
-public class OperatorDemo {
+public class OperatorDemo { // 演算子の優先順位を確認する例
     public static void main(String[] args) {
-        int a = 4 + 5 * 6;      // 4 + (5 * 6)
-        int b = (4 + 5) * 6;    // 括弧を優先
+        int a = 4 + 5 * 6; // 乗算が先に計算されるため 4 + (5 * 6)
+        int b = (4 + 5) * 6; // 括弧内を先に計算してから乗算する
 
-        System.out.println("4 + 5 * 6 = " + a);
-        System.out.println("(4 + 5) * 6 = " + b);
-    }
-}
+        System.out.println("4 + 5 * 6 = " + a); // 括弧なしの結果を表示
+        System.out.println("(4 + 5) * 6 = " + b); // 括弧ありの結果を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -146,24 +150,24 @@ java OperatorDemo
 `OperatorDemo.java` を次の内容に更新:
 
 ```java
-public class OperatorDemo {
+public class OperatorDemo { // 演算子を組み合わせた実務風の金額計算
     public static void main(String[] args) {
-        int quantity = 4;
-        int unitPrice = 1800;
-        int shippingFee = 800;
-        boolean member = true;
+        int quantity = 4; // 数量
+        int unitPrice = 1800; // 単価
+        int shippingFee = 800; // 送料
+        boolean member = true; // 会員フラグ
 
-        int subtotal = quantity * unitPrice;
-        int discount = member ? 500 : 0; // 三項演算子
-        int taxed = (subtotal - discount) * 110 / 100;
-        int billingAmount = taxed + shippingFee;
+        int subtotal = quantity * unitPrice; // 小計 = 数量 x 単価
+        int discount = member ? 500 : 0; // 三項演算子: 会員なら 500 円引き、非会員なら 0
+        int taxed = (subtotal - discount) * 110 / 100; // 割引後金額に 10% 税を加算
+        int billingAmount = taxed + shippingFee; // 最終請求 = 税込金額 + 送料
 
-        System.out.println("小計: " + subtotal);
-        System.out.println("会員割引: " + discount);
-        System.out.println("税込金額: " + taxed);
-        System.out.println("請求金額: " + billingAmount);
-    }
-}
+        System.out.println("小計: " + subtotal); // 小計を表示
+        System.out.println("会員割引: " + discount); // 割引額を表示
+        System.out.println("税込金額: " + taxed); // 税込金額を表示
+        System.out.println("請求金額: " + billingAmount); // 最終請求金額を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -175,6 +179,10 @@ java OperatorDemo
 期待結果:
 - `javac` がエラーなく完了する
 - `java` の実行結果が、このStepのコード内容と一致する
+
+補足（実務）:
+- この章の金額計算は学習用に `int` を使用している
+- 実務の金額計算では端数誤差を避けるため `BigDecimal` を使う
 
 
 ---
@@ -193,3 +201,4 @@ java OperatorDemo
   -> 条件式と算術式を分ける
 - 括弧忘れで意図しない計算になる
   -> 業務ロジックは括弧で明示する
+

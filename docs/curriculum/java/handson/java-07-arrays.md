@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,13 +49,13 @@ cd ~/order-management-springboot/practice/java/handson07
 `ArrayDemo.java` を次の内容で作成:
 
 ```java
-public class ArrayDemo {
-    public static void main(String[] args) {
-        int[] quantities = {3, 5, 2, 8};
-        System.out.println("1件目数量: " + quantities[0]);
-        System.out.println("配列の長さ: " + quantities.length);
-    }
-}
+public class ArrayDemo { // 配列の基本確認クラス
+    public static void main(String[] args) { // 実行開始地点
+        int[] quantities = {3, 5, 2, 8}; // int 配列を初期化（4要素）
+        System.out.println("1件目数量: " + quantities[0]); // インデックス 0 の要素を参照
+        System.out.println("配列の長さ: " + quantities.length); // 要素数を取得
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -69,18 +73,18 @@ java ArrayDemo
 `ArrayDemo.java` を次の内容に更新:
 
 ```java
-public class ArrayDemo {
+public class ArrayDemo { // 配列をループで集計するクラス
     public static void main(String[] args) {
-        int[] quantities = {3, 5, 2, 8};
-        int total = 0;
+        int[] quantities = {3, 5, 2, 8}; // 集計対象の配列
+        int total = 0; // 合計値の初期値
 
-        for (int i = 0; i < quantities.length; i++) {
-            total += quantities[i];
+        for (int i = 0; i < quantities.length; i++) { // i を配列の有効範囲で繰り返す
+            total += quantities[i]; // 現在要素を total に加算
         }
 
-        System.out.println("数量合計: " + total);
-    }
-}
+        System.out.println("数量合計: " + total); // 集計結果を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -98,16 +102,16 @@ java ArrayDemo
 `ArrayDemo.java` を次の内容に更新:
 
 ```java
-public class ArrayDemo {
+public class ArrayDemo { // 文字列配列と数値配列を組み合わせて扱うクラス
     public static void main(String[] args) {
-        String[] productNames = {"Laptop", "Mouse", "Keyboard"};
-        int[] quantities = {3, 5, 2};
+        String[] productNames = {"Laptop", "Mouse", "Keyboard"}; // 商品名配列
+        int[] quantities = {3, 5, 2}; // 各商品の数量配列
 
-        for (int i = 0; i < productNames.length; i++) {
-            System.out.println(productNames[i] + " 数量: " + quantities[i]);
+        for (int i = 0; i < productNames.length; i++) { // 商品数分だけ繰り返す
+            System.out.println(productNames[i] + " 数量: " + quantities[i]); // 同じインデックス同士を対応付けて表示
         }
-    }
-}
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -139,3 +143,4 @@ Keyboard 数量: 2
   -> `productNames` と `quantities` の件数を揃える
 - `length()` と `length` の混同
   -> 配列は `length`（フィールド）
+

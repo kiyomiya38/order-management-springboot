@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 開発の流れ（最小）
@@ -46,8 +50,8 @@ cd ~/order-management-springboot/practice/java/handson02
 `HelloFlow.java` を次の内容で作成:
 
 ```java
-public class HelloFlow {
-}
+public class HelloFlow { // クラス宣言。ファイル名は HelloFlow.java に合わせる
+} // クラス定義の終わり
 ```
 
 実行:
@@ -67,10 +71,11 @@ javac -encoding UTF-8 HelloFlow.java
 `HelloFlow.java` を次の内容に更新:
 
 ```java
-public class HelloFlow {
-    public static void main(String[] args) {
-    }
-}
+public class HelloFlow { // Step 1 のクラスに実行開始地点を追加する
+    public static void main(String[] args) { // Java 実行時に最初に呼ばれる特別なメソッド
+        // まだ処理を書かないため空のままにする
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -90,12 +95,12 @@ java HelloFlow
 `HelloFlow.java` を次の内容に更新:
 
 ```java
-public class HelloFlow {
-    public static void main(String[] args) {
-        System.out.println("Hello Flow");
-        System.out.println("Java開発サイクル確認中");
-    }
-}
+public class HelloFlow { // クラス名とファイル名を一致させたまま使う
+    public static void main(String[] args) { // 実行開始地点
+        System.out.println("Hello Flow"); // 1 行目のメッセージを表示
+        System.out.println("Java開発サイクル確認中"); // 2 行目のメッセージを表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -114,9 +119,9 @@ Java開発サイクル確認中
 `HelloFlow.java` のクラス名を一時的に `HelloFlowX` に変えてコンパイル:
 
 ```java
-public class HelloFlowX {
+public class HelloFlowX { // あえてファイル名 (HelloFlow.java) と不一致にしてエラーを再現
     public static void main(String[] args) {
-        System.out.println("Hello Flow");
+        System.out.println("Hello Flow"); // 本文が正しくても名前不一致でコンパイルエラーになる
     }
 }
 ```
@@ -139,13 +144,13 @@ javac -encoding UTF-8 HelloFlow.java
 `HelloFlow.java` を次の内容に更新:
 
 ```java
-public class HelloFlow {
+public class HelloFlow { // 最終版: 実務ログ風メッセージに変更
     public static void main(String[] args) {
-        System.out.println("[INFO] バッチ起動");
-        System.out.println("[INFO] 受注データ読込");
-        System.out.println("[INFO] バッチ正常終了");
-    }
-}
+        System.out.println("[INFO] バッチ起動"); // 処理開始ログ
+        System.out.println("[INFO] 受注データ読込"); // 中間処理ログ
+        System.out.println("[INFO] バッチ正常終了"); // 処理終了ログ
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -175,3 +180,4 @@ java HelloFlow
   -> スペルミスや大文字小文字違いを確認
 - `Could not find or load main class ...`
   -> `java` 実行時のクラス名を確認（拡張子 `.java` は付けない）
+

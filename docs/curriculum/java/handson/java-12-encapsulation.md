@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,26 +49,26 @@ cd ~/order-management-springboot/practice/java/handson12
 作成ファイル: `UserAccount.java`
 
 ```java
-public class UserAccount {
-    private String username;
-    private int age;
+public class UserAccount { // カプセル化したユーザー情報クラス
+    private String username; // private: クラス外から直接参照・変更させない
+    private int age; // private フィールド
 
-    public String getUsername() {
-        return username;
+    public String getUsername() { // username の getter
+        return username; // 現在値を返す
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUsername(String username) { // username の setter
+        this.username = username; // 受け取った値をフィールドへ設定
     }
 
-    public int getAge() {
-        return age;
+    public int getAge() { // age の getter
+        return age; // 現在値を返す
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    public void setAge(int age) { // age の setter
+        this.age = age; // 受け取った値をフィールドへ設定
     }
-}
+} // クラス定義の終わり
 ```
 
 コンパイル確認:
@@ -81,16 +85,16 @@ javac -encoding UTF-8 UserAccount.java
 作成ファイル: `EncapsulationDemo.java`
 
 ```java
-public class EncapsulationDemo {
+public class EncapsulationDemo { // UserAccount 利用側の実行クラス
     public static void main(String[] args) {
-        UserAccount user = new UserAccount();
-        user.setUsername("tanaka");
-        user.setAge(25);
+        UserAccount user = new UserAccount(); // インスタンス生成
+        user.setUsername("tanaka"); // setter 経由で値を設定
+        user.setAge(25); // setter 経由で値を設定
 
-        System.out.println("username: " + user.getUsername());
-        System.out.println("age: " + user.getAge());
-    }
-}
+        System.out.println("username: " + user.getUsername()); // getter 経由で値を取得
+        System.out.println("age: " + user.getAge()); // getter 経由で値を取得
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -108,32 +112,32 @@ java EncapsulationDemo
 `UserAccount.java` を次の内容に更新:
 
 ```java
-public class UserAccount {
-    private String username;
-    private int age;
+public class UserAccount { // バリデーション付きのカプセル化クラス
+    private String username; // ユーザー名
+    private int age; // 年齢
 
-    public String getUsername() {
-        return username;
+    public String getUsername() { // username の getter
+        return username; // 現在の username を返す
     }
 
-    public void setUsername(String username) {
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("username は必須です");
+    public void setUsername(String username) { // username の setter
+        if (username == null || username.isBlank()) { // null または空白のみは不正
+            throw new IllegalArgumentException("username は必須です"); // 不正値を例外で通知
         }
-        this.username = username.trim();
+        this.username = username.trim(); // 前後空白を除去して保存
     }
 
-    public int getAge() {
-        return age;
+    public int getAge() { // age の getter
+        return age; // 現在の age を返す
     }
 
-    public void setAge(int age) {
-        if (age < 0 || age > 120) {
-            throw new IllegalArgumentException("age の範囲が不正です");
+    public void setAge(int age) { // age の setter
+        if (age < 0 || age > 120) { // 年齢範囲チェック
+            throw new IllegalArgumentException("age の範囲が不正です"); // 不正値を例外で通知
         }
-        this.age = age;
+        this.age = age; // 検証済み値を保存
     }
-}
+} // クラス定義の終わり
 ```
 
 実行:
@@ -167,3 +171,4 @@ java EncapsulationDemo
   -> フィールド代入は `this.field` を明示
 - 例外でアプリが止まる
   -> 呼び出し側の入力値を見直す（後半で例外処理を学習）
+

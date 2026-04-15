@@ -1,6 +1,7 @@
 ﻿# Java-01 ハンズオン: Javaをはじめよう（実務視点）
 
 対応参考資料: `Java-01_Javaをはじめよう.pptx`
+前提バージョン: JDK 17（17.x）
 
 ## 1. この資料のゴール
 - プログラムが「コンピュータへの命令」であることを説明できる
@@ -17,7 +18,7 @@ javac -version
 ```
 
 期待状態:
-- `java` と `javac` の両方が表示される
+- `java -version` と `javac -version` の両方で `17` が表示される（例: `17.0.x`）
 - `not found` が出ない
 
 ---
@@ -48,11 +49,11 @@ javac -version
 
 #### Javaの基本構文
 ```java
-public class Sample {
-    public static void main(String[] args) {
-        System.out.println("Hello");
-    }
-}
+public class Sample { // クラス宣言。ファイル名は Sample.java にする
+    public static void main(String[] args) { // Javaが最初に実行する特別なメソッド
+        System.out.println("Hello"); // 文字列を1行出力する
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 この例の意味:
@@ -89,11 +90,11 @@ cd ~/order-management-springboot/practice/java/handson01
 `IntroHello.java` を次の内容で作成:
 
 ```java
-public class IntroHello {
-    public static void main(String[] args) {
-        System.out.println("Javaの世界へようこそ！");
-    }
-}
+public class IntroHello { // クラス名。ファイル名は IntroHello.java に合わせる
+    public static void main(String[] args) { // 実行開始地点（エントリーポイント）
+        System.out.println("Javaの世界へようこそ！"); // 画面に1行表示
+    } // main の終わり
+} // クラスの終わり
 ```
 
 実行:
@@ -117,11 +118,11 @@ Javaの世界へようこそ！
 `IntroHello.java` を次の内容に更新:
 
 ```java
-public class IntroHello {
+public class IntroHello { // 同じクラス名のまま中身だけ更新する
     public static void main(String[] args) {
-        System.out.println("Javaの世界へようこそ！");
-        System.out.println("4 + 5 * 6 = " + (4 + 5 * 6));
-        System.out.println("処理が完了しました。");
+        System.out.println("Javaの世界へようこそ！"); // 1つ目の命令
+        System.out.println("4 + 5 * 6 = " + (4 + 5 * 6)); // 計算結果を文字列に連結して表示
+        System.out.println("処理が完了しました。"); // 3つ目の命令
     }
 }
 ```
@@ -148,11 +149,11 @@ Javaの世界へようこそ！
 `IntroHello.java` の表示文を業務寄りに変更:
 
 ```java
-public class IntroHello {
+public class IntroHello { // 文法は同じで、表示内容だけ業務メッセージへ変更
     public static void main(String[] args) {
-        System.out.println("受注バッチ開始");
-        System.out.println("検証対象件数: " + (4 + 5 * 6));
-        System.out.println("受注バッチ終了");
+        System.out.println("受注バッチ開始"); // 処理開始ログ
+        System.out.println("検証対象件数: " + (4 + 5 * 6)); // 件数を計算して表示
+        System.out.println("受注バッチ終了"); // 処理終了ログ
     }
 }
 ```

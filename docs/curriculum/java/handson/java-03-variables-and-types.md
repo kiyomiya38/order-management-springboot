@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるルール
@@ -46,13 +50,13 @@ cd ~/order-management-springboot/practice/java/handson03
 `VariableTypeDemo.java` を次の内容で作成:
 
 ```java
-public class VariableTypeDemo {
-    public static void main(String[] args) {
-        int quantity;         // 宣言
-        quantity = 3;         // 代入
-        System.out.println(quantity); // 参照
-    }
-}
+public class VariableTypeDemo { // クラス宣言。ファイル名は VariableTypeDemo.java にする
+    public static void main(String[] args) { // 実行開始地点
+        int quantity; // 宣言: int 型の変数 quantity を用意する
+        quantity = 3; // 代入: quantity に 3 を入れる
+        System.out.println(quantity); // 参照: quantity の値を読み出して表示する
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -70,21 +74,21 @@ java VariableTypeDemo
 `VariableTypeDemo.java` を次の内容に更新:
 
 ```java
-public class VariableTypeDemo {
+public class VariableTypeDemo { // 変数の型を増やして実務に近い情報を扱う
     public static void main(String[] args) {
-        String orderCode = "ORD-2026-0001";
-        int quantity = 3;
-        int unitPrice = 1200;
-        int totalPrice = quantity * unitPrice;
-        boolean paid = false;
+        String orderCode = "ORD-2026-0001"; // 文字列: 注文番号
+        int quantity = 3; // 整数: 数量
+        int unitPrice = 1200; // 整数: 単価
+        int totalPrice = quantity * unitPrice; // 数量 x 単価で合計を計算
+        boolean paid = false; // 真偽値: 支払済みかどうか
 
-        System.out.println("注文番号: " + orderCode);
-        System.out.println("数量: " + quantity);
-        System.out.println("単価: " + unitPrice);
-        System.out.println("合計: " + totalPrice);
-        System.out.println("支払済み: " + paid);
-    }
-}
+        System.out.println("注文番号: " + orderCode); // 文字列連結で表示
+        System.out.println("数量: " + quantity); // 数量を表示
+        System.out.println("単価: " + unitPrice); // 単価を表示
+        System.out.println("合計: " + totalPrice); // 計算結果を表示
+        System.out.println("支払済み: " + paid); // true / false を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -111,24 +115,24 @@ java VariableTypeDemo
 `VariableTypeDemo.java` を次の内容に更新:
 
 ```java
-public class VariableTypeDemo {
+public class VariableTypeDemo { // 大きな整数(long)と小数(double)も扱う
     public static void main(String[] args) {
-        String orderCode = "ORD-2026-0001";
-        long orderId = 10000000001L; // long は末尾 L を付ける
-        int quantity = 3;
-        int unitPrice = 1200;
-        int totalPrice = quantity * unitPrice;
-        double taxRate = 0.10;
-        double taxAmount = totalPrice * taxRate;
-        boolean paid = false;
+        String orderCode = "ORD-2026-0001"; // 文字列データ
+        long orderId = 10000000001L; // 大きな整数。long リテラルは末尾に L を付ける
+        int quantity = 3; // 数量
+        int unitPrice = 1200; // 単価
+        int totalPrice = quantity * unitPrice; // 合計金額
+        double taxRate = 0.10; // 税率 (10%)
+        double taxAmount = totalPrice * taxRate; // 税額 = 合計 x 税率
+        boolean paid = false; // 支払状態
 
-        System.out.println("注文番号: " + orderCode);
-        System.out.println("注文ID: " + orderId);
-        System.out.println("合計: " + totalPrice);
-        System.out.println("税額: " + taxAmount);
-        System.out.println("支払済み: " + paid);
-    }
-}
+        System.out.println("注文番号: " + orderCode); // 注文番号を表示
+        System.out.println("注文ID: " + orderId); // 注文IDを表示
+        System.out.println("合計: " + totalPrice); // 合計金額を表示
+        System.out.println("税額: " + taxAmount); // 税額を表示
+        System.out.println("支払済み: " + paid); // 支払状態を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -150,15 +154,15 @@ java VariableTypeDemo
 `VariableTypeDemo.java` を次の内容に更新:
 
 ```java
-public class VariableTypeDemo {
+public class VariableTypeDemo { // 初期化と再代入の動きを確認する
     public static void main(String[] args) {
-        int quantity = 3; // 初期化（宣言と代入を1行）
-        System.out.println("初期数量: " + quantity);
+        int quantity = 3; // 初期化: 宣言と最初の代入を同時に行う
+        System.out.println("初期数量: " + quantity); // 初期値を表示
 
-        quantity = 5; // 再代入（上書き）
-        System.out.println("再設定後数量: " + quantity);
-    }
-}
+        quantity = 5; // 再代入: 既存の値 3 を 5 で上書きする
+        System.out.println("再設定後数量: " + quantity); // 更新後の値を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -204,3 +208,4 @@ java VariableTypeDemo
   -> 型と代入値が一致しているか確認
 - `integer number too large`
   -> 大きな整数は `long` + `L` を使う
+

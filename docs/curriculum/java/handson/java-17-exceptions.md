@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,18 +49,18 @@ cd ~/order-management-springboot/practice/java/handson17
 `ExceptionDemo.java` を次の内容で作成:
 
 ```java
-public class ExceptionDemo {
+public class ExceptionDemo { // 例外処理の基本を学ぶクラス
     public static void main(String[] args) {
-        try {
-            int value = 10 / 0;
-            System.out.println(value);
-        } catch (ArithmeticException e) {
-            System.out.println("計算エラー: " + e.getMessage());
-        } finally {
-            System.out.println("後処理を実行");
+        try { // 例外が起きる可能性のある処理を囲む
+            int value = 10 / 0; // 0 除算で ArithmeticException が発生
+            System.out.println(value); // 例外発生時はこの行は実行されない
+        } catch (ArithmeticException e) { // 算術例外を捕捉
+            System.out.println("計算エラー: " + e.getMessage()); // 原因メッセージを表示
+        } finally { // 例外の有無に関係なく最後に実行
+            System.out.println("後処理を実行"); // 後処理ログ
         }
-    }
-}
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -74,17 +78,17 @@ java ExceptionDemo
 `ExceptionDemo.java` を次の内容に更新:
 
 ```java
-public class ExceptionDemo {
+public class ExceptionDemo { // 数値変換例外を扱うクラス
     public static void main(String[] args) {
-        String input = "abc";
+        String input = "abc"; // 数値ではない文字列
         try {
-            int quantity = Integer.parseInt(input);
-            System.out.println(quantity);
-        } catch (NumberFormatException e) {
-            System.out.println("入力値が数値ではありません: " + input);
+            int quantity = Integer.parseInt(input); // 数値変換（ここで例外が発生）
+            System.out.println(quantity); // 例外発生時は実行されない
+        } catch (NumberFormatException e) { // 数値変換失敗を捕捉
+            System.out.println("入力値が数値ではありません: " + input); // 入力値を含めて表示
         }
-    }
-}
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -102,23 +106,23 @@ java ExceptionDemo
 `ExceptionDemo.java` を次の内容に更新:
 
 ```java
-public class ExceptionDemo {
-    static int validateQuantity(int quantity) {
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("quantity は 1 以上である必要があります");
+public class ExceptionDemo { // throw による入力検証の例
+    static int validateQuantity(int quantity) { // 数量の妥当性を検証するメソッド
+        if (quantity <= 0) { // 1 以上でない値は不正
+            throw new IllegalArgumentException("quantity は 1 以上である必要があります"); // 呼び出し元へ例外通知
         }
-        return quantity;
+        return quantity; // 妥当ならそのまま返す
     }
 
     public static void main(String[] args) {
         try {
-            int q = validateQuantity(0);
-            System.out.println("数量: " + q);
-        } catch (IllegalArgumentException e) {
-            System.out.println("入力エラー: " + e.getMessage());
+            int q = validateQuantity(0); // 不正値を渡して例外発生を確認
+            System.out.println("数量: " + q); // 例外時は実行されない
+        } catch (IllegalArgumentException e) { // 入力不正例外を捕捉
+            System.out.println("入力エラー: " + e.getMessage()); // エラーメッセージ表示
         }
-    }
-}
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -148,3 +152,4 @@ java ExceptionDemo
   -> まずは具体例外を捕まえる
 - 例外メッセージが曖昧
   -> どの値が不正かを明示
+

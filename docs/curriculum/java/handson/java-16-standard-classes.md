@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,25 +49,43 @@ cd ~/order-management-springboot/practice/java/handson16
 `StandardClassDemo.java` を次の内容で作成:
 
 ```java
-class Product {
-    String code;
+import java.util.Objects; // null 安全な比較ユーティリティ
 
-    Product(String code) {
-        this.code = code;
+class Product { // 商品クラス
+    String code; // 商品コード
+
+    Product(String code) { // コンストラクタ
+        this.code = code; // フィールド初期化
     }
 
     @Override
-    public String toString() {
+    public String toString() { // 表示用文字列を返す
         return "Product{code='" + code + "'}";
+    }
+
+    @Override
+    public boolean equals(Object obj) { // 値の同一性比較を定義
+        if (this == obj) { // 同じ参照なら true
+            return true;
+        }
+        if (!(obj instanceof Product other)) { // Product 以外は false
+            return false;
+        }
+        return Objects.equals(code, other.code); // code の値を比較
     }
 }
 
-public class StandardClassDemo {
+public class StandardClassDemo { // 実行クラス
     public static void main(String[] args) {
-        Product p = new Product("P-001");
-        System.out.println(p.toString());
-    }
-}
+        Product p1 = new Product("P-001"); // 同じ code のインスタンス1
+        Product p2 = new Product("P-001"); // 同じ code のインスタンス2
+        Product p3 = new Product("P-999"); // 異なる code のインスタンス
+
+        System.out.println(p1.toString()); // toString の結果表示
+        System.out.println("p1 equals p2: " + p1.equals(p2)); // true 期待
+        System.out.println("p1 equals p3: " + p1.equals(p3)); // false 期待
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -76,24 +98,28 @@ java StandardClassDemo
 - `javac` がエラーなく完了する
 - `java` の実行結果が、このStepのコード内容と一致する
 
+コード解説:
+- `toString` は表示用文字列を返す
+- `equals` は「同じ値か」を比較するためにオーバーライドする
+
 
 ### Step 2: ラッパークラスを使う
 `StandardClassDemo.java` を次の内容に更新:
 
 ```java
-public class StandardClassDemo {
+public class StandardClassDemo { // ラッパークラス利用例
     public static void main(String[] args) {
-        String quantityText = "25";
-        int quantity = Integer.parseInt(quantityText); // 文字列 -> int
+        String quantityText = "25"; // 数値文字列
+        int quantity = Integer.parseInt(quantityText); // 文字列を int へ変換
 
-        Integer boxed = quantity; // オートボクシング
-        int unboxed = boxed;       // アンボクシング
+        Integer boxed = quantity; // オートボクシング: int -> Integer
+        int unboxed = boxed; // アンボクシング: Integer -> int
 
-        System.out.println("quantity: " + quantity);
-        System.out.println("boxed: " + boxed);
-        System.out.println("unboxed: " + unboxed);
-    }
-}
+        System.out.println("quantity: " + quantity); // int 値を表示
+        System.out.println("boxed: " + boxed); // Integer 値を表示
+        System.out.println("unboxed: " + unboxed); // 再び int 化した値を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -111,17 +137,17 @@ java StandardClassDemo
 `StandardClassDemo.java` を次の内容に更新:
 
 ```java
-public class StandardClassDemo {
+public class StandardClassDemo { // StringBuilder 利用例
     public static void main(String[] args) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("受注ID=").append("ORD-1001").append(", ");
-        sb.append("数量=").append(3).append(", ");
-        sb.append("状態=").append("PAID");
+        StringBuilder sb = new StringBuilder(); // 可変文字列バッファを作成
+        sb.append("受注ID=").append("ORD-1001").append(", "); // 文字列を連結
+        sb.append("数量=").append(3).append(", "); // 数値もそのまま連結できる
+        sb.append("状態=").append("PAID"); // 最後の項目を連結
 
-        String logLine = sb.toString();
-        System.out.println(logLine);
-    }
-}
+        String logLine = sb.toString(); // 完成した文字列へ変換
+        System.out.println(logLine); // ログ1行を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -140,7 +166,7 @@ java StandardClassDemo
 ## 5. ミニ演習（10分）
 1. `Integer.parseInt` に不正文字列を渡したときの挙動を確認
 2. `StringBuilder` で3行分のログを作る
-3. `Product` に `equals` を実装して比較結果を確認
+3. `Product` に `hashCode` も実装し、`HashSet` で重複判定を確認
 
 ---
 
@@ -151,3 +177,4 @@ java StandardClassDemo
   -> 値比較は `equals`
 - `String` の連結が多すぎて読みにくい
   -> `StringBuilder` を利用
+

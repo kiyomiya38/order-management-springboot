@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,25 +49,25 @@ cd ~/order-management-springboot/practice/java/handson10
 `InstanceDemo.java` を次の内容で作成:
 
 ```java
-class Customer {
-    String name;
-    int point;
+class Customer { // 顧客データを表すクラス
+    String name; // 顧客名
+    int point; // 保有ポイント
 }
 
-public class InstanceDemo {
+public class InstanceDemo { // 実行クラス
     public static void main(String[] args) {
-        Customer c1 = new Customer();
-        c1.name = "Tanaka";
-        c1.point = 120;
+        Customer c1 = new Customer(); // 1人目のインスタンス生成
+        c1.name = "Tanaka"; // 1人目の名前
+        c1.point = 120; // 1人目のポイント
 
-        Customer c2 = new Customer();
-        c2.name = "Suzuki";
-        c2.point = 80;
+        Customer c2 = new Customer(); // 2人目のインスタンス生成（c1とは別実体）
+        c2.name = "Suzuki"; // 2人目の名前
+        c2.point = 80; // 2人目のポイント
 
-        System.out.println(c1.name + " point: " + c1.point);
-        System.out.println(c2.name + " point: " + c2.point);
-    }
-}
+        System.out.println(c1.name + " point: " + c1.point); // c1 の状態を表示
+        System.out.println(c2.name + " point: " + c2.point); // c2 の状態を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -81,30 +85,30 @@ java InstanceDemo
 `InstanceDemo.java` を次の内容に更新:
 
 ```java
-class Customer {
-    String name;
-    int point;
+class Customer { // 顧客クラス
+    String name; // 顧客名
+    int point; // ポイント
 
-    void addPoint(int value) {
-        point += value;
+    void addPoint(int value) { // ポイント加算メソッド
+        point += value; // 現在ポイントに value を加える
     }
 }
 
-public class InstanceDemo {
+public class InstanceDemo { // 実行クラス
     public static void main(String[] args) {
-        Customer c1 = new Customer();
-        c1.name = "Tanaka";
-        c1.point = 120;
-        c1.addPoint(30);
+        Customer c1 = new Customer(); // 1人目を生成
+        c1.name = "Tanaka"; // 名前設定
+        c1.point = 120; // 初期ポイント設定
+        c1.addPoint(30); // メソッド呼び出しで加算
 
-        Customer c2 = new Customer();
-        c2.name = "Suzuki";
-        c2.point = 80;
+        Customer c2 = new Customer(); // 2人目を生成
+        c2.name = "Suzuki"; // 名前設定
+        c2.point = 80; // 初期ポイント設定
 
-        System.out.println(c1.name + " point: " + c1.point);
-        System.out.println(c2.name + " point: " + c2.point);
-    }
-}
+        System.out.println(c1.name + " point: " + c1.point); // 加算後の c1 を表示
+        System.out.println(c2.name + " point: " + c2.point); // c2 は影響を受けないことを表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -122,28 +126,28 @@ java InstanceDemo
 `InstanceDemo.java` を次の内容に更新:
 
 ```java
-class Customer {
-    String name;
-    int point;
+class Customer { // 顧客クラス
+    String name; // 顧客名
+    int point; // ポイント
 
-    void setProfile(String name, int point) {
-        this.name = name;   // 引数名とフィールド名を区別
-        this.point = point;
+    void setProfile(String name, int point) { // 顧客情報を一括設定するメソッド
+        this.name = name; // this.name はフィールド、name は引数
+        this.point = point; // this.point はフィールド、point は引数
     }
 }
 
-public class InstanceDemo {
+public class InstanceDemo { // 実行クラス
     public static void main(String[] args) {
-        Customer c1 = new Customer();
-        c1.setProfile("Tanaka", 120);
+        Customer c1 = new Customer(); // 1人目を生成
+        c1.setProfile("Tanaka", 120); // プロフィール設定
 
-        Customer c2 = new Customer();
-        c2.setProfile("Suzuki", 80);
+        Customer c2 = new Customer(); // 2人目を生成
+        c2.setProfile("Suzuki", 80); // プロフィール設定
 
-        System.out.println(c1.name + " point: " + c1.point);
-        System.out.println(c2.name + " point: " + c2.point);
-    }
-}
+        System.out.println(c1.name + " point: " + c1.point); // c1 の状態を表示
+        System.out.println(c2.name + " point: " + c2.point); // c2 の状態を表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -173,3 +177,4 @@ java InstanceDemo
   -> 引数名とフィールド名が同じときは `this` を付ける
 - インスタンス間で値が混ざると誤解
   -> 各 `new` は別実体
+

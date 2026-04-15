@@ -6,7 +6,7 @@
 - 画面入力を API に送信し、結果を画面表示できる
 
 ## 前提
-- Day0基礎（HTML/CSS/Java）を実施済み
+- HTML/CSS/javascript/Java基礎学習を実施済み
 - Git Bash を使える
 - JDK 17 がインストール済み
 
@@ -14,6 +14,109 @@
 - 画面: 名前入力フォーム
 - API: `POST /api/greeting`
 - 動作: 入力した名前を使って「こんにちは、〇〇さん」を表示
+
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph ST[static配下の画面ファイル]
+    IDX[index.html]
+    CSS[styles.css]
+    JS[app.js]
+  end
+
+  subgraph AP[App.java]
+    MAIN["main(String[] args)"]
+    ROOT[handleRoot]
+    HSTATIC[handleStatic]
+    GAPI[handleGreetingApi]
+    SJ[sendJson]
+  end
+
+  MAIN --> ROOT
+  MAIN --> HSTATIC
+  MAIN --> GAPI
+
+  B -->|GET /| ROOT
+  ROOT -->|index.html返却| B
+  ROOT --> IDX
+
+  B -->|GET /styles.css| HSTATIC
+  HSTATIC -->|styles.css返却| B
+  HSTATIC --> CSS
+
+  B -->|GET /app.js| HSTATIC
+  HSTATIC -->|app.js返却| B
+  HSTATIC --> JS
+
+  JS -->|POST /api/greeting| GAPI
+  GAPI --> SJ
+  SJ -->|JSON返却| B
+```
+
+### JSON最小メモ（未学習者向け）
+- JSONは「キー（項目名）: 値」の組でデータを表す文字列。
+- APIへ送る例（リクエスト）:
+  ```json
+  {"name":"Taro"}
+  ```
+- APIから返る例（レスポンス）:
+  ```json
+  {"message":"こんにちは、Taroさん"}
+  ```
+- エラー時の例:
+  ```json
+  {"error":"name is required"}
+  ```
+
+### 画面表示から挨拶表示まで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant App as App.java（HttpServer）
+  participant Js as app.js
+
+  User->>Br: http://localhost:8090 を開く
+  Br->>App: GET /
+  App-->>Br: index.html
+  Br->>App: GET /styles.css
+  App-->>Br: styles.css
+  Br->>App: GET /app.js
+  App-->>Br: app.js
+
+  User->>Br: 名前を入力して送信
+  Br->>Js: submitイベント発火
+  Js->>App: POST /api/greeting {"name":"Taro"}
+  App-->>Js: 200 {"message":"こんにちは、Taroさん"}
+  Js-->>Br: 結果表示を更新
+  Br-->>User: 画面に挨拶を表示
+```
+
+### ルーティングと異常系の分岐（404/405/400）
+```mermaid
+flowchart TD
+  A[HTTPリクエスト受信] --> P{Pathはどれか}
+
+  P -->|/| R1{MethodはGETか}
+  R1 -->|はい| OK1[index.htmlを返却]
+  R1 -->|いいえ| E405A[405 Method Not Allowed]
+
+  P -->|/styles.css or /app.js| R2{MethodはGETか}
+  R2 -->|いいえ| E405B[405 Method Not Allowed]
+  R2 -->|はい| F{対象ファイルは存在するか}
+  F -->|はい| OK2[静的ファイルを返却]
+  F -->|いいえ| E404A[404 Not Found]
+
+  P -->|/api/greeting| R3{MethodはPOSTか}
+  R3 -->|いいえ| E405C[405 Only POST is allowed]
+  R3 -->|はい| N{nameをtrim後に判定}
+  N -->|空| E400[400 name is required]
+  N -->|空でない| OK3[200 messageをJSONで返却]
+
+  P -->|それ以外| E404B[404 Not Found]
+```
 
 ---
 
@@ -23,6 +126,24 @@
 java -version
 javac -version
 ```
+
+## 0.5 先読み用語（5〜10分）
+この後の Lesson2〜5 で使う4語を先に押さえる。
+
+| 用語 | ひとこと定義 | 使う理由 |
+|---|---|---|
+| `record` | 値を持つだけの不変データ型 | 一覧1件やAPI返却データを簡潔に表現できる |
+| `enum` | 取りうる値を固定する型 | 状態遷移で不正な値の混入を防げる |
+| `AtomicLong` | スレッド安全な連番カウンタ | 同時アクセス時もID採番が壊れにくい |
+| `synchronized` | 同時実行の排他制御 | メモリ上データ更新の競合を防げる |
+
+補足: `private static final` は「クラス内だけで使う、クラス共有の再代入不可な定数」を表す定番宣言。
+
+ミニ確認:
+1. `record` と `class` の使い分けを1文で説明する
+2. 状態管理を `String` ではなく `enum` にする利点を1つ挙げる
+3. `long` の手動加算ではなく `AtomicLong` を使う理由を説明する
+4. `synchronized` がないときの問題を説明する
 
 ---
 

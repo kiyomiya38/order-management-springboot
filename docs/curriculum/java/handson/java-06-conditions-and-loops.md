@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,19 +49,19 @@ cd ~/order-management-springboot/practice/java/handson06
 `ControlFlowDemo.java` を次の内容で作成:
 
 ```java
-public class ControlFlowDemo {
-    public static void main(String[] args) {
-        int stock = 8;
+public class ControlFlowDemo { // 条件分岐の動作確認クラス
+    public static void main(String[] args) { // 実行開始地点
+        int stock = 8; // 現在在庫
 
-        if (stock <= 0) {
-            System.out.println("在庫なし");
-        } else if (stock < 10) {
-            System.out.println("在庫少");
-        } else {
-            System.out.println("在庫あり");
+        if (stock <= 0) { // 在庫が 0 以下なら欠品
+            System.out.println("在庫なし"); // 欠品メッセージ
+        } else if (stock < 10) { // 0 より大きく 10 未満なら少ない
+            System.out.println("在庫少"); // 在庫少メッセージ
+        } else { // それ以外は十分ある
+            System.out.println("在庫あり"); // 在庫ありメッセージ
         }
-    }
-}
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -75,13 +79,13 @@ java ControlFlowDemo
 `ControlFlowDemo.java` を次の内容に更新:
 
 ```java
-public class ControlFlowDemo {
+public class ControlFlowDemo { // for ループの動作確認クラス
     public static void main(String[] args) {
-        for (int day = 1; day <= 5; day++) {
-            System.out.println("営業日: " + day + "日目");
+        for (int day = 1; day <= 5; day++) { // day を 1 から 5 まで 1 ずつ増やして繰り返す
+            System.out.println("営業日: " + day + "日目"); // 各周回で現在の日数を表示
         }
-    }
-}
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -99,15 +103,15 @@ java ControlFlowDemo
 `ControlFlowDemo.java` を次の内容に更新:
 
 ```java
-public class ControlFlowDemo {
+public class ControlFlowDemo { // while ループの動作確認クラス
     public static void main(String[] args) {
-        int retry = 0;
-        while (retry < 3) {
-            System.out.println("再試行回数: " + retry);
-            retry++;
+        int retry = 0; // カウンタを 0 で初期化
+        while (retry < 3) { // retry が 3 未満の間は繰り返す
+            System.out.println("再試行回数: " + retry); // 現在の再試行回数を表示
+            retry++; // 次の周回に向けて 1 増やす（これがないと無限ループになる）
         }
-    }
-}
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -125,19 +129,19 @@ java ControlFlowDemo
 `ControlFlowDemo.java` を次の内容に更新:
 
 ```java
-public class ControlFlowDemo {
+public class ControlFlowDemo { // break / continue の動作確認クラス
     public static void main(String[] args) {
-        for (int orderNo = 1; orderNo <= 10; orderNo++) {
+        for (int orderNo = 1; orderNo <= 10; orderNo++) { // 注文番号 1〜10 を順に処理
             if (orderNo == 3) {
-                continue; // 3番はスキップ
+                continue; // 3番はこの周回だけ飛ばして次へ進む
             }
             if (orderNo == 8) {
-                break; // 8番で終了
+                break; // 8番に到達したらループ全体を終了する
             }
-            System.out.println("処理対象注文: " + orderNo);
+            System.out.println("処理対象注文: " + orderNo); // 処理対象として出力
         }
-    }
-}
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -167,3 +171,4 @@ java ControlFlowDemo
   -> `while` の更新処理（`i++` など）を確認
 - `break` と `continue` を混同
   -> `break` は終了、`continue` はスキップ
+

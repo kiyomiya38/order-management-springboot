@@ -16,6 +16,10 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- 例: `17.0.x`
+
 ---
 
 ## 3. 先に覚えるポイント
@@ -45,44 +49,44 @@ cd ~/order-management-springboot/practice/java/handson15
 `PolymorphismDemo.java` を次の内容で作成:
 
 ```java
-class Employee {
-    String name;
+class Employee { // 親クラス
+    String name; // 社員名
 
-    String roleLabel() {
+    String roleLabel() { // 役割ラベル（親の既定値）
         return "社員";
     }
 }
 
-class Manager extends Employee {
+class Manager extends Employee { // 子クラス1
     @Override
-    String roleLabel() {
+    String roleLabel() { // 役割ラベルを上書き
         return "管理者";
     }
 }
 
-class PartTimer extends Employee {
+class PartTimer extends Employee { // 子クラス2
     @Override
-    String roleLabel() {
+    String roleLabel() { // 役割ラベルを上書き
         return "アルバイト";
     }
 }
 
-public class PolymorphismDemo {
-    static void printRole(Employee e) {
-        System.out.println(e.name + " は " + e.roleLabel());
+public class PolymorphismDemo { // 実行クラス
+    static void printRole(Employee e) { // 親型で受け取る共通メソッド
+        System.out.println(e.name + " は " + e.roleLabel()); // 実体に応じた roleLabel が呼ばれる
     }
 
     public static void main(String[] args) {
-        Employee m = new Manager();
-        m.name = "Yamada";
+        Employee m = new Manager(); // 親型変数に Manager 実体を代入
+        m.name = "Yamada"; // 名前設定
 
-        Employee p = new PartTimer();
-        p.name = "Kato";
+        Employee p = new PartTimer(); // 親型変数に PartTimer 実体を代入
+        p.name = "Kato"; // 名前設定
 
-        printRole(m);
-        printRole(p);
-    }
-}
+        printRole(m); // Manager 実装で表示
+        printRole(p); // PartTimer 実装で表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -100,26 +104,26 @@ java PolymorphismDemo
 `PolymorphismDemo.java` を次の内容に更新:
 
 ```java
-class Employee {
-    String name;
+class Employee { // 親クラス
+    String name; // 共通フィールド
 }
 
-class Manager extends Employee {
-    String teamName;
+class Manager extends Employee { // 子クラス
+    String teamName; // 子クラス固有フィールド
 }
 
-public class PolymorphismDemo {
+public class PolymorphismDemo { // 実行クラス
     public static void main(String[] args) {
-        Employee e = new Manager();
-        e.name = "Tanaka";
+        Employee e = new Manager(); // 親型で保持（実体は Manager）
+        e.name = "Tanaka"; // 親側の共通フィールドへ代入
 
-        if (e instanceof Manager) {
-            Manager m = (Manager) e; // 安全にダウンキャスト
-            m.teamName = "Platform";
-            System.out.println(m.name + " / " + m.teamName);
+        if (e instanceof Manager) { // 実体が Manager かを先に確認
+            Manager m = (Manager) e; // 判定後に安全にダウンキャスト
+            m.teamName = "Platform"; // 子クラス固有フィールドへ代入
+            System.out.println(m.name + " / " + m.teamName); // 値を表示
         }
-    }
-}
+    } // main メソッドの終わり
+} // クラス定義の終わり
 ```
 
 実行:
@@ -149,3 +153,4 @@ java PolymorphismDemo
   -> 親型参照では親に定義されたメソッドのみ呼べる
 - 多態性のメリットが見えない
   -> 呼び出し側の `if` 分岐削減に着目
+
