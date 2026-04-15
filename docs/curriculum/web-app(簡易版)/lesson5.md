@@ -72,7 +72,7 @@ flowchart LR
   HSTATIC --> JS
 
   JS -->|GET /api/users| USERS
-  JS -->|DELETE /api/users/{id}| USERID
+  JS -->|DELETE /api/users/:id| USERID
   JS -->|GET /api/attendance/today?userId=...| TODAY
   JS -->|GET /api/attendance/history?userId=...| HISTORY
   JS -->|POST /api/attendance/clock-in| IN
@@ -208,7 +208,7 @@ flowchart TD
   R3 -->|はい| OK3[200 users]
   R3 -->|いいえ| E405C[405 Method Not Allowed]
 
-  P -->|/api/users/{id}| R4{idは数値か}
+  P -->|/api/users/:id| R4{idは数値か}
   R4 -->|いいえ| E400A[400 invalid id]
   R4 -->|はい| M1{MethodはDELETEか}
   M1 -->|いいえ| E405D[405 Method Not Allowed]

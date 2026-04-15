@@ -59,8 +59,8 @@ flowchart LR
 
   JS -->|GET /api/todos| TODOS
   JS -->|POST /api/todos| TODOS
-  JS -->|PATCH /api/todos/{id}/toggle| TODOID
-  JS -->|DELETE /api/todos/{id}| TODOID
+  JS -->|PATCH /api/todos/:id/toggle| TODOID
+  JS -->|DELETE /api/todos/:id| TODOID
 
   TODOS --> STORE
   TODOID --> STORE
@@ -174,7 +174,7 @@ flowchart TD
   T -->|空でない| OK4[201 作成JSON]
   R3 -->|それ以外| E405C[405 Method Not Allowed]
 
-  P -->|/api/todos/{id}/toggle| R4{idは数値か}
+  P -->|/api/todos/:id/toggle| R4{idは数値か}
   R4 -->|いいえ| E400B[400 invalid id]
   R4 -->|はい| M1{MethodはPATCHか}
   M1 -->|いいえ| E405D[405 Method Not Allowed]
@@ -182,7 +182,7 @@ flowchart TD
   EX1 -->|いいえ| E404B[404 todo not found]
   EX1 -->|はい| OK5[200 切替後JSON]
 
-  P -->|/api/todos/{id}| R5{idは数値か}
+  P -->|/api/todos/:id| R5{idは数値か}
   R5 -->|いいえ| E400C[400 invalid id]
   R5 -->|はい| M2{MethodはDELETEか}
   M2 -->|いいえ| E405E[405 Method Not Allowed]

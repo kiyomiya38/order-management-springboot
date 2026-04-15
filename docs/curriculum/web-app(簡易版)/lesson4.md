@@ -58,7 +58,7 @@ flowchart LR
 
   JS -->|GET /api/reservations| RES
   JS -->|POST /api/reservations| RES
-  JS -->|DELETE /api/reservations/{id}| RESID
+  JS -->|DELETE /api/reservations/:id| RESID
 
   RES --> STORE
   RESID --> STORE
@@ -162,7 +162,7 @@ flowchart TD
   V4 -->|はい| OK4[201 作成JSON]
   R3 -->|それ以外| E405C[405 Method Not Allowed]
 
-  P -->|/api/reservations/{id}| R4{idは数値か}
+  P -->|/api/reservations/:id| R4{idは数値か}
   R4 -->|いいえ| E400D[400 invalid id]
   R4 -->|はい| M{MethodはDELETEか}
   M -->|いいえ| E405D[405 Method Not Allowed]
