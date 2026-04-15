@@ -18,6 +18,161 @@
   - `DELETE /api/reservations/{id}`
 - 動作: 予約作成 / 一覧表示 / キャンセル / 重複予約禁止
 
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph ST[static配下の画面ファイル]
+    IDX[index.html]
+    CSS[styles.css]
+    JS[app.js]
+  end
+
+  subgraph AP[App.java]
+    MAIN["main(String[] args)"]
+    ROOT[handleRoot]
+    HSTATIC[handleStatic]
+    RES[handleReservationsApi]
+    RESID[handleReservationByIdApi]
+    SJ[sendJson]
+    STORE[ReservationStore]
+  end
+
+  MAIN --> ROOT
+  MAIN --> HSTATIC
+  MAIN --> RES
+  MAIN --> RESID
+
+  B -->|GET /| ROOT
+  ROOT -->|index.html返却| B
+  ROOT --> IDX
+
+  B -->|GET /styles.css| HSTATIC
+  HSTATIC -->|styles.css返却| B
+  HSTATIC --> CSS
+
+  B -->|GET /app.js| HSTATIC
+  HSTATIC -->|app.js返却| B
+  HSTATIC --> JS
+
+  JS -->|GET /api/reservations| RES
+  JS -->|POST /api/reservations| RES
+  JS -->|DELETE /api/reservations/{id}| RESID
+
+  RES --> STORE
+  RESID --> STORE
+  RES --> SJ
+  RESID --> SJ
+  SJ -->|JSON返却| B
+```
+
+### JSON最小メモ（未学習者向け）
+- JSONは「キー（項目名）: 値」の組でデータを表す文字列。
+- 登録時の送信例（リクエスト）:
+  ```json
+  {"name":"山田 太郎","date":"2026-04-15","startTime":"10:00","endTime":"11:00","note":"打合せ"}
+  ```
+- 一覧取得の返却例（レスポンス）:
+  ```json
+  [{"id":1,"name":"山田 太郎","date":"2026-04-15","startTime":"10:00","endTime":"11:00","note":"打合せ","createdAt":"2026-04-15T09:30:00"}]
+  ```
+- 削除時の返却例（レスポンス）:
+  ```json
+  {"message":"cancelled"}
+  ```
+- エラー時の例:
+  ```json
+  {"error":"終了時刻は開始時刻より後にしてください"}
+  {"error":"同時間帯の予約がすでに存在します"}
+  {"error":"invalid id"}
+  ```
+
+### 画面表示から予約作成・キャンセルまで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant Js as app.js
+  participant App as App.java（HttpServer）
+  participant Store as ReservationStore
+
+  User->>Br: http://localhost:8093 を開く
+  Br->>App: GET /
+  App-->>Br: index.html
+  Br->>App: GET /styles.css
+  App-->>Br: styles.css
+  Br->>App: GET /app.js
+  App-->>Br: app.js
+
+  Br->>Js: DOMContentLoaded
+  Js->>App: GET /api/reservations
+  App->>Store: list()
+  Store-->>App: reservations
+  App-->>Js: 200 list
+  Js-->>Br: 一覧を初期表示
+
+  User->>Br: 予約フォームを送信
+  Br->>Js: submitイベント
+  Js->>App: POST /api/reservations payload
+  App->>Store: create(name,date,start,end,note)
+  Store-->>App: created reservation
+  App-->>Js: 201 created
+  Js->>App: GET /api/reservations
+  App-->>Js: 200 list
+  Js-->>Br: 一覧を再描画
+
+  User->>Br: キャンセルボタン押下
+  Br->>Js: clickイベント
+  Js->>Br: confirm表示（OK）
+  Js->>App: DELETE /api/reservations/1
+  App->>Store: delete(1)
+  Store-->>App: true
+  App-->>Js: 200 {"message":"cancelled"}
+  Js->>App: GET /api/reservations
+  App-->>Js: 200 list
+  Js-->>Br: 一覧を再描画
+```
+
+### ルーティングと異常系の分岐（404/405/400/409）
+```mermaid
+flowchart TD
+  A[HTTPリクエスト受信] --> P{Pathはどれか}
+
+  P -->|/| R1{MethodはGETか}
+  R1 -->|はい| OK1[index.htmlを返却]
+  R1 -->|いいえ| E405A[405 Method Not Allowed]
+
+  P -->|/styles.css or /app.js| R2{MethodはGETか}
+  R2 -->|はい| F{対象ファイルは存在するか}
+  F -->|はい| OK2[静的ファイルを返却]
+  F -->|いいえ| E404A[404 Not Found]
+  R2 -->|いいえ| E405B[405 Method Not Allowed]
+
+  P -->|/api/reservations| R3{MethodはGETかPOSTか}
+  R3 -->|GET| OK3[200 一覧JSON]
+  R3 -->|POST| V1{必須/文字数の基本検証OKか}
+  V1 -->|いいえ| E400A[400 バリデーションエラー]
+  V1 -->|はい| V2{日付時刻形式OKか}
+  V2 -->|いいえ| E400B[400 形式不正]
+  V2 -->|はい| V3{終了時刻 > 開始時刻か}
+  V3 -->|いいえ| E400C[400 時刻逆転]
+  V3 -->|はい| V4{同時間帯の重複なし}
+  V4 -->|いいえ| E409A[409 重複予約]
+  V4 -->|はい| OK4[201 作成JSON]
+  R3 -->|それ以外| E405C[405 Method Not Allowed]
+
+  P -->|/api/reservations/{id}| R4{idは数値か}
+  R4 -->|いいえ| E400D[400 invalid id]
+  R4 -->|はい| M{MethodはDELETEか}
+  M -->|いいえ| E405D[405 Method Not Allowed]
+  M -->|はい| EX{対象予約は存在するか}
+  EX -->|いいえ| E404B[404 reservation not found]
+  EX -->|はい| OK5[200 cancelled]
+
+  P -->|それ以外| E404C[404 Not Found]
+```
+
 ---
 
 ## 0. 事前確認（Git Bashで実行）

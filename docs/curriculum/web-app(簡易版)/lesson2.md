@@ -19,6 +19,180 @@
   - `DELETE /api/todos/{id}`
 - 動作: タスク追加 / 完了切替 / 削除
 
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph ST[static配下の画面ファイル]
+    IDX[index.html]
+    CSS[styles.css]
+    JS[app.js]
+  end
+
+  subgraph AP[App.java]
+    MAIN["main(String[] args)"]
+    ROOT[handleRoot]
+    HSTATIC[handleStatic]
+    TODOS[handleTodos]
+    TODOID[handleTodoById]
+    SJ[sendJson]
+    STORE[TodoStore]
+  end
+
+  MAIN --> ROOT
+  MAIN --> HSTATIC
+  MAIN --> TODOS
+  MAIN --> TODOID
+
+  B -->|GET /| ROOT
+  ROOT -->|index.html返却| B
+  ROOT --> IDX
+
+  B -->|GET /styles.css| HSTATIC
+  HSTATIC -->|styles.css返却| B
+  HSTATIC --> CSS
+
+  B -->|GET /app.js| HSTATIC
+  HSTATIC -->|app.js返却| B
+  HSTATIC --> JS
+
+  JS -->|GET /api/todos| TODOS
+  JS -->|POST /api/todos| TODOS
+  JS -->|PATCH /api/todos/{id}/toggle| TODOID
+  JS -->|DELETE /api/todos/{id}| TODOID
+
+  TODOS --> STORE
+  TODOID --> STORE
+  TODOS --> SJ
+  TODOID --> SJ
+  SJ -->|JSON返却| B
+```
+
+### JSON最小メモ（未学習者向け）
+- JSONは「キー（項目名）: 値」の組でデータを表す文字列。
+- 作成時の送信例（リクエスト）:
+  ```json
+  {"title":"牛乳を買う"}
+  ```
+- 一覧取得の返却例（レスポンス）:
+  ```json
+  [{"id":1,"title":"牛乳を買う","completed":false}]
+  ```
+- 切替時の返却例（レスポンス）:
+  ```json
+  {"id":1,"title":"牛乳を買う","completed":true}
+  ```
+- 削除時の返却例（レスポンス）:
+  ```json
+  {"message":"deleted"}
+  ```
+- エラー時の例:
+  ```json
+  {"error":"title is required"}
+  {"error":"invalid id"}
+  {"error":"todo not found"}
+  ```
+
+### 画面表示からCRUD操作まで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant Js as app.js
+  participant App as App.java（HttpServer）
+  participant Store as TodoStore
+
+  User->>Br: http://localhost:8091 を開く
+  Br->>App: GET /
+  App-->>Br: index.html
+  Br->>App: GET /styles.css
+  App-->>Br: styles.css
+  Br->>App: GET /app.js
+  App-->>Br: app.js
+
+  Br->>Js: DOMContentLoaded
+  Js->>App: GET /api/todos
+  App->>Store: list()
+  Store-->>App: []
+  App-->>Js: 200 []
+  Js-->>Br: 一覧を初期表示
+
+  User->>Br: タスク追加を送信
+  Br->>Js: submitイベント
+  Js->>App: POST /api/todos {"title":"牛乳を買う"}
+  App->>Store: create("牛乳を買う")
+  Store-->>App: Todo(id=1,...)
+  App-->>Js: 201 {"id":1,"title":"牛乳を買う","completed":false}
+  Js->>App: GET /api/todos
+  App->>Store: list()
+  Store-->>App: [Todo]
+  App-->>Js: 200 [...]
+  Js-->>Br: 一覧を再描画
+
+  User->>Br: チェックボックス変更
+  Br->>Js: changeイベント
+  Js->>App: PATCH /api/todos/1/toggle
+  App->>Store: toggle(1)
+  Store-->>App: completed=true のTodo
+  App-->>Js: 200 {"id":1,...,"completed":true}
+  Js->>App: GET /api/todos
+  App-->>Js: 200 [...]
+  Js-->>Br: 状態を再描画
+
+  User->>Br: 削除ボタン押下
+  Br->>Js: clickイベント
+  Js->>Br: confirm表示（OK）
+  Js->>App: DELETE /api/todos/1
+  App->>Store: delete(1)
+  Store-->>App: true
+  App-->>Js: 200 {"message":"deleted"}
+  Js->>App: GET /api/todos
+  App-->>Js: 200 []
+  Js-->>Br: 一覧を再描画
+```
+
+### ルーティングと異常系の分岐（404/405/400）
+```mermaid
+flowchart TD
+  A[HTTPリクエスト受信] --> P{Pathはどれか}
+
+  P -->|/| R1{MethodはGETか}
+  R1 -->|はい| OK1[index.htmlを返却]
+  R1 -->|いいえ| E405A[405 Method Not Allowed]
+
+  P -->|/styles.css or /app.js| R2{MethodはGETか}
+  R2 -->|はい| F{対象ファイルは存在するか}
+  F -->|はい| OK2[静的ファイルを返却]
+  F -->|いいえ| E404A[404 Not Found]
+  R2 -->|いいえ| E405B[405 Method Not Allowed]
+
+  P -->|/api/todos| R3{MethodはGETかPOSTか}
+  R3 -->|GET| OK3[200 一覧JSON]
+  R3 -->|POST| T{titleをtrim後に判定}
+  T -->|空| E400A[400 title is required]
+  T -->|空でない| OK4[201 作成JSON]
+  R3 -->|それ以外| E405C[405 Method Not Allowed]
+
+  P -->|/api/todos/{id}/toggle| R4{idは数値か}
+  R4 -->|いいえ| E400B[400 invalid id]
+  R4 -->|はい| M1{MethodはPATCHか}
+  M1 -->|いいえ| E405D[405 Method Not Allowed]
+  M1 -->|はい| EX1{対象Todoは存在するか}
+  EX1 -->|いいえ| E404B[404 todo not found]
+  EX1 -->|はい| OK5[200 切替後JSON]
+
+  P -->|/api/todos/{id}| R5{idは数値か}
+  R5 -->|いいえ| E400C[400 invalid id]
+  R5 -->|はい| M2{MethodはDELETEか}
+  M2 -->|いいえ| E405E[405 Method Not Allowed]
+  M2 -->|はい| EX2{削除対象は存在するか}
+  EX2 -->|いいえ| E404C[404 todo not found]
+  EX2 -->|はい| OK6[200 deleted]
+
+  P -->|それ以外| E404D[404 Not Found]
+```
+
 ---
 
 ## 0. 事前確認（Git Bashで実行）

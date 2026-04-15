@@ -24,6 +24,225 @@
   - `POST /api/attendance/clock-in`
   - `POST /api/attendance/clock-out`
 
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph ST[static配下の画面ファイル]
+    IDX[index.html]
+    CSS[styles.css]
+    JS[app.js]
+  end
+
+  subgraph AP[App.java]
+    MAIN["main(String[] args)"]
+    ROOT[handleRoot]
+    HSTATIC[handleStatic]
+    USERS[handleUsers]
+    USERID[handleUserById]
+    TODAY[handleToday]
+    HISTORY[handleHistory]
+    IN[handleClockIn]
+    OUT[handleClockOut]
+    SJ[sendJson]
+    USTORE[UserStore]
+    ASTORE[AttendanceStore]
+  end
+
+  MAIN --> ROOT
+  MAIN --> HSTATIC
+  MAIN --> USERS
+  MAIN --> USERID
+  MAIN --> TODAY
+  MAIN --> HISTORY
+  MAIN --> IN
+  MAIN --> OUT
+
+  B -->|GET /| ROOT
+  ROOT -->|index.html返却| B
+  ROOT --> IDX
+
+  B -->|GET /styles.css| HSTATIC
+  HSTATIC -->|styles.css返却| B
+  HSTATIC --> CSS
+
+  B -->|GET /app.js| HSTATIC
+  HSTATIC -->|app.js返却| B
+  HSTATIC --> JS
+
+  JS -->|GET /api/users| USERS
+  JS -->|DELETE /api/users/{id}| USERID
+  JS -->|GET /api/attendance/today?userId=...| TODAY
+  JS -->|GET /api/attendance/history?userId=...| HISTORY
+  JS -->|POST /api/attendance/clock-in| IN
+  JS -->|POST /api/attendance/clock-out| OUT
+
+  USERS --> USTORE
+  USERID --> USTORE
+  TODAY --> USTORE
+  HISTORY --> USTORE
+  IN --> USTORE
+  OUT --> USTORE
+
+  USERID --> ASTORE
+  TODAY --> ASTORE
+  HISTORY --> ASTORE
+  IN --> ASTORE
+  OUT --> ASTORE
+
+  USERS --> SJ
+  USERID --> SJ
+  TODAY --> SJ
+  HISTORY --> SJ
+  IN --> SJ
+  OUT --> SJ
+  SJ -->|JSON返却| B
+```
+
+### JSON最小メモ（未学習者向け）
+- JSONは「キー（項目名）: 値」の組でデータを表す文字列。
+- ユーザー一覧取得の返却例（レスポンス）:
+  ```json
+  [{"id":1,"username":"田中 花子","role":"MEMBER"}]
+  ```
+- 本日勤怠の返却例（レスポンス）:
+  ```json
+  {"date":"2026-04-15","status":"WORKING","statusLabel":"出勤中","startTime":"09:00:00","endTime":""}
+  ```
+- 履歴取得の返却例（レスポンス）:
+  ```json
+  [{"id":10,"date":"2026-04-14","status":"FINISHED","statusLabel":"退勤済み","startTime":"09:00:00","endTime":"18:00:00"}]
+  ```
+- 打刻時の送信例（リクエスト）:
+  ```json
+  {"userId":1}
+  ```
+- 打刻成功時の返却例（レスポンス）:
+  ```json
+  {"message":"出勤しました"}
+  {"message":"退勤しました"}
+  ```
+- エラー時の例:
+  ```json
+  {"error":"valid userId is required"}
+  {"error":"本日はすでに出勤済みです"}
+  {"error":"未出勤のため退勤できません"}
+  {"error":"勤怠履歴があるため削除できません"}
+  ```
+
+### 画面表示から状態遷移まで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant Js as app.js
+  participant App as App.java（HttpServer）
+  participant UStore as UserStore
+  participant AStore as AttendanceStore
+
+  User->>Br: http://localhost:8094 を開く
+  Br->>App: GET /
+  App-->>Br: index.html
+  Br->>App: GET /styles.css
+  App-->>Br: styles.css
+  Br->>App: GET /app.js
+  App-->>Br: app.js
+
+  Br->>Js: DOMContentLoaded
+  Js->>App: GET /api/users
+  App->>UStore: list()
+  UStore-->>App: users
+  App-->>Js: 200 users
+  Js->>App: GET /api/attendance/today?userId=1
+  App->>AStore: findToday(1)
+  AStore-->>App: 今日レコード
+  App-->>Js: 200 today
+  Js->>App: GET /api/attendance/history?userId=1
+  App->>AStore: history(1)
+  AStore-->>App: history
+  App-->>Js: 200 history
+  Js-->>Br: 初期表示（状態/履歴/ユーザー一覧）
+
+  User->>Br: 出勤ボタン押下
+  Br->>Js: clickイベント
+  Js->>App: POST /api/attendance/clock-in {"userId":1}
+  App->>AStore: clockIn(1)
+  AStore-->>App: success
+  App-->>Js: 200 {"message":"出勤しました"}
+  Js->>App: GET /api/attendance/today?userId=1
+  App-->>Js: 200 today(status=WORKING)
+  Js->>App: GET /api/attendance/history?userId=1
+  App-->>Js: 200 history
+  Js-->>Br: 状態を更新
+
+  User->>Br: 退勤ボタン押下
+  Br->>Js: clickイベント
+  Js->>App: POST /api/attendance/clock-out {"userId":1}
+  App->>AStore: clockOut(1)
+  AStore-->>App: success
+  App-->>Js: 200 {"message":"退勤しました"}
+  Js->>App: GET /api/attendance/today?userId=1
+  App-->>Js: 200 today(status=FINISHED)
+  Js->>App: GET /api/attendance/history?userId=1
+  App-->>Js: 200 history
+  Js-->>Br: 状態を更新
+```
+
+### ルーティングと異常系の分岐（404/405/400/409）
+```mermaid
+flowchart TD
+  A[HTTPリクエスト受信] --> P{Pathはどれか}
+
+  P -->|/| R1{MethodはGETか}
+  R1 -->|はい| OK1[index.htmlを返却]
+  R1 -->|いいえ| E405A[405 Method Not Allowed]
+
+  P -->|/styles.css or /app.js| R2{MethodはGETか}
+  R2 -->|はい| F{対象ファイルは存在するか}
+  F -->|はい| OK2[静的ファイルを返却]
+  F -->|いいえ| E404A[404 Not Found]
+  R2 -->|いいえ| E405B[405 Method Not Allowed]
+
+  P -->|/api/users| R3{MethodはGETか}
+  R3 -->|はい| OK3[200 users]
+  R3 -->|いいえ| E405C[405 Method Not Allowed]
+
+  P -->|/api/users/{id}| R4{idは数値か}
+  R4 -->|いいえ| E400A[400 invalid id]
+  R4 -->|はい| M1{MethodはDELETEか}
+  M1 -->|いいえ| E405D[405 Method Not Allowed]
+  M1 -->|はい| H{勤怠履歴ありか}
+  H -->|はい| E409A[409 削除不可]
+  H -->|いいえ| EX1{対象ユーザー存在か}
+  EX1 -->|いいえ| E404B[404 user not found]
+  EX1 -->|はい| OK4[200 deleted]
+
+  P -->|/api/attendance/today or /history| R5{MethodはGETか}
+  R5 -->|いいえ| E405E[405 Method Not Allowed]
+  R5 -->|はい| Q1{userIdが有効か}
+  Q1 -->|いいえ| E400B[400 valid userId is required]
+  Q1 -->|はい| OK5[200 勤怠JSON]
+
+  P -->|/api/attendance/clock-in| R6{MethodはPOSTか}
+  R6 -->|いいえ| E405F[405 Method Not Allowed]
+  R6 -->|はい| Q2{userIdが有効か}
+  Q2 -->|いいえ| E400C[400 valid userId is required]
+  Q2 -->|はい| S1{状態遷移ルールOKか}
+  S1 -->|いいえ| E400D[400 既出勤/既退勤]
+  S1 -->|はい| OK6[200 出勤しました]
+
+  P -->|/api/attendance/clock-out| R7{MethodはPOSTか}
+  R7 -->|いいえ| E405G[405 Method Not Allowed]
+  R7 -->|はい| Q3{userIdが有効か}
+  Q3 -->|いいえ| E400E[400 valid userId is required]
+  Q3 -->|はい| S2{状態遷移ルールOKか}
+  S2 -->|いいえ| E400F[400 未出勤/既退勤]
+  S2 -->|はい| OK7[200 退勤しました]
+
+  P -->|それ以外| E404C[404 Not Found]
+```
+
 ---
 
 ## 0. 事前確認（Git Bashで実行）

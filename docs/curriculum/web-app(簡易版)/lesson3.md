@@ -18,6 +18,149 @@
   - `GET /api/summary`
 - 動作: 登録・集計・絞り込み
 
+### 全体構成図（ファイルと役割）
+```mermaid
+flowchart LR
+  U[受講者] --> B[ブラウザ]
+
+  subgraph ST[static配下の画面ファイル]
+    IDX[index.html]
+    CSS[styles.css]
+    JS[app.js]
+  end
+
+  subgraph AP[App.java]
+    MAIN["main(String[] args)"]
+    ROOT[handleRoot]
+    HSTATIC[handleStatic]
+    ENTRIES[handleEntriesApi]
+    SUMMARY[handleSummaryApi]
+    SJ[sendJson]
+    STORE[LedgerStore]
+  end
+
+  MAIN --> ROOT
+  MAIN --> HSTATIC
+  MAIN --> ENTRIES
+  MAIN --> SUMMARY
+
+  B -->|GET /| ROOT
+  ROOT -->|index.html返却| B
+  ROOT --> IDX
+
+  B -->|GET /styles.css| HSTATIC
+  HSTATIC -->|styles.css返却| B
+  HSTATIC --> CSS
+
+  B -->|GET /app.js| HSTATIC
+  HSTATIC -->|app.js返却| B
+  HSTATIC --> JS
+
+  JS -->|GET /api/entries| ENTRIES
+  JS -->|POST /api/entries| ENTRIES
+  JS -->|GET /api/summary| SUMMARY
+
+  ENTRIES --> STORE
+  SUMMARY --> STORE
+  ENTRIES --> SJ
+  SUMMARY --> SJ
+  SJ -->|JSON返却| B
+```
+
+### JSON最小メモ（未学習者向け）
+- JSONは「キー（項目名）: 値」の組でデータを表す文字列。
+- 登録時の送信例（リクエスト）:
+  ```json
+  {"type":"EXPENSE","category":"食費","amount":1200,"memo":"ランチ"}
+  ```
+- 一覧取得の返却例（レスポンス）:
+  ```json
+  [{"id":1,"type":"EXPENSE","category":"食費","amount":1200,"memo":"ランチ","createdAt":"2026-04-15T12:34:56"}]
+  ```
+- 集計取得の返却例（レスポンス）:
+  ```json
+  {"income":5000,"expense":1200,"balance":3800}
+  ```
+- エラー時の例:
+  ```json
+  {"error":"カテゴリを入力してください"}
+  {"error":"金額は1以上を入力してください"}
+  ```
+
+### 画面表示から登録・集計反映まで（正常系の時系列）
+```mermaid
+sequenceDiagram
+  participant User as 受講者
+  participant Br as ブラウザ
+  participant Js as app.js
+  participant App as App.java（HttpServer）
+  participant Store as LedgerStore
+
+  User->>Br: http://localhost:8092 を開く
+  Br->>App: GET /
+  App-->>Br: index.html
+  Br->>App: GET /styles.css
+  App-->>Br: styles.css
+  Br->>App: GET /app.js
+  App-->>Br: app.js
+
+  Br->>Js: DOMContentLoaded
+  Js->>App: GET /api/entries
+  App->>Store: list()
+  Store-->>App: entries
+  App-->>Js: 200 entries
+  Js->>App: GET /api/summary
+  App->>Store: summary()
+  Store-->>App: income/expense/balance
+  App-->>Js: 200 summary
+  Js-->>Br: 一覧・集計を初期表示
+
+  User->>Br: フォーム送信
+  Br->>Js: submitイベント
+  Js->>App: POST /api/entries payload
+  App->>Store: create(type, category, amount, memo)
+  Store-->>App: created entry
+  App-->>Js: 201 created
+  Js->>App: GET /api/entries
+  App-->>Js: 200 entries
+  Js->>App: GET /api/summary
+  App-->>Js: 200 summary
+  Js-->>Br: 一覧・集計を再描画
+
+  User->>Br: 種別/カテゴリで絞り込み
+  Br->>Js: change/inputイベント
+  Js-->>Br: 取得済みデータを画面内で再表示
+```
+
+### ルーティングと異常系の分岐（404/405/400）
+```mermaid
+flowchart TD
+  A[HTTPリクエスト受信] --> P{Pathはどれか}
+
+  P -->|/| R1{MethodはGETか}
+  R1 -->|はい| OK1[index.htmlを返却]
+  R1 -->|いいえ| E405A[405 Method Not Allowed]
+
+  P -->|/styles.css or /app.js| R2{MethodはGETか}
+  R2 -->|はい| F{対象ファイルは存在するか}
+  F -->|はい| OK2[静的ファイルを返却]
+  F -->|いいえ| E404A[404 Not Found]
+  R2 -->|いいえ| E405B[405 Method Not Allowed]
+
+  P -->|/api/entries| R3{MethodはGETかPOSTか}
+  R3 -->|GET| OK3[200 一覧JSON]
+  R3 -->|POST| V{入力値バリデーションOKか}
+  V -->|いいえ| E400A[400 バリデーションエラー]
+  V -->|はい| OK4[201 作成JSON]
+  R3 -->|それ以外| E405C[405 Method Not Allowed]
+
+  P -->|/api/summary| R4{MethodはGETか}
+  R4 -->|はい| OK5[200 集計JSON]
+  R4 -->|いいえ| E405D[405 Method Not Allowed]
+
+  P -->|それ以外| E404B[404 Not Found]
+```
+
 ---
 
 ## 0. 事前確認（Git Bashで実行）
