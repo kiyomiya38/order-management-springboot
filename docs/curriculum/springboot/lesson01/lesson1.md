@@ -710,6 +710,53 @@ th, td { /* 表ヘッダーとセルの共通設定 */
 
 ---
 
+## 10.4 Servlet基盤の最小理解（15分 / 実装演習なし）
+この章は、Spring Bootを理解するために必要な「Servletの土台」を最小限だけ押さえる章です。  
+Servlet/JSP の実装演習は行わず、Spring側の対応関係だけ理解します。
+
+### 1) 先に結論
+- Spring MVC は Servlet 基盤の上で動く
+- 入口は `DispatcherServlet`（Servlet実装）
+- 認証/認可などの共通処理は Filter（この研修では `SecurityFilterChain`）で先に処理される
+- この研修では JSP は使わず、View は Thymeleaf を使う
+
+### 2) 1リクエストの流れ（概念）
+```mermaid
+flowchart LR
+  B[Browser] --> T[Tomcat]
+  T --> F[Filter chain]
+  F --> D[DispatcherServlet]
+  D --> C[Controller]
+  C --> V[Thymeleaf Template]
+  V --> B
+```
+
+読み方:
+1. ブラウザからのHTTPリクエストをTomcatが受ける
+2. Filterが前処理（認証/認可など）を行う
+3. `DispatcherServlet` が適切なControllerへ振り分ける
+4. ControllerがView名（例: `index`）を返し、ThymeleafがHTMLを生成して返す
+
+### 3) 用語対応（Servlet基盤 -> このLesson）
+| 土台用語 | Springでの見え方 | このLessonの該当 |
+|---|---|---|
+| Servlet | `DispatcherServlet` として動作 | `GET /` の振り分け役 |
+| Filter | `SecurityFilterChain` など | Lesson5でURL権限制御に使用 |
+| View技術 | Thymeleaf / JSP など | Lesson1は Thymeleaf |
+| Servlet Container | Tomcat | `mvn spring-boot:run` で組み込み起動 |
+
+### 4) JSPをこの研修で省いている理由
+- 学習目的を「Spring Boot実務導入」に寄せるため
+- 新規案件では JSP より Thymeleaf / REST API + フロント分離が多い
+- まずは Spring MVC の流れ（Controller -> Template / JSON）理解を優先する
+
+### 5) 3分確認（口頭）
+1. `DispatcherServlet` は何をしているか
+2. `SecurityFilterChain` は Controller の前後どちらで効くか
+3. この研修で JSP を必須にしていない理由
+
+---
+
 ## 10.5 Spring Boot + Thymeleaf の表示の流れ（Controller -> Template）
 この章は、`11. 起動` の直前に読んで「何がどう表示されるか」を整理するための章です。
 
