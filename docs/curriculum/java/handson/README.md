@@ -20,6 +20,7 @@
 17. [Java-17 ハンズオン: 例外](./java-17-exceptions.md)
 18. [Java-18 ハンズオン: コレクション](./java-18-collections.md)
 19. [Java-19 ハンズオン: Stream API](./java-19-stream-api.md)
+20. [Java-20 ハンズオン: Oracle Javadocの読み方](./java-20-javadoc-reading.md)
 
 ## 方針
 - `docs/curriculum/java/java.md` と同じ進行スタイル

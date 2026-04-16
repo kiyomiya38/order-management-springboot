@@ -191,9 +191,16 @@ public class App {
     private static final Path STATIC_DIR = Path.of("static"); // 画面ファイル（HTML/CSS/JS）置き場
     private static final Pattern NAME_PATTERN = Pattern.compile("\"name\"\\s*:\\s*\"(.*?)\""); // {"name":"..."} の name を抽出
 
+    // Javaアプリのエントリーポイント（JVMが最初に呼ぶメソッド）
+    // public: 外部（JVM）から呼び出せるようにする
+    // static: Appのインスタンス生成なしで呼び出せるようにする
+    // void: 戻り値なし / String[] args: 起動引数（例: 8090）
+    // throws IOException: ファイル・通信などの入出力エラーを呼び出し元へ伝える
     public static void main(String[] args) throws IOException {
         int port = resolvePort(args); // 起動引数からポート番号を決定
 
+        // localhost:port で待ち受けるHTTPサーバーを生成
+        // 第2引数の 0 は backlog（同時接続待ちキュー長）を OS 既定値に任せる指定
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0); // 指定ポートでサーバー作成
         server.createContext("/", App::handleRoot); // / へのアクセス（トップ画面）
         // createContext(パス, 処理) で「そのURLが来た時の担当処理」を登録する
