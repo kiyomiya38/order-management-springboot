@@ -281,6 +281,14 @@ cd ~/order-management-springboot/practice/pre-springboot/step5-attendance-mini
 作成ファイル:
 - `~/order-management-springboot/practice/pre-springboot/step5-attendance-mini/App.java`
 
+### 演習中に確認する用語（このStepで使用）
+- `record`: 値をまとめる不変データ型。このLessonでは `User` と `AttendanceRecord` を簡潔に保持し、一覧/詳細レスポンスを作る。
+- `enum`: 取りうる値を固定する型。このLessonでは `AttendanceStatus`（`NOT_STARTED` / `WORKING` / `FINISHED`）で状態遷移の表記ゆれを防ぐ。
+- `AtomicLong`: スレッド安全な連番カウンタ。このLessonではユーザーIDと勤怠IDを重複なく採番する。
+- `synchronized`: 同時実行時の排他制御。このLessonでは打刻処理と履歴更新で状態不整合を防ぐ。
+- `createContext(...)`: ユーザー系APIと勤怠系APIの入口を分けるルーティング設定。このLessonでは `today/history/clock-in/clock-out` を個別に登録する。
+- `状態遷移`: ある状態から次に進める状態を制限する考え方。このLessonでは「未出勤 -> 出勤中 -> 退勤済み」以外をエラーにする。
+
 ```java
 // 1回分のHTTP通信（リクエスト情報 + レスポンス出力先）を扱う型
 import com.sun.net.httpserver.HttpExchange;

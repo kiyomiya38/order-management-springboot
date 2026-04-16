@@ -127,24 +127,6 @@ java -version
 javac -version
 ```
 
-## 0.5 先読み用語（5〜10分）
-この後の Lesson2〜5 で使う4語を先に押さえる。
-
-| 用語 | ひとこと定義 | 使う理由 |
-|---|---|---|
-| `record` | 値を持つだけの不変データ型 | 一覧1件やAPI返却データを簡潔に表現できる |
-| `enum` | 取りうる値を固定する型 | 状態遷移で不正な値の混入を防げる |
-| `AtomicLong` | スレッド安全な連番カウンタ | 同時アクセス時もID採番が壊れにくい |
-| `synchronized` | 同時実行の排他制御 | メモリ上データ更新の競合を防げる |
-
-補足: `private static final` は「クラス内だけで使う、クラス共有の再代入不可な定数」を表す定番宣言。
-
-ミニ確認:
-1. `record` と `class` の使い分けを1文で説明する
-2. 状態管理を `String` ではなく `enum` にする利点を1つ挙げる
-3. `long` の手動加算ではなく `AtomicLong` を使う理由を説明する
-4. `synchronized` がないときの問題を説明する
-
 ---
 
 ## 1. 作業フォルダ
@@ -173,6 +155,14 @@ cd ~/order-management-springboot/practice/pre-springboot/step1-greeting-web
 ## 3. `App.java` を作成
 作成ファイル:
 - `~/order-management-springboot/practice/pre-springboot/step1-greeting-web/App.java`
+
+### 演習中に確認する用語（このStepで使用）
+- `import`: 他パッケージのクラスを使うための宣言。`App.java` では `HttpServer` や `Path` を使うために必要。
+- `public static void main(String[] args)`: Javaアプリの起動入口。`args` は起動時引数で、このLessonではポート番号の切替に使う。
+- `throws IOException`: ファイル読込やHTTP応答で起きる入出力エラーを呼び出し元へ通知する宣言。
+- `HttpServer.create(new InetSocketAddress(port), 0)`: 指定ポートで待受するHTTPサーバーを生成する。第2引数 `0` は待ち行列サイズをOS既定に任せる指定。
+- `server.createContext(path, handler)`: URLパスと処理メソッドを結び付ける（ルーティング）。このLessonでは `/`、`/styles.css`、`/app.js`、`/api/greeting` を登録する。
+- `HttpExchange`: 1回分のHTTP通信情報を持つオブジェクト。メソッド・URL・本文の取得とレスポンス書き込みに使う。
 
 ```java
 import com.sun.net.httpserver.HttpExchange; // HTTPリクエスト/レスポンス本体を扱うクラス

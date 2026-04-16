@@ -231,6 +231,14 @@ cd ~/order-management-springboot/practice/pre-springboot/step2-todo-lite
 作成ファイル:
 - `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/App.java`
 
+### 演習中に確認する用語（このStepで使用）
+- `record`: 値をまとめる不変データ型。このLessonでは `Todo` を `id/title/completed` の1件データとして簡潔に表現する。
+- `AtomicLong`: スレッド安全な連番カウンタ。このLessonでは `Todo` の `id` を重複なく採番するために使う。
+- `synchronized`: 同時実行時の排他制御。このLessonでは `TodoStore` の `list/create/toggle/delete` でデータ競合を防ぐ。
+- `HttpServer.create(...)`: ToDo APIを待受するHTTPサーバーを生成する。`8091` ポートで起動してブラウザからアクセス可能にする。
+- `createContext("/api/todos", ...)` と `createContext("/api/todos/", ...)`: 一覧/作成とID付き操作（切替・削除）で入口URLを分けるためのルーティング設定。
+- `PATCH`: リソースの一部更新を表すHTTPメソッド。このLessonでは `completed` の切替に使用する。
+
 ```java
 // 1回分のHTTP通信（リクエスト情報 + レスポンス出力先）を扱う型
 import com.sun.net.httpserver.HttpExchange;

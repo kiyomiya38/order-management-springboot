@@ -199,6 +199,13 @@ cd ~/order-management-springboot/practice/pre-springboot/step3-kakeibo-lite-web
 作成ファイル:
 - `~/order-management-springboot/practice/pre-springboot/step3-kakeibo-lite-web/App.java`
 
+### 演習中に確認する用語（このStepで使用）
+- `record`: 値をまとめる不変データ型。このLessonでは `LedgerEntry`（明細1件）と `Summary`（集計結果）を分かりやすく表現する。
+- `AtomicLong`: スレッド安全な連番カウンタ。このLessonでは登録明細の `id` 採番に使う。
+- `synchronized`: 同時実行時の排他制御。このLessonでは `LedgerStore` の `create/list/summary` で整合性を守る。
+- `LocalDateTime`: 日時を扱う型。このLessonでは登録時刻 `createdAt` を保持して履歴表示に使う。
+- `createContext("/api/entries", ...)` と `createContext("/api/summary", ...)`: 明細操作APIと集計APIを別々の入口として登録するルーティング設定。
+
 ```java
 // 1回分のHTTP通信（リクエスト情報 + レスポンス出力先）を扱う型
 import com.sun.net.httpserver.HttpExchange;

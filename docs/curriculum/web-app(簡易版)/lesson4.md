@@ -211,6 +211,14 @@ cd ~/order-management-springboot/practice/pre-springboot/step4-reservation-form-
 作成ファイル:
 - `~/order-management-springboot/practice/pre-springboot/step4-reservation-form-app/App.java`
 
+### 演習中に確認する用語（このStepで使用）
+- `record`: 値をまとめる不変データ型。このLessonでは `Reservation` を1件データとして扱い、一覧返却や重複判定の基準にする。
+- `AtomicLong`: スレッド安全な連番カウンタ。このLessonでは予約 `id` を一意に採番するために使う。
+- `synchronized`: 同時実行時の排他制御。このLessonでは `ReservationStore` の `list/create/hasOverlap/delete` で競合を防ぐ。
+- `LocalDate` / `LocalTime`: 日付・時刻を型として厳密に扱う。このLessonでは「終了 > 開始」や「同時間帯重複」の検証に使う。
+- `createContext("/api/reservations", ...)` と `createContext("/api/reservations/", ...)`: 一覧/登録とID指定削除を分けるルーティング設定。
+- `409 Conflict`: 業務ルール違反（重複予約）を表すHTTPステータス。このLessonでは重複検知時に返す。
+
 ```java
 // 1回分のHTTP通信（リクエスト情報 + レスポンス出力先）を扱う型
 import com.sun.net.httpserver.HttpExchange;
