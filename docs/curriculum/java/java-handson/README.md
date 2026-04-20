@@ -28,13 +28,13 @@
 
 ## 補講（不足項目補完 / 任意）
 - [Java-04A 補講: 型変換とキャスト](./java-04a-type-conversion-and-cast.md)
-- [Java-05A 補講: 正規表現の基礎（メタ文字とエスケープ）](./java-05a-regex-basics.md)
 - [Java-06A 補講: switch / do-while / ラベル付き制御](./java-06a-advanced-control-flow.md)
 - [Java-07A 補講: 参照型と多次元配列](./java-07a-reference-types-and-multidimensional-arrays.md)
 - [Java-09A 補講: CLASSPATHとパッケージ解決](./java-09a-classpath-and-package-resolution.md)
 - [Java-11A 補講: コンストラクタ連鎖（this / デフォルトコンストラクタ）](./java-11a-constructor-chaining.md)
 - [Java-12A 補講: アクセス修飾子の使い分け](./java-12a-access-modifiers.md)
 - [Java-13A 補講: 継承ルールの深掘り（super / 単一継承 / final）](./java-13a-inheritance-rules.md)
+- [Java-16A 補講: 正規表現の基礎（メタ文字とエスケープ）](./java-16a-regex-basics.md)
 - [Java-17A 補講: 例外の分類とthrows（checked / unchecked）](./java-17a-exception-types-and-throws.md)
 
 ## 方針

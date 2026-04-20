@@ -73,9 +73,11 @@ javac -encoding UTF-8 ClassMechanismDemo.java
 java ClassMechanismDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+Laptop / 120000
+```
+
 
 
 ### Step 2: static フィールドを追加する
@@ -110,9 +112,11 @@ javac -encoding UTF-8 ClassMechanismDemo.java
 java ClassMechanismDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+生成数: 2
+```
+
 
 
 ### Step 3: static メソッドを追加（仕上げ）
@@ -150,9 +154,11 @@ javac -encoding UTF-8 ClassMechanismDemo.java
 java ClassMechanismDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+Keyboard 税込: 5500
+```
+
 
 
 ---
@@ -171,4 +177,6 @@ java ClassMechanismDemo
   -> `static` とインスタンス変数の区別を確認
 - `this` を `static` メソッドで使ってしまう
   -> `this` はインスタンスメソッド/コンストラクタのみ
+
+
 

@@ -79,9 +79,12 @@ javac -encoding UTF-8 AdvancedInheritanceDemo.java
 java AdvancedInheritanceDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+決済開始
+手数料: 50
+```
+
 
 
 ### Step 2: インターフェースを追加
@@ -131,9 +134,11 @@ javac -encoding UTF-8 AdvancedInheritanceDemo.java
 java AdvancedInheritanceDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+[通知] 手数料: 50
+```
+
 
 
 ---
@@ -152,4 +157,6 @@ java AdvancedInheritanceDemo
   -> 抽象クラスは直接インスタンス化できない
 - `@Override` の付与漏れ
   -> 実装ミス防止のため付ける
+
+
 

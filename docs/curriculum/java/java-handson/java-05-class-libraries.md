@@ -5,7 +5,6 @@
 ## 1. この資料のゴール
 - Java標準ライブラリの基本的な使い方を理解する
 - `String`, `Math`, `LocalDate`, `UUID` を実務用途で使える
-- `Path` と `Pattern` の基本用途を説明できる（Webアプリ先読み）
 - `import` の意味を説明できる
 
 ---
@@ -27,8 +26,8 @@ javac -version
 1. 標準ライブラリは JDK に含まれている
 2. `import` は別パッケージのクラスを短く書くための宣言
 3. 便利メソッドを使うと、自作コードを減らせる
-4. `Path` はファイルパス、`Pattern` は正規表現パターンを表す型
-5. `private static final` は「クラス内で共有し、再代入しない定数」の定番宣言
+4. `isBlank()` は入力チェックで「未入力または空白だけ」の値を判定するときに使う
+5. `trim()` はデータ整形で文字列の前後空白を除去し、保存や比較を安定させるときに使う
 
 ---
 
@@ -70,9 +69,13 @@ javac -encoding UTF-8 LibraryDemo.java
 java LibraryDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+元の文字列: [  Shinesoft  ]
+整形後: [Shinesoft]
+空白だけか: true
+```
+
 
 
 ### Step 2: Mathクラスを追加
@@ -83,7 +86,7 @@ public class LibraryDemo { // Math クラスの利用例
     public static void main(String[] args) {
         int price = 1280; // 税抜価格
         double taxRate = 0.10; // 税率 10%
-        int taxed = (int) Math.round(price * (1 + taxRate)); // 税込価格を四捨五入して int 化
+        int taxed = (int) Math.round(price * (1 + taxRate)); // Math.round(...) は小数を四捨五入して long を返す（.5 以上切り上げ）ため、(int) で型を合わせている
         int max = Math.max(900, taxed); // 900 と taxed の大きい方を取得
 
         System.out.println("税込価格(四捨五入): " + taxed); // 計算結果を表示
@@ -98,9 +101,12 @@ javac -encoding UTF-8 LibraryDemo.java
 java LibraryDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+税込価格(四捨五入): 1408
+比較結果(大きい方): 1408
+```
+
 
 
 コード解説:
@@ -134,61 +140,18 @@ javac -encoding UTF-8 LibraryDemo.java
 java LibraryDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+営業日: 2026-04-20
+処理時刻: 2026-04-20T09:30:15.123456789
+注文ID: 123e4567-e89b-12d3-a456-426614174000
+```
+
 
 
 学習ポイント:
 - `java.time` は日付時刻の標準API
 - `UUID` は重複しにくい識別子生成に使う
-
-### Step 4: Webアプリ先読み（`Path` / `Pattern`）(5〜10分)
-`LibraryDemo.java` を次の内容に更新:
-
-```java
-import java.nio.file.Path; // パス情報を扱う型
-import java.util.regex.Matcher; // 正規表現の検索結果を扱う型
-import java.util.regex.Pattern; // 正規表現パターンを表す型
-
-public class LibraryDemo { // Path と Pattern の基本利用例
-    private static final Path STATIC_DIR = Path.of("static"); // クラス共通で使うディレクトリ定数
-    private static final Pattern NAME_PATTERN = Pattern.compile("\"name\"\\s*:\\s*\"(.*?)\""); // "name" の値を抽出する正規表現
-
-    public static void main(String[] args) {
-        String body = "{\"name\":\"Tanaka\"}"; // 擬似的なJSON文字列
-        Matcher matcher = NAME_PATTERN.matcher(body); // body に対して正規表現マッチャーを作成
-        String name = ""; // 抽出結果を入れる変数（初期値は空文字）
-        if (matcher.find()) { // パターンに一致する箇所があるか確認
-            name = matcher.group(1); // 1番目のキャプチャグループ（name値）を取得
-        }
-
-        System.out.println("static dir: " + STATIC_DIR); // Path の値を表示
-        System.out.println("name: " + name); // 抽出した name を表示
-    } // main メソッドの終わり
-} // クラス定義の終わり
-```
-
-実行:
-```bash
-javac -encoding UTF-8 LibraryDemo.java
-java LibraryDemo
-```
-
-期待出力:
-```text
-static dir: static
-name: Tanaka
-```
-
-コード解説:
-- `Path` はファイル/ディレクトリの場所を安全に扱うための型
-- `Pattern` は正規表現を再利用しやすい形にした型
-- `Matcher` は `Pattern` を使って文字列を検索する実行オブジェクト
-- `private` は「このクラスの外から直接アクセスさせない」
-- `static` は「インスタンスごとではなくクラスで1つ共有する」
-- `final` は「一度代入した参照を再代入しない」
-- つまり `private static final Path STATIC_DIR ...` は「クラス専用の共有定数」を表す
 
 ---
 
@@ -197,24 +160,31 @@ name: Tanaka
 1. `LocalDate.now()` を `plusDays(3)` して3日後を表示する。
 2. `UUID` を2回生成して値が異なることを確認する。
 
-期待結果:
-- 今日の日付より3日後が表示される。
-- 2つのUUIDが一致しない。
+期待出力例:
+```text
+3日後: 2026-04-23
+UUID-1: 11111111-1111-1111-1111-111111111111
+UUID-2: 22222222-2222-2222-2222-222222222222
+```
 
 ### レベル2（拡張）
 1. `trim()` 前後の文字列長を `length()` で比較する。
-2. `body` を `{"name":"Suzuki"}` に変更し、抽出結果が変わることを確認する。
+2. `price = 1980`、`taxRate = 0.08` に変更し、`Math.round` の結果が変わることを確認する。
 
-期待結果:
-- `trim()` 後の長さが短くなる。
-- 抽出される `name` が `Suzuki` になる。
+期待出力例:
+```text
+trim前 length: 13
+trim後 length: 9
+税込価格(四捨五入): 2138
+```
 
 ### レベル3（実務）
-1. `STATIC_DIR` の宣言から `final` を外し、再代入して挙動の違いを確認する（確認後は元に戻す）。
+1. `orderId` の先頭に `"ORD-"` を付けた業務向けIDを作り、`today` と合わせて1行で表示する。
 
-期待結果:
-- `final` ありでは再代入できない。
-- `final` なしでは再代入できる。
+期待出力例:
+```text
+2026-04-20 / ORD-123e4567-e89b-12d3-a456-426614174000
+```
 
 ### 実行前予想問題（1分）
 次の結果を実行前に予想してください。
@@ -235,6 +205,8 @@ name: Tanaka
   -> `null` の文字列にメソッドを呼んでいないか確認
 - 日付/時刻の型を混同
   -> 日付のみは `LocalDate`、日時は `LocalDateTime`
-- 正規表現がマッチしない
-  -> `\"` や `\\s*` などのエスケープ記法を確認
+- `incompatible types: possible lossy conversion from long to int`
+  -> `Math.round(...)` の戻り値は `long`。`(int)` キャストするか変数型を見直す
+
+
 

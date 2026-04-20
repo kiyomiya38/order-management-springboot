@@ -75,9 +75,11 @@ javac -encoding UTF-8 InheritanceDemo.java
 java InheritanceDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+名前: Tanaka
+```
+
 
 
 ### Step 2: 子クラスへ機能追加
@@ -117,9 +119,12 @@ javac -encoding UTF-8 InheritanceDemo.java
 java InheritanceDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+名前: Tanaka
+チーム: Platform
+```
+
 
 
 ### Step 3: オーバーライドする（仕上げ）
@@ -160,9 +165,11 @@ javac -encoding UTF-8 InheritanceDemo.java
 java InheritanceDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+管理者: Tanaka
+```
+
 
 
 ---
@@ -181,4 +188,6 @@ java InheritanceDemo
   -> クラス定義の責務を整理
 - 継承しすぎて複雑化
   -> 共通化が明確な場合に限定する
+
+
 

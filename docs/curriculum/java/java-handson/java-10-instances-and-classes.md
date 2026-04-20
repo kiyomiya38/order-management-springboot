@@ -1,6 +1,7 @@
 ﻿# Java-10 ハンズオン: インスタンスとクラス
 
 対応参考資料: `Java-10_インスタンスとクラス.pptx`
+前章とのつながり: [Java-09 複数クラスを用いた開発](./java-09-multi-class-development.md) では `new` を先に使って連携を体験した。この章で「クラスは設計図 / インスタンスは実体」を整理する。
 
 ## 1. この資料のゴール
 - クラスとインスタンスの違いを説明できる
@@ -23,9 +24,9 @@ javac -version
 ---
 
 ## 3. 先に覚えるポイント
-1. クラスは設計図、インスタンスは実体
-2. インスタンスごとにフィールド値を持つ
-3. `this` は「今このインスタンス自身」
+1. この章の流れは「フィールド直接代入 -> メソッド経由の更新 -> `this` による明示」の3段階で、同じデータを別の書き方で扱えるようにすることが目的
+2. クラスは設計図、インスタンスは実体。`new` で作った各インスタンスは別状態を持つ（`c1` を変えても `c2` は自動では変わらない）
+3. `this` は「今このインスタンス自身」。引数名とフィールド名が同じとき（例: `name`）に、`this.name` と書いて「フィールド側」を明確にするために使う
 
 ---
 
@@ -76,9 +77,18 @@ javac -encoding UTF-8 InstanceDemo.java
 java InstanceDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+Tanaka point: 120
+Suzuki point: 80
+```
+
+
+期待出力例:
+```text
+Tanaka point: 120
+Suzuki point: 80
+```
 
 
 ### Step 2: メソッドを追加する
@@ -117,9 +127,21 @@ javac -encoding UTF-8 InstanceDemo.java
 java InstanceDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+Tanaka point: 150
+Suzuki point: 80
+```
+
+
+期待出力例:
+```text
+Tanaka point: 150
+Suzuki point: 80
+```
+
+確認ポイント:
+- `addPoint(30)` を呼んだ `c1` だけが変化し、`c2` は変化しない
 
 
 ### Step 3: `this` を使う（仕上げ）
@@ -156,9 +178,22 @@ javac -encoding UTF-8 InstanceDemo.java
 java InstanceDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+Tanaka point: 120
+Suzuki point: 80
+```
+
+
+期待出力例:
+```text
+Tanaka point: 120
+Suzuki point: 80
+```
+
+確認ポイント:
+- Step 3 の主目的は出力の変化ではなく、`this` を使った代入方法の理解
+- `this.name = name;` のように「フィールド」と「引数」を明確に区別できる
 
 
 ---
@@ -177,4 +212,6 @@ java InstanceDemo
   -> 引数名とフィールド名が同じときは `this` を付ける
 - インスタンス間で値が混ざると誤解
   -> 各 `new` は別実体
+
+
 

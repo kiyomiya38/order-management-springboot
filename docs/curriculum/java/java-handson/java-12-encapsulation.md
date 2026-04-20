@@ -76,9 +76,10 @@ public class UserAccount { // カプセル化したユーザー情報クラス
 javac -encoding UTF-8 UserAccount.java
 ```
 
-期待結果:
-- コンパイルが成功する（エラーなし）
-- `.class` ファイルが生成される
+期待出力例:
+```text
+(コンパイル成功: 出力なし)
+```
 
 
 ### Step 2: 利用側を作る
@@ -103,9 +104,12 @@ javac -encoding UTF-8 UserAccount.java EncapsulationDemo.java
 java EncapsulationDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+username: tanaka
+age: 25
+```
+
 
 
 ### Step 3: setter にバリデーションを入れる（仕上げ）
@@ -146,9 +150,12 @@ javac -encoding UTF-8 UserAccount.java EncapsulationDemo.java
 java EncapsulationDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+username: tanaka
+age: 25
+```
+
 
 
 学習ポイント:
@@ -171,4 +178,6 @@ java EncapsulationDemo
   -> フィールド代入は `this.field` を明示
 - 例外でアプリが止まる
   -> 呼び出し側の入力値を見直す（後半で例外処理を学習）
+
+
 

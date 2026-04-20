@@ -95,9 +95,12 @@ javac -encoding UTF-8 PolymorphismDemo.java
 java PolymorphismDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+Yamada は 管理者
+Kato は アルバイト
+```
+
 
 
 ### Step 2: `instanceof` で型判定する
@@ -132,9 +135,11 @@ javac -encoding UTF-8 PolymorphismDemo.java
 java PolymorphismDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+Tanaka / Platform
+```
+
 
 
 ---
@@ -153,4 +158,6 @@ java PolymorphismDemo
   -> 親型参照では親に定義されたメソッドのみ呼べる
 - 多態性のメリットが見えない
   -> 呼び出し側の `if` 分岐削減に着目
+
+
 

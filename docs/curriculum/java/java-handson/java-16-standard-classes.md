@@ -6,6 +6,7 @@
 - `Object` の基本メソッド（`toString`, `equals`）を理解する
 - ラッパークラス（`Integer`, `Double`）を使える
 - `StringBuilder` で文字列連結を効率化できる
+- `Path` / `Pattern` を使った実務寄りの抽出処理を実装できる
 
 ---
 
@@ -26,6 +27,8 @@ javac -version
 1. 全クラスは `Object` を継承する
 2. 基本型とラッパー型は相互変換される（オートボクシング）
 3. 文字列連結が多いときは `StringBuilder` が有効
+4. `Path` はファイルパス、`Pattern` は正規表現パターンを表す型
+5. `private static final` は「クラス内で共有し、再代入しない定数」の定番宣言
 
 ---
 
@@ -35,7 +38,7 @@ javac -version
 - 標準クラスの実務利用を体験する
 
 完了条件:
-- `StandardClassDemo.java` で `Object` / ラッパー / `StringBuilder` を確認できる
+- `StandardClassDemo.java` で `Object` / ラッパー / `StringBuilder` / `Path` / `Pattern` を確認できる
 
 作成ファイル: `~/order-management-springboot/practice/java/handson16/StandardClassDemo.java`
 
@@ -94,9 +97,13 @@ javac -encoding UTF-8 StandardClassDemo.java
 java StandardClassDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+Product{code='P-001'}
+p1 equals p2: true
+p1 equals p3: false
+```
+
 
 コード解説:
 - `toString` は表示用文字列を返す
@@ -128,12 +135,16 @@ javac -encoding UTF-8 StandardClassDemo.java
 java StandardClassDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+quantity: 25
+boxed: 25
+unboxed: 25
+```
 
 
-### Step 3: StringBuilder を使う（仕上げ）
+
+### Step 3: StringBuilder を使う
 `StandardClassDemo.java` を次の内容に更新:
 
 ```java
@@ -156,9 +167,57 @@ javac -encoding UTF-8 StandardClassDemo.java
 java StandardClassDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+受注ID=ORD-1001, 数量=3, 状態=PAID
+```
+
+
+### Step 4: Webアプリ先読み（`Path` / `Pattern`）を追加（仕上げ）
+`StandardClassDemo.java` を次の内容に更新:
+
+```java
+import java.nio.file.Path; // パス情報を扱う型
+import java.util.regex.Matcher; // 正規表現の検索結果を扱う型
+import java.util.regex.Pattern; // 正規表現パターンを表す型
+
+public class StandardClassDemo { // Path と Pattern の利用例
+    private static final Path STATIC_DIR = Path.of("static"); // クラス共通で使うディレクトリ定数
+    private static final Pattern NAME_PATTERN = Pattern.compile("\"name\"\\s*:\\s*\"(.*?)\""); // "name" の値を抽出する正規表現
+
+    public static void main(String[] args) {
+        String body = "{\"name\":\"Tanaka\"}"; // 擬似的なJSON文字列
+        Matcher matcher = NAME_PATTERN.matcher(body); // body に対して正規表現マッチャーを作成
+        String name = ""; // 抽出結果を入れる変数（初期値は空文字）
+        if (matcher.find()) { // パターンに一致する箇所があるか確認
+            name = matcher.group(1); // 1番目のキャプチャグループ（name値）を取得
+        }
+
+        StringBuilder sb = new StringBuilder(); // 表示メッセージを構築
+        sb.append("static dir: ").append(STATIC_DIR).append(System.lineSeparator()); // パスを1行目に連結
+        sb.append("name: ").append(name); // 抽出結果を2行目に連結
+        System.out.println(sb); // 2行分をまとめて表示
+    } // main メソッドの終わり
+} // クラス定義の終わり
+```
+
+実行:
+```bash
+javac -encoding UTF-8 StandardClassDemo.java
+java StandardClassDemo
+```
+
+期待出力:
+```text
+static dir: static
+name: Tanaka
+```
+
+コード解説:
+- `Path` はファイル/ディレクトリの場所を安全に扱うための型
+- `Pattern` は正規表現を再利用しやすい形にした型
+- `Matcher` は `Pattern` を使って文字列を検索する実行オブジェクト
+- `private static final` で「クラス内で共有し再代入しない定数」を宣言できる
 
 
 ---
@@ -167,6 +226,8 @@ java StandardClassDemo
 1. `Integer.parseInt` に不正文字列を渡したときの挙動を確認
 2. `StringBuilder` で3行分のログを作る
 3. `Product` に `hashCode` も実装し、`HashSet` で重複判定を確認
+4. `body` を `{"name":"Suzuki"}` に変更し、抽出結果が変わることを確認
+5. `STATIC_DIR` の宣言から `final` を外し、再代入して挙動の違いを確認する（確認後は元に戻す）
 
 ---
 
@@ -177,4 +238,10 @@ java StandardClassDemo
   -> 値比較は `equals`
 - `String` の連結が多すぎて読みにくい
   -> `StringBuilder` を利用
+- 正規表現がマッチしない
+  -> `\"` や `\\s*` などのエスケープ記法を確認
+- `cannot assign a value to final variable ...`
+  -> 再代入したいなら `final` を外す。再代入させない設計なら `final` を維持する
+
+
 

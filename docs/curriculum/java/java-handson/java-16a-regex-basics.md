@@ -1,4 +1,4 @@
-# Java-05A 補講: 正規表現の基礎（メタ文字とエスケープ）
+# Java-16A 補講: 正規表現の基礎（メタ文字とエスケープ）
 
 対応参考資料: `正規表現.pdf`
 
@@ -49,12 +49,12 @@ javac -version
 完了条件:
 - `RegexBasicsDemo.java` で `matches` と `find` の違いを確認できる
 
-作成ファイル: `~/order-management-springboot/practice/java/handson05a/RegexBasicsDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/handson16a/RegexBasicsDemo.java`
 
 ### Step 0: 作業フォルダを作る
 ```bash
-mkdir -p ~/order-management-springboot/practice/java/handson05a
-cd ~/order-management-springboot/practice/java/handson05a
+mkdir -p ~/order-management-springboot/practice/java/handson16a
+cd ~/order-management-springboot/practice/java/handson16a
 ```
 
 ### Step 1: `matches()` で全体一致を確認する

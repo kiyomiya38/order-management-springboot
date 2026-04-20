@@ -151,9 +151,15 @@ javac -encoding UTF-8 VariableTypeDemo.java
 java VariableTypeDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+注文番号: ORD-2026-0001
+注文ID: 10000000001
+合計: 3600
+税額: 360.0
+支払済み: false
+```
+
 
 
 コード解説:
@@ -218,23 +224,31 @@ public class CharEscapeDemo {
 1. `orderCode` を別値に変更する。
 2. `paid` を `true` に変更して出力確認する。
 
-期待結果:
-- 変更した `orderCode` が表示される。
-- `paid` の表示が `true` になる。
+期待出力例:
+```text
+注文番号: ORD-2026-9999
+数量: 3
+単価: 1200
+合計: 3600
+支払済み: true
+```
 
 ### レベル2（拡張）
 1. `taxRate` を `0.08` に変更して税額の差分を確認する。
 
-期待結果:
-- 税率変更前後で税額が変わる。
+期待出力例:
+```text
+税額: 288.0
+```
 
 ### レベル3（実務）
 1. `int totalPrice` を `long totalPrice` に変える。
 2. `totalPrice` に `3000000000L` を代入してコンパイル・実行する。
 
-期待結果:
-- `long` に変更した場合はコンパイル成功する。
-- 大きい数値が正しく表示される。
+期待出力例:
+```text
+合計: 3000000000
+```
 
 ### 実行前予想問題（1分）
 次の2行の結果を、実行前に予想してから確認してください。
@@ -255,4 +269,6 @@ public class CharEscapeDemo {
   -> 型と代入値が一致しているか確認
 - `integer number too large`
   -> 大きな整数は `long` + `L` を使う
+
+
 

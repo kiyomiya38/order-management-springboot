@@ -69,9 +69,12 @@ javac -encoding UTF-8 ExceptionDemo.java
 java ExceptionDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+計算エラー: / by zero
+後処理を実行
+```
+
 
 
 ### Step 2: 文字列変換エラーを処理
@@ -97,9 +100,11 @@ javac -encoding UTF-8 ExceptionDemo.java
 java ExceptionDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+入力値が数値ではありません: abc
+```
+
 
 
 ### Step 3: throw で不正入力を通知（仕上げ）
@@ -131,9 +136,11 @@ javac -encoding UTF-8 ExceptionDemo.java
 java ExceptionDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+入力エラー: quantity は 1 以上である必要があります
+```
+
 
 
 ---
@@ -152,4 +159,6 @@ java ExceptionDemo
   -> まずは具体例外を捕まえる
 - 例外メッセージが曖昧
   -> どの値が不正かを明示
+
+
 

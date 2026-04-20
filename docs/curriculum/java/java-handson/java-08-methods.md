@@ -66,9 +66,11 @@ javac -encoding UTF-8 MethodDemo.java
 java MethodDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+受注処理を開始します
+```
+
 
 
 ### Step 2: 引数と戻り値を追加
@@ -93,9 +95,11 @@ javac -encoding UTF-8 MethodDemo.java
 java MethodDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+合計: 3600
+```
+
 
 
 コード解説:
@@ -131,9 +135,12 @@ javac -encoding UTF-8 MethodDemo.java
 java MethodDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+送料なし合計: 3600
+送料込み合計: 4400
+```
+
 
 
 ### Step 4: 実務メソッドへ仕上げる
@@ -163,9 +170,11 @@ javac -encoding UTF-8 MethodDemo.java
 java MethodDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+請求金額: 7500
+```
+
 
 補足（実務）:
 - この章の金額計算メソッドは学習用に `int` を使っている
@@ -178,21 +187,30 @@ java MethodDemo
 ### レベル1（基本）
 1. `calcBillingAmount` に `taxRatePercent` 引数を追加する。
 
-期待結果:
-- 税率を呼び出し側から変えて請求金額を計算できる。
+期待出力例:
+```text
+税率10% 請求金額: 8250
+税率8% 請求金額: 8100
+```
 
 ### レベル2（拡張）
 1. `quantity` が0以下なら `0` を返すガードを追加する。
 
-期待結果:
-- `quantity = 0` や負数でも例外にならず `0` が返る。
+期待出力例:
+```text
+quantity=0 -> 0
+quantity=-2 -> 0
+```
 
 ### レベル3（実務）
 1. `printStartMessage` を `printStartMessage(String jobName)` に変更する。
 2. 呼び出し側でジョブ名を2パターン渡して表示を確認する。
 
-期待結果:
-- 引数の違いに応じて表示メッセージが切り替わる。
+期待出力例:
+```text
+受注取込 を開始します
+在庫同期 を開始します
+```
 
 ### 実行前予想問題（1分）
 次の呼び出し結果を実行前に予想してください。
@@ -213,4 +231,6 @@ java MethodDemo
   -> 宣言型を見直す
 - 引数順序のミス
   -> 呼び出し側の順番をコメントで明示
+
+
 

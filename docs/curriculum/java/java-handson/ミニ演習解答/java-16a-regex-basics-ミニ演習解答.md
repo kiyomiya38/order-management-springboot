@@ -1,6 +1,6 @@
-# Java-05A ミニ演習解答
+# Java-16A ミニ演習解答
 
-対象資料: `docs/curriculum/java/java-handson/java-05a-regex-basics.md`
+対象資料: `docs/curriculum/java/java-handson/java-16a-regex-basics.md`
 
 ## ミニ演習解答
 1. `user@example.com` の簡易チェック:

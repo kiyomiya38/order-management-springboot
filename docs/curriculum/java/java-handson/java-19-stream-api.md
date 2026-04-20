@@ -70,9 +70,11 @@ javac -encoding UTF-8 StreamApiDemo.java
 java StreamApiDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+PAID件数: 2
+```
+
 
 
 ### Step 2: map と forEach
@@ -98,9 +100,13 @@ javac -encoding UTF-8 StreamApiDemo.java
 java StreamApiDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+注文コード: ORD-001
+注文コード: ORD-002
+注文コード: ORD-003
+```
+
 
 
 ### Step 3: 数値集計を追加（仕上げ）
@@ -129,9 +135,11 @@ javac -encoding UTF-8 StreamApiDemo.java
 java StreamApiDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+1000円以上の合計: 8700
+```
+
 
 
 ---
@@ -150,4 +158,6 @@ java StreamApiDemo
   -> `map` と `mapToInt` の違いを確認
 - 処理が読みづらい
   -> 1行1処理（filter/map/sum）で改行して書く
+
+
 

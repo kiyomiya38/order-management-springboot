@@ -73,9 +73,14 @@ javac -encoding UTF-8 CollectionDemo.java
 java CollectionDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+件数: 3
+P-001
+P-002
+P-002
+```
+
 
 
 ### Step 2: Set を使う
@@ -104,9 +109,12 @@ javac -encoding UTF-8 CollectionDemo.java
 java CollectionDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+件数(重複除去): 2
+[URGENT, PAID]
+```
+
 
 
 ### Step 3: Map を使う（仕上げ）
@@ -138,9 +146,14 @@ javac -encoding UTF-8 CollectionDemo.java
 java CollectionDemo
 ```
 
-期待結果:
-- `javac` がエラーなく完了する
-- `java` の実行結果が、このStepのコード内容と一致する
+期待出力例:
+```text
+P-001 在庫: 12
+P-003 在庫あり? false
+P-001 -> 12
+P-002 -> 5
+```
+
 
 
 ---
@@ -159,4 +172,6 @@ java CollectionDemo
   -> キー存在確認に `containsKey` を使う
 - コレクション選定ミス
   -> 順序・重複・キー検索の要件で選ぶ
+
+
 

@@ -46,3 +46,19 @@ set.add(new Product("P-001"));
 set.add(new Product("P-001"));
 System.out.println(set.size()); // 1
 ```
+
+4. `body` を変更した抽出確認:
+
+```java
+String body = "{\"name\":\"Suzuki\"}";
+Matcher matcher = NAME_PATTERN.matcher(body);
+if (matcher.find()) {
+    System.out.println("name: " + matcher.group(1)); // Suzuki
+}
+```
+
+5. `final` の挙動確認:
+確認手順:
+1. `private static final Path STATIC_DIR = Path.of("static");` の `final` を外す
+2. `STATIC_DIR = Path.of("static2");` を代入してコンパイル
+3. 再確認後は `final` を戻す

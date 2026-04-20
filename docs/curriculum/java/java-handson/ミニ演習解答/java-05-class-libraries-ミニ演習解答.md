@@ -22,20 +22,19 @@ String raw = "  ABC  ";
 System.out.println("trim前長さ: " + raw.length());
 System.out.println("trim後長さ: " + raw.trim().length());
 
-String body = "{\"name\":\"Suzuki\"}";
-Matcher matcher = NAME_PATTERN.matcher(body);
-if (matcher.find()) {
-    System.out.println("name: " + matcher.group(1)); // Suzuki
-}
+int price = 1980;
+double taxRate = 0.08;
+int taxed = (int) Math.round(price * (1 + taxRate));
+System.out.println("税込価格: " + taxed); // 2138
 ```
 
 ---
 
 ## レベル3（実務）解答
-確認手順:
-1. `private static final Path STATIC_DIR = Path.of("static");` の `final` を外す  
-2. `STATIC_DIR = Path.of("static2");` を代入してコンパイル  
-3. 再確認後は `final` を戻す
+```java
+String businessOrderId = "ORD-" + orderId;
+System.out.println("営業日=" + today + ", 注文ID=" + businessOrderId);
+```
 
 ---
 
