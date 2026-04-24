@@ -26,6 +26,7 @@ javac -version
 1. 継承は共通処理を親へ集約する仕組み
 2. 子クラスは親の機能を再利用できる
 3. 同名メソッドを子で再定義するのがオーバーライド
+4. `@Override` は「親メソッドを上書きしている」ことを明示するアノテーション（推奨）
 
 ---
 
@@ -128,6 +129,10 @@ java InheritanceDemo
 
 
 ### Step 3: オーバーライドする（仕上げ）
+補足（`@Override` とは）:
+- `@Override` はアノテーションで、「このメソッドは親クラスのメソッドを上書きしている」とコンパイラへ伝える。
+- 必須ではないが、付けるとメソッド名や引数の書き間違いをコンパイル時に検知しやすくなるため推奨。
+
 `InheritanceDemo.java` を次の内容に更新:
 
 ```java
@@ -169,6 +174,32 @@ java InheritanceDemo
 ```text
 管理者: Tanaka
 ```
+
+### Step 4: `@Override` の必要性を体感する（演習・5分）
+
+Step 3 の `InheritanceDemo.java` を使って確認する:
+
+1. `Manager` のメソッド名を `roleLable`（意図的なスペルミス）に変更し、`@Override` を外す。
+2. そのまま実行する。
+
+実行:
+```bash
+javac -encoding UTF-8 InheritanceDemo.java
+java InheritanceDemo
+```
+
+期待出力例:
+```text
+社員: Tanaka
+```
+
+3. 次に、同じ `roleLable` のまま `@Override` を付け直して再コンパイルする。
+
+期待結果:
+- 環境に応じて次のいずれかのコンパイルエラーになる
+- 英語環境: `method does not override or implement a method from a supertype`
+- 日本語環境: `メソッドはスーパータイプのメソッドをオーバーライドまたは実装しません`
+- `@Override` を付けることで、「上書きできていないミス」を実行前に検知できる
 
 
 

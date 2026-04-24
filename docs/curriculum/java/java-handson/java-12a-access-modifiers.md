@@ -28,6 +28,19 @@ javac -version
 3. `protected` は「同じパッケージ + 他パッケージのサブクラス」
 4. `public` はどこからでも参照可能
 
+比較表（`○` = 使える / `×` = 使えない）:
+
+| 修飾子 | 同じクラス | 同じパッケージ | 他パッケージの子クラス | 他パッケージの通常クラス | 初学者向けの覚え方 |
+| --- | --- | --- | --- | --- | --- |
+| `private` | ○ | × | × | × | そのクラス専用の「内側だけ」 |
+| 無指定（package-private） | ○ | ○ | × | × | 同じフォルダ仲間（同一package）だけ |
+| `protected` | ○ | ○ | ○ | × | 仲間 + 継承した子クラスまで |
+| `public` | ○ | ○ | ○ | ○ | どこからでも見える公開入口 |
+
+補足:
+- この資料で使う `extends` は、`protected` のアクセス範囲を確認するための最小限の利用に限定する。
+- 継承の考え方（親子クラスの役割分担・再利用・オーバーライド）は [Java-13 ハンズオン: 継承](./java-13-inheritance.md) で学ぶ。
+
 ---
 
 ## 4. ハンズオン
@@ -111,6 +124,8 @@ java -cp out model.AccountInspector
 - `id/points/status` 等が表示される
 
 ### Step 2: 他パッケージの継承先で `protected` を確認
+※ここでは `protected` のアクセス可否確認が目的。継承設計そのものの詳細は `java-13-inheritance.md` を参照。
+
 作成ファイル: `src/app/PremiumAccount.java`
 
 ```java

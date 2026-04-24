@@ -89,8 +89,12 @@ javac -encoding UTF-8 ConstructorChainingDemo.java
 java ConstructorChainingDemo
 ```
 
-期待結果:
-- 3パターンの初期化結果が表示される
+期待出力例:
+```text
+UNKNOWN / 0
+Mouse / 0
+Keyboard / 5000
+```
 
 ### Step 2: `this()` で初期化処理を集約する
 `ConstructorChainingDemo.java` を次の内容に更新:
@@ -128,8 +132,10 @@ javac -encoding UTF-8 ConstructorChainingDemo.java
 java ConstructorChainingDemo
 ```
 
-期待結果:
-- `Display / 0` が表示される
+期待出力例:
+```text
+Display / 0
+```
 
 ### Step 3: デフォルトコンストラクタの補完ルールを確認する（仕上げ）
 `ConstructorChainingDemo.java` を次の内容に更新:
@@ -148,11 +154,18 @@ public class ConstructorChainingDemo {
         User ok = new User("Tanaka");
         System.out.println(ok.name);
 
-        // User ng = new User(); // これを有効化するとコンパイルエラー:
+        // 任意確認: 下の2行は「引数なしコンストラクタ未定義エラー」を確認するときだけコメント解除する
+        // User ng = new User(); // 引数なしコンストラクタがないためコンパイルエラーになる
         // constructor User in class User cannot be applied to given types
     }
 }
 ```
+
+任意確認（引数なしコンストラクタ未定義エラーを体験したい場合）:
+1. `main` 内の `User ng = new User();` の行をコメント解除する。
+2. `javac -encoding UTF-8 ConstructorChainingDemo.java` を実行する。
+3. `constructor User in class User cannot be applied to given types` のコンパイルエラーを確認する。
+4. 確認後はコメントアウトに戻して、次の通常実行へ進む。
 
 実行:
 ```bash
@@ -160,9 +173,15 @@ javac -encoding UTF-8 ConstructorChainingDemo.java
 java ConstructorChainingDemo
 ```
 
-期待結果:
-- `Tanaka` が表示される
-- `new User()` は引数なしコンストラクタ未定義のため失敗する（コメント解除時）
+期待出力例:
+```text
+Tanaka
+```
+
+補足（`new User()` をコメント解除した場合のコンパイルエラー出力例）:
+```text
+constructor User in class User cannot be applied to given types
+```
 
 ---
 

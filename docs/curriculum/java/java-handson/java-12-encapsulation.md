@@ -125,8 +125,8 @@ public class UserAccount { // バリデーション付きのカプセル化ク�
     }
 
     public void setUsername(String username) { // username の setter
-        if (username == null || username.isBlank()) { // null または空白のみは不正
-            throw new IllegalArgumentException("username は必須です"); // 不正値を例外で通知
+        if (username == null || username.isBlank()) { // ここが不正検知（バリデーション）：null や空白だけの入力を見つける
+            throw new IllegalArgumentException("username は必須です"); // ここで例外を発生：この setter の処理を中断し、呼び出し元へエラーを通知
         }
         this.username = username.trim(); // 前後空白を除去して保存
     }
@@ -136,8 +136,8 @@ public class UserAccount { // バリデーション付きのカプセル化ク�
     }
 
     public void setAge(int age) { // age の setter
-        if (age < 0 || age > 120) { // 年齢範囲チェック
-            throw new IllegalArgumentException("age の範囲が不正です"); // 不正値を例外で通知
+        if (age < 0 || age > 120) { // ここが不正検知（バリデーション）：年齢が 0〜120 の範囲か確認
+            throw new IllegalArgumentException("age の範囲が不正です"); // ここで例外を発生：この setter の処理を中断し、呼び出し元へエラーを通知
         }
         this.age = age; // 検証済み値を保存
     }

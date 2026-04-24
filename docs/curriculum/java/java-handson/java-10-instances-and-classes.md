@@ -83,14 +83,6 @@ Tanaka point: 120
 Suzuki point: 80
 ```
 
-
-期待出力例:
-```text
-Tanaka point: 120
-Suzuki point: 80
-```
-
-
 ### Step 2: メソッドを追加する
 `InstanceDemo.java` を次の内容に更新:
 
@@ -126,13 +118,6 @@ public class InstanceDemo { // 実行クラス
 javac -encoding UTF-8 InstanceDemo.java
 java InstanceDemo
 ```
-
-期待出力例:
-```text
-Tanaka point: 150
-Suzuki point: 80
-```
-
 
 期待出力例:
 ```text
@@ -177,13 +162,6 @@ public class InstanceDemo { // 実行クラス
 javac -encoding UTF-8 InstanceDemo.java
 java InstanceDemo
 ```
-
-期待出力例:
-```text
-Tanaka point: 120
-Suzuki point: 80
-```
-
 
 期待出力例:
 ```text
