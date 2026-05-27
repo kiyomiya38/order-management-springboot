@@ -405,6 +405,84 @@ HTMLだけでは「見た目」はほぼ変えられません。
 - 「表示だけの画面」から「入力できる画面」へ段階を進めている
 - `section`を分けることで、勤怠表示エリアと入力エリアを分離している
 
+#### 補足演習: 検索用の入力欄を作る（`id`, `type="search"`, `placeholder`, `autocomplete`）
+Step 6 のフォーム部分を、次のように変更してみます。
+
+```html
+<section class="panel">
+  <h2>ユーザー検索</h2>
+  <label>
+    ユーザー名:
+    <input
+      id="user-search-input"
+      type="search"
+      name="usernameKeyword"
+      placeholder="例: tanaka"
+      autocomplete="off"
+    />
+  </label>
+  <button>検索</button>
+</section>
+```
+
+確認:
+- 入力欄の中に薄い文字で `例: tanaka` と表示される
+- 入力欄に文字を入力できる
+- ボタンが表示される
+
+タグ・属性解説:
+- `id="user-search-input"`: ページ内の特定の要素に名前を付ける属性。JavaScriptから要素を探すときにも使う
+- `type="search"`: 検索用の入力欄。見た目は `type="text"` とほぼ同じだが、検索用途であることを表せる
+- `name="usernameKeyword"`: フォーム送信時の項目名
+- `placeholder="例: tanaka"`: 入力前に表示する入力例
+- `autocomplete="off"`: ブラウザの入力候補表示を抑える設定
+
+コードの意味:
+- `input` は、入力欄の用途に合わせて `type` を変えられる
+- `id` は画面上で1つだけの要素を特定したいときに使う
+- `placeholder` は入力例であり、実際の入力値ではない
+
+よくあるミス:
+- `id` を同じページ内で重複させる
+- `placeholder` を入力値だと思ってしまう
+- `autocomplete` のスペルを間違える
+
+#### 補足演習: プルダウンを作る（`select`, `option`, `value`）
+フォームにプルダウンを追加する場合は、次のように書きます。
+
+```html
+<section class="panel">
+  <h2>ロール選択</h2>
+  <label>
+    ロール:
+    <select name="role">
+      <option value="">すべて</option>
+      <option value="ROLE_USER">ROLE_USER</option>
+      <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+    </select>
+  </label>
+</section>
+```
+
+確認:
+- `すべて` / `ROLE_USER` / `ROLE_ADMIN` を選択できる
+- 選択肢をクリックすると表示が切り替わる
+
+タグ・属性解説:
+- `<select>`: プルダウン選択欄を作るタグ
+- `<option>`: プルダウンの選択肢を作るタグ
+- `value="ROLE_USER"`: その選択肢が選ばれたときに使われる値
+- `value=""`: 空文字。ここでは「すべて」を表す値として使う
+
+コードの意味:
+- 画面に表示される文字と、プログラム側で扱う値を分けられる
+- 例えば `<option value="ROLE_USER">ROLE_USER</option>` は、表示文字も値も `ROLE_USER`
+- `<option value="">すべて</option>` は、画面には `すべて` と表示するが、値は空文字になる
+
+よくあるミス:
+- `<select>` の中に `<option>` を入れ忘れる
+- `value` と表示文字の違いを意識せず、後続処理で比較値が合わなくなる
+
 #### 補足: `form` / `action` / `method`（次のSpring Boot演習で使用）
 Step 6 の入力欄とボタンは、次のように `form` で囲むと送信できる形になる。
 
@@ -553,6 +631,54 @@ Step 6 の入力欄とボタンは、次のように `form` で囲むと送信�
 コードの意味:
 - 「行と列」を持つデータは、段落ではなく表で表現するのが適切
 - 1行目を`th`にすることで、データの意味（列名）が明確になる
+
+#### 補足演習: 表の構造を詳しくする（`thead`, `tbody`, `colspan`, `hidden`）
+Step 8 のテーブル部分を、次のように変更してみます。
+
+```html
+<h2>勤怠サンプル一覧</h2>
+<table>
+  <thead>
+    <tr>
+      <th>日付</th>
+      <th>出勤</th>
+      <th>退勤</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2026-02-05</td>
+      <td>09:00</td>
+      <td>18:00</td>
+    </tr>
+    <tr hidden>
+      <td colspan="3">表示する勤怠データがありません。</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+確認:
+- 見た目はStep 8とほぼ同じ表になる
+- `hidden` が付いた行は画面に表示されない
+- `hidden` を一時的に削除すると、0件メッセージ行が表示される
+
+タグ・属性解説:
+- `<thead>`: 表の見出し行をまとめる領域
+- `<tbody>`: 表のデータ行をまとめる領域
+- `colspan="3"`: 1つのセルを横に3列分つなげる指定
+- `hidden`: 要素を画面に表示しない属性
+
+コードの意味:
+- `thead` と `tbody` に分けると、見出し行とデータ行の役割が明確になる
+- `colspan` は、複数列にまたがるメッセージを表示したいときに使う
+- `hidden` は、最初は隠しておきたいメッセージに使える
+- JavaScriptでは、後から `hidden` を付けたり外したりして表示を切り替えることがある
+
+よくあるミス:
+- `colspan` の数と表の列数が合っていない
+- `hidden` を付けたままにして、表示されない原因に気づかない
+- `<thead>` や `<tbody>` の閉じタグを書き忘れる
 
 #### Step 9: `head` 内タグの影響を確認
 1. `<title>` を「勤怠管理 - タグ演習」に変更  

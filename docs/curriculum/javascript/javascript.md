@@ -26,15 +26,21 @@ Node.js / npm / API通信（`fetch`）は扱いません。
 この資料では次の作業フォルダを使います。
 
 ```bash
-mkdir -p ~/order-management-springboot/practice/javascript
+mkdir -p ~/order-management-springboot/practice/javascript # JavaScript練習用フォルダを作成する
 ```
 
 ファイルを先に作っておきます。
 
 ```bash
-touch ~/order-management-springboot/practice/javascript/index.html
-touch ~/order-management-springboot/practice/javascript/script.js
+touch ~/order-management-springboot/practice/javascript/index.html # 画面の土台になるHTMLファイルを作成する
+touch ~/order-management-springboot/practice/javascript/script.js # JavaScriptを書くファイルを作成する
 ```
+
+Git Bashを使わない場合は、VS Code上で次のように作成しても問題ありません。
+
+1. `practice` フォルダの中に `javascript` フォルダを作る
+2. `javascript` フォルダの中に `index.html` を作る
+3. 同じ場所に `script.js` を作る
 
 VS Codeで開く（GUI）:
 1. VS Code を起動
@@ -65,15 +71,15 @@ HTMLが構造、CSSが見た目、JavaScriptが振る舞いを担当します。
 
 #### HTMLへの読み込み（最小例）
 ```html
-<!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="utf-8" />
-    <title>JavaScript 基礎</title>
-    <script src="./script.js" defer></script>
+<!doctype html> <!-- HTML5形式の文書であることをブラウザに伝える -->
+<html lang="ja"> <!-- ページ全体。lang="ja" は日本語ページであることを表す -->
+  <head> <!-- 画面には直接表示されない設定を書く領域 -->
+    <meta charset="utf-8" /> <!-- 日本語を正しく表示するための文字コード設定 -->
+    <title>JavaScript 基礎</title> <!-- ブラウザのタブに表示されるタイトル -->
+    <script src="./script.js" defer></script> <!-- script.jsをHTML読み込み後に実行する -->
   </head>
-  <body>
-    <h1>JavaScript 練習</h1>
+  <body> <!-- ブラウザ画面に表示される内容を書く領域 -->
+    <h1>JavaScript 練習</h1> <!-- 画面に表示する見出し -->
   </body>
 </html>
 ```
@@ -100,17 +106,17 @@ HTMLが構造、CSSが見た目、JavaScriptが振る舞いを担当します。
 `index.html` を次の内容で作成:
 
 ```html
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JavaScript 基礎</title>
-  <script src="./script.js" defer></script>
+<!doctype html> <!-- HTML5形式の文書であることをブラウザに伝える -->
+<html lang="ja"> <!-- ページ全体。lang="ja" は日本語ページであることを表す -->
+<head> <!-- 画面には直接表示されない設定を書く領域 -->
+  <meta charset="utf-8" /> <!-- 日本語を正しく表示するための文字コード設定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> <!-- スマホ表示時の幅を調整する設定 -->
+  <title>JavaScript 基礎</title> <!-- ブラウザのタブに表示されるタイトル -->
+  <script src="./script.js" defer></script> <!-- 同じフォルダのscript.jsをHTML読み込み後に実行する -->
 </head>
-<body>
-  <h1>JavaScript 基礎</h1>
-  <p>Consoleを開いて確認します。</p>
+<body> <!-- ブラウザ画面に表示される内容を書く領域 -->
+  <h1>JavaScript 基礎</h1> <!-- 画面に表示する見出し -->
+  <p>Consoleを開いて確認します。</p> <!-- 開発者ツールのConsoleを見ることを案内する文章 -->
 </body>
 </html>
 ```
@@ -120,7 +126,7 @@ HTMLが構造、CSSが見た目、JavaScriptが振る舞いを担当します。
 - エラーが出ていない
 
 コード解説:
-- `defer` を付けると、DOM未読込のタイミング実行を防ぎやすい
+- `defer` を付けると、HTMLを最後まで読み込んでから `script.js` が実行される
 - `meta viewport` はスマホ表示での拡大縮小崩れを防ぐ
 
 よくあるミス:
@@ -131,7 +137,7 @@ HTMLが構造、CSSが見た目、JavaScriptが振る舞いを担当します。
 `script.js` を次の内容に更新:
 
 ```javascript
-console.log("JavaScript start");
+console.log("JavaScript start"); // Consoleに文字を表示して、JavaScriptが動いているか確認する
 ```
 
 確認:
@@ -148,21 +154,21 @@ console.log("JavaScript start");
 `script.js` を次の内容に更新:
 
 ```javascript
-const workDate = "2026-02-05";
-let count = 0;
-count += 1;
+const workDate = "2026-02-05"; // const: 後から変更しない日付文字列を用意する
+let count = 0; // let: 後から変更する数値を用意する
+count += 1; // count に 1 を足して、値を 0 から 1 に更新する
 
-const isWorking = true;
-const breakMinutes = 45;
+const isWorking = true; // boolean型: 勤務中かどうかを true / false で表す
+const breakMinutes = 45; // number型: 休憩時間を分単位の数値で表す
 
-console.log("workDate:", workDate);
-console.log("count:", count);
-console.log("isWorking:", isWorking);
-console.log("breakMinutes:", breakMinutes);
+console.log("workDate:", workDate); // workDate の値を表示する
+console.log("count:", count); // count の値を表示する
+console.log("isWorking:", isWorking); // isWorking の値を表示する
+console.log("breakMinutes:", breakMinutes); // breakMinutes の値を表示する
 
-console.log("type of workDate:", typeof workDate);
-console.log("type of isWorking:", typeof isWorking);
-console.log("type of breakMinutes:", typeof breakMinutes);
+console.log("type of workDate:", typeof workDate); // workDate の型を確認する
+console.log("type of isWorking:", typeof isWorking); // isWorking の型を確認する
+console.log("type of breakMinutes:", typeof breakMinutes); // breakMinutes の型を確認する
 ```
 
 確認:
@@ -182,16 +188,16 @@ console.log("type of breakMinutes:", typeof breakMinutes);
 `script.js` を次の内容に更新:
 
 ```javascript
-const status = "WORKING";
+const status = "WORKING"; // 勤務状態を表す文字列を用意する
 
-if (status === "NOT_STARTED") {
-  console.log("まだ出勤していません");
-} else if (status === "WORKING") {
-  console.log("勤務中です");
-} else if (status === "FINISHED") {
-  console.log("退勤済みです");
-} else {
-  console.log("不明な状態です");
+if (status === "NOT_STARTED") { // status が "NOT_STARTED" と同じか判定する
+  console.log("まだ出勤していません"); // 未出勤の場合に表示する
+} else if (status === "WORKING") { // 上の条件に合わず、status が "WORKING" と同じか判定する
+  console.log("勤務中です"); // 勤務中の場合に表示する
+} else if (status === "FINISHED") { // さらに、status が "FINISHED" と同じか判定する
+  console.log("退勤済みです"); // 退勤済みの場合に表示する
+} else { // どの条件にも当てはまらない場合
+  console.log("不明な状態です"); // 想定外の値であることを表示する
 }
 ```
 
@@ -210,14 +216,14 @@ if (status === "NOT_STARTED") {
 `script.js` を次の内容に更新:
 
 ```javascript
-const operations = ["出勤", "休憩開始", "休憩終了", "退勤"];
+const operations = ["出勤", "休憩開始", "休憩終了", "退勤"]; // 勤怠操作名を配列で用意する
 
-for (const operation of operations) {
-  console.log("[for...of]", operation);
+for (const operation of operations) { // 配列から1件ずつ取り出して operation に入れる
+  console.log("[for...of]", operation); // 取り出した操作名を表示する
 }
 
-operations.forEach((operation, index) => {
-  console.log(`[forEach] ${index + 1}. ${operation}`);
+operations.forEach((operation, index) => { // 配列の各要素に対して同じ処理を実行する
+  console.log(`[forEach] ${index + 1}. ${operation}`); // indexは0始まりなので、表示用に1を足す
 });
 ```
 
@@ -225,9 +231,45 @@ operations.forEach((operation, index) => {
 - 2種類のループ結果が表示される
 
 コード解説:
-- `for...of`: 配列の要素を順番に取り出す
-- `forEach`: コールバックで配列要素を処理する
-- テンプレート文字列 `` `${...}` `` で文字列に値を埋め込める
+- `operations` は配列です。配列は、複数の値を順番に並べて持つ入れ物です
+- この例では、`"出勤"`、`"休憩開始"`、`"休憩終了"`、`"退勤"` の4つの文字列が入っています
+
+`for...of` の処理の流れ:
+
+```javascript
+for (const operation of operations) { // operations から値を1つずつ取り出す
+  console.log("[for...of]", operation); // 現在取り出している値を表示する
+}
+```
+
+- `operations` の中身を、先頭から1つずつ取り出します
+- 取り出した値は、一時的に `operation` という変数に入ります
+- 1回目は `operation` に `"出勤"` が入ります
+- 2回目は `operation` に `"休憩開始"` が入ります
+- 3回目は `operation` に `"休憩終了"` が入ります
+- 4回目は `operation` に `"退勤"` が入ります
+- 配列の最後まで処理すると、ループは自動的に終わります
+
+`forEach` の処理の流れ:
+
+```javascript
+operations.forEach((operation, index) => { // operation は現在の値、index は現在の位置
+  console.log(`[forEach] ${index + 1}. ${operation}`); // 1. 出勤 のように番号付きで表示する
+});
+```
+
+- `forEach` も、配列の中身を先頭から1つずつ処理します
+- `(operation, index) => { ... }` は、「1件ずつ処理するときに実行する関数」です
+- `operation` には、現在取り出している値が入ります
+- `index` には、現在の位置が入ります
+- `index` は `0` から始まるため、1件目の `index` は `0` です
+- 画面やConsoleに表示するときは `1. 出勤` のように見せたいので、`index + 1` にしています
+- テンプレート文字列 `` `${...}` `` を使うと、文字列の中に変数や計算結果を埋め込めます
+
+使い分け:
+- 最初は `for...of` のほうが、処理の流れを追いやすい
+- `forEach` は、配列の各要素に対して同じ処理をしたいときによく使う
+- この後のDOM操作では、複数の行やボタンに同じ処理を設定するために `forEach` を使う
 
 よくあるミス:
 - `for (const i in operations)` を使って値ではなく添字を扱ってしまう
@@ -237,15 +279,15 @@ operations.forEach((operation, index) => {
 `script.js` を次の内容に更新:
 
 ```javascript
-function formatUserLabel(user) {
-  return `${user.username} (${user.role})`;
+function formatUserLabel(user) { // ユーザー情報を受け取って表示用の文字列を作る関数
+  return `${user.username} (${user.role})`; // username と role を組み合わせた文字列を返す
 }
 
-const user1 = { username: "tanaka", role: "ROLE_USER" };
-const user2 = { username: "admin", role: "ROLE_ADMIN" };
+const user1 = { username: "tanaka", role: "ROLE_USER" }; // 1人目のユーザー情報
+const user2 = { username: "admin", role: "ROLE_ADMIN" }; // 2人目のユーザー情報
 
-console.log(formatUserLabel(user1));
-console.log(formatUserLabel(user2));
+console.log(formatUserLabel(user1)); // user1 を関数に渡して、戻り値を表示する
+console.log(formatUserLabel(user2)); // user2 を関数に渡して、戻り値を表示する
 ```
 
 確認:
@@ -264,54 +306,114 @@ console.log(formatUserLabel(user2));
 `script.js` を次の内容に更新:
 
 ```javascript
-const users = [
-  { id: 1, username: "tanaka", role: "ROLE_USER" },
-  { id: 2, username: "suzuki", role: "ROLE_USER" },
-  { id: 3, username: "admin", role: "ROLE_ADMIN" }
+const users = [ // ユーザー情報を配列で用意する
+  { id: 1, username: "tanaka", role: "ROLE_USER" }, // 1件目のユーザー
+  { id: 2, username: "suzuki", role: "ROLE_USER" }, // 2件目のユーザー
+  { id: 3, username: "admin", role: "ROLE_ADMIN" } // 3件目のユーザー
 ];
 
-const usernames = users.map((user) => user.username);
-const admins = users.filter((user) => user.role === "ROLE_ADMIN");
-const tanaka = users.find((user) => user.username === "tanaka");
+const usernames = users.map((user) => user.username); // 全ユーザーから username だけを取り出した配列を作る
+const admins = users.filter((user) => user.role === "ROLE_ADMIN"); // role が ROLE_ADMIN のユーザーだけを残す
+const tanaka = users.find((user) => user.username === "tanaka"); // username が tanaka の最初の1件を探す
 
-console.log("usernames:", usernames);
-console.log("admins:", admins);
-console.log("tanaka:", tanaka);
+console.log("usernames:", usernames); // username一覧を表示する
+console.log("admins:", admins); // 管理者ユーザーの配列を表示する
+console.log("tanaka:", tanaka); // tanakaユーザー1件を表示する
 ```
 
 確認:
 - `map` / `filter` / `find` の結果が期待通り表示される
 
+実行結果のイメージ:
+
+```text
+usernames: ["tanaka", "suzuki", "admin"]
+admins: [{ id: 3, username: "admin", role: "ROLE_ADMIN" }]
+tanaka: { id: 1, username: "tanaka", role: "ROLE_USER" }
+```
+
+ブラウザによって、配列やオブジェクトの表示形式は少し異なる場合があります。
+
 コード解説:
-- `map`: 要素を別の形に変換した新配列を作る
-- `filter`: 条件に合う要素だけを抽出
-- `find`: 最初に一致した1件を返す（見つからないと `undefined`）
+- `users` は「ユーザー情報のオブジェクト」が複数入った配列です
+- `(user) => ...` の `user` は仮引数です
+- `users` 配列から1件ずつ取り出されたデータが、一時的に `user` に入ります
+- `user.username` は、1件分のユーザーから `username` の値を取り出しています
+
+`user` に入る値のイメージ:
+
+```text
+1回目: user = { id: 1, username: "tanaka", role: "ROLE_USER" }
+2回目: user = { id: 2, username: "suzuki", role: "ROLE_USER" }
+3回目: user = { id: 3, username: "admin", role: "ROLE_ADMIN" }
+```
+
+`user` という名前は決まりではありません。
+ただし、配列の中身がユーザー情報なので、`user` と書くと読みやすくなります。
+
+「返す」の意味:
+- `const usernames = ...` の右側で処理した結果が、`usernames` に入ります
+- `const admins = ...` の右側で処理した結果が、`admins` に入ります
+- `const tanaka = ...` の右側で処理した結果が、`tanaka` に入ります
+
+`map` / `filter` / `find` の違い:
+- `map`: 全件を別の形に変換して、配列を返す
+- `filter`: 条件に合うものを集めて、配列を返す
+- `find`: 条件に合う最初の1件だけを返す
+
+このコードでは、各変数に次のような値が入ります。
+
+```javascript
+const usernames = users.map((user) => user.username); // username だけの配列を作る
+// 結果: ["tanaka", "suzuki", "admin"]
+
+const admins = users.filter((user) => user.role === "ROLE_ADMIN"); // 管理者だけを残す
+// 結果: [{ id: 3, username: "admin", role: "ROLE_ADMIN" }]
+
+const tanaka = users.find((user) => user.username === "tanaka"); // tanaka というユーザーを1件探す
+// 結果: { id: 1, username: "tanaka", role: "ROLE_USER" }
+```
+
+`filter` と `find` の使い方の違い:
+
+```javascript
+console.log(admins[0].username); // filter は配列を返すため、先頭要素を [0] で取り出してから username を読む
+console.log(tanaka.username); // find は1件のオブジェクトを返すため、そのまま username を読める
+```
+
+`filter` は1件しか見つからなくても、結果は配列です。
+`find` は配列ではなく、見つかった1件のオブジェクトを返します。
+
+見つからない場合:
+- `filter` は空配列 `[]` を返します
+- `find` は `undefined` を返します
 
 よくあるミス:
 - `filter` と `find` の戻り値の違い（配列か単一要素か）を取り違える
 - `===` の比較値が期待データと一致していない
+- `find` の結果を配列だと思って `tanaka[0]` のように書いてしまう
 
 #### Step 7: 文字列検索と組み合わせる
 `script.js` を次の内容に更新:
 
 ```javascript
-const users = [
-  { id: 1, username: "tanaka", role: "ROLE_USER" },
-  { id: 2, username: "suzuki", role: "ROLE_USER" },
-  { id: 3, username: "sato", role: "ROLE_ADMIN" },
-  { id: 4, username: "yamada", role: "ROLE_USER" }
+const users = [ // 検索対象になるユーザー一覧
+  { id: 1, username: "tanaka", role: "ROLE_USER" }, // 一般ユーザー
+  { id: 2, username: "suzuki", role: "ROLE_USER" }, // 一般ユーザー
+  { id: 3, username: "sato", role: "ROLE_ADMIN" }, // 管理者ユーザー
+  { id: 4, username: "yamada", role: "ROLE_USER" } // 一般ユーザー
 ];
 
-const keyword = "sa";
-const selectedRole = "ROLE_ADMIN";
+const keyword = "sa"; // ユーザー名に含まれるか調べる検索キーワード
+const selectedRole = "ROLE_ADMIN"; // 絞り込みたいロール
 
-const filtered = users.filter((user) => {
-  const matchedKeyword = keyword === "" || user.username.includes(keyword);
-  const matchedRole = selectedRole === "" || user.role === selectedRole;
-  return matchedKeyword && matchedRole;
+const filtered = users.filter((user) => { // users から条件に合うユーザーだけを残す
+  const matchedKeyword = keyword === "" || user.username.includes(keyword); // キーワード未指定、または名前にキーワードを含むなら true
+  const matchedRole = selectedRole === "" || user.role === selectedRole; // ロール未指定、またはロールが一致すれば true
+  return matchedKeyword && matchedRole; // 両方の条件を満たしたユーザーだけを残す
 });
 
-console.log("filtered:", filtered);
+console.log("filtered:", filtered); // 絞り込み結果を表示する
 ```
 
 確認:
@@ -322,6 +424,25 @@ console.log("filtered:", filtered);
 - 条件を分けて変数化すると読みやすい
 - 実アプリの検索/絞り込み処理の基本パターン
 
+`includes` の基本:
+- `includes` は、文字列の中に指定した文字が含まれているかを調べる
+- 含まれている場合は `true`、含まれていない場合は `false` になる
+
+```javascript
+console.log("sato".includes("sa")); // true: "sato" に "sa" が含まれる
+console.log("tanaka".includes("sa")); // false: "tanaka" に "sa" は含まれない
+console.log("sato".includes("to")); // true: "sato" に "to" が含まれる
+```
+
+今回のコードでは、`user.username.includes(keyword)` によって、ユーザー名に検索キーワードが含まれているかを確認しています。
+
+条件式の読み方:
+- `keyword === ""` は「検索キーワードが空かどうか」を判定している
+- `username.includes(keyword)` は「ユーザー名にキーワードが含まれるか」を判定している
+- `keyword === "" || username.includes(keyword)` は、「キーワードが空ならOK、または、ユーザー名にキーワードが含まれればOK」という意味
+- `selectedRole === "" || user.role === selectedRole` は、「ロール未選択ならOK、または、ユーザーのロールが選択値と一致すればOK」という意味
+- `matchedKeyword && matchedRole` は、「キーワード条件とロール条件の両方を満たす」という意味
+
 よくあるミス:
 - 大文字小文字を意識せず比較して一致しない
 - `&&` と `||` の意味を逆に使う
@@ -330,30 +451,81 @@ console.log("filtered:", filtered);
 `script.js` を次の内容にして、午前の学習を締めます。
 
 ```javascript
-const users = [
-  { id: 1, username: "tanaka", role: "ROLE_USER" },
-  { id: 2, username: "suzuki", role: "ROLE_USER" },
-  { id: 3, username: "sato", role: "ROLE_ADMIN" },
-  { id: 4, username: "yamada", role: "ROLE_USER" }
+const users = [ // 検索対象になるユーザー一覧
+  { id: 1, username: "tanaka", role: "ROLE_USER" }, // 一般ユーザー
+  { id: 2, username: "suzuki", role: "ROLE_USER" }, // 一般ユーザー
+  { id: 3, username: "sato", role: "ROLE_ADMIN" }, // 管理者ユーザー
+  { id: 4, username: "yamada", role: "ROLE_USER" } // 一般ユーザー
 ];
 
-function filterUsers(keyword, selectedRole) {
-  const normalizedKeyword = keyword.trim().toLowerCase();
+function filterUsers(keyword, selectedRole) { // キーワードとロールでユーザーを絞り込む関数
+  const normalizedKeyword = keyword.trim().toLowerCase(); // 前後の空白を消し、小文字にそろえる
 
-  return users.filter((user) => {
-    const username = user.username.toLowerCase();
-    const matchedKeyword = normalizedKeyword === "" || username.includes(normalizedKeyword);
-    const matchedRole = selectedRole === "" || user.role === selectedRole;
-    return matchedKeyword && matchedRole;
+  return users.filter((user) => { // 条件に合うユーザーだけを配列として返す
+    const username = user.username.toLowerCase(); // 比較しやすいようにユーザー名も小文字にする
+    const matchedKeyword = normalizedKeyword === "" || username.includes(normalizedKeyword); // キーワード条件に合うか判定する
+    const matchedRole = selectedRole === "" || user.role === selectedRole; // ロール条件に合うか判定する
+    return matchedKeyword && matchedRole; // 両方の条件に合うユーザーだけを残す
   });
 }
 
-const result = filterUsers("sa", "ROLE_ADMIN");
-console.log("result:", result);
+const result = filterUsers("sa", "ROLE_ADMIN"); // 名前に sa を含む ROLE_ADMIN のユーザーを探す
+console.log("result:", result); // 絞り込み結果を表示する
 ```
 
 確認:
 - 正規化（`trim` / `toLowerCase`）込みで検索できる
+
+実行結果のイメージ:
+
+```text
+result: [{ id: 3, username: "sato", role: "ROLE_ADMIN" }]
+```
+
+ブラウザによって、配列やオブジェクトの表示形式は少し異なる場合があります。
+
+コード解説:
+- Step 8は、Step 7の絞り込み処理を `filterUsers` という関数にまとめたコードです
+- `filterUsers(keyword, selectedRole)` は、検索キーワードと選択ロールを受け取る関数です
+- `const result = filterUsers("sa", "ROLE_ADMIN");` で関数を呼び出しています
+- 呼び出した結果は、`result` という変数に入ります
+
+処理の流れ:
+1. `filterUsers("sa", "ROLE_ADMIN")` が実行される
+2. `keyword` に `"sa"` が入る
+3. `selectedRole` に `"ROLE_ADMIN"` が入る
+4. `keyword.trim().toLowerCase()` で、検索キーワードを検索しやすい形に整える
+5. `users.filter(...)` で、ユーザーを1件ずつ確認する
+6. ユーザー名条件とロール条件の両方に合うユーザーだけを残す
+7. 条件に合ったユーザー配列が `return` される
+8. `return` された配列が `result` に入る
+
+正規化とは:
+- `trim()` は、文字列の前後の空白を取り除く
+- `toLowerCase()` は、英字を小文字にそろえる
+- 例えば `" SA "` は、`trim().toLowerCase()` によって `"sa"` になる
+- 入力値とユーザー名の両方を小文字にそろえることで、`"SA"` と入力しても `"sato"` に一致させやすくなる
+
+`return users.filter(...)` の意味:
+- `users.filter(...)` は、条件に合うユーザーだけを集めた配列を作る
+- `return` は、その配列を関数の呼び出し元へ返す
+- そのため、`filterUsers("sa", "ROLE_ADMIN")` の結果は配列になる
+
+条件指定の例:
+
+```javascript
+filterUsers("sa", "ROLE_ADMIN"); // 名前に "sa" を含み、ROLE_ADMIN のユーザーだけを返す
+filterUsers("sa", ""); // 名前に "sa" を含むユーザーだけを返す
+filterUsers("", "ROLE_USER"); // ROLE_USER のユーザーだけを返す
+filterUsers("", ""); // 条件を指定しないため、全ユーザーを返す
+```
+
+空文字 `""` を渡した場合は、「その条件では絞り込まない」という意味になります。
+
+よくあるミス:
+- `return users.filter(...)` の `return` を書き忘れる
+- `keyword` だけ小文字にして、`user.username` 側を小文字にし忘れる
+- `filterUsers("ROLE_ADMIN", "sa")` のように、引数の順番を逆にしてしまう
 
 ---
 
@@ -363,6 +535,9 @@ console.log("result:", result);
 DOMは、HTMLをJavaScriptから扱うための仕組みです。  
 要素を取得して、テキスト変更、表示/非表示、イベント処理を実装できます。
 
+この章では、HTMLに書いた `id` / `class` / `data-*` を目印にして、JavaScriptから画面の部品を操作します。
+最初は「HTMLのどの要素を、JavaScriptのどの変数に入れているか」を意識してください。
+
 この章では、次を実装します。
 - 検索入力 + ロール選択によるテーブル絞り込み
 - 一致件数表示
@@ -370,68 +545,102 @@ DOMは、HTMLをJavaScriptから扱うための仕組みです。
 - 削除ボタン押下時の確認ダイアログ
 
 ### 2-2. 画面の土台HTMLを作る（`index.html`）
+このStepでは、JavaScriptで操作する前の画面部品をHTMLで用意します。
+
+作成する部品:
+- ユーザー名を入力する検索欄
+- ロールを選択する絞り込み欄
+- 絞り込み後の表示件数を出す場所
+- ユーザー一覧テーブル
+- 条件に一致するユーザーがいないときのメッセージ行
+
+この時点では、入力欄や削除ボタンの**見た目だけ**を作ります。
+入力に合わせて行を非表示にする処理や、削除確認を出す処理は、次のStepで `script.js` に書きます。
+
+#### このStepでJavaScriptが使うHTMLの目印
+入力欄、プルダウン、表の構造は、HTML/CSS基礎の補足演習で確認済みの前提です。
+ここでは、次のStepでJavaScriptから操作するための目印に注目します。
+
+- `id` は、検索欄のように「1つだけ取得したい要素」に付ける
+- `class` は、ユーザー行のように「複数まとめて取得したい要素」に付ける
+- `data-*` は、JavaScriptの判定で使う値をHTML側に持たせる
+- `hidden` は、JavaScriptで表示/非表示を切り替える対象に付ける
+
+この4つが、次のStepで書くJavaScriptとHTMLをつなぐ目印になります。
+
 `index.html` を次の内容に更新:
 
 ```html
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JavaScript DOM演習</title>
-  <style>
-    body { font-family: sans-serif; margin: 24px; }
-    .container { max-width: 920px; margin: 0 auto; }
-    .row { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
-    label { display: flex; flex-direction: column; gap: 6px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { border-bottom: 1px solid #ddd; text-align: left; padding: 8px; }
-    .muted { color: #666; }
-  </style>
-  <script src="./script.js" defer></script>
-</head>
-<body>
-  <div class="container">
-    <h1>ユーザー管理（JavaScript練習）</h1>
+<!doctype html> <!-- HTML5形式の文書であることをブラウザに伝える -->
+<html lang="ja"> <!-- HTML文書全体。lang="ja" はページの言語が日本語であることを表す -->
+<head> <!-- 画面には直接表示されない、ページの設定を書く領域 -->
+  <meta charset="utf-8" /> <!-- 日本語を正しく表示するため、文字コードをUTF-8にする -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> <!-- スマホでも画面幅に合わせて表示する -->
+  <title>JavaScript DOM演習</title> <!-- ブラウザのタブに表示されるタイトル -->
 
+  <style> /* このページにだけ適用するCSSを書く領域 */
+    body { font-family: sans-serif; margin: 24px; } /* ページ全体の文字と外側の余白 */
+    .container { max-width: 920px; margin: 0 auto; } /* 内容が広がりすぎないよう中央に配置 */
+    .row { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; } /* 検索部品を横並びにする */
+    label { display: flex; flex-direction: column; gap: 6px; } /* 説明文と入力欄を縦並びにする */
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; } /* 表を画面幅に広げる */
+    th, td { border-bottom: 1px solid #ddd; text-align: left; padding: 8px; } /* 表の各セルを整える */
+    .muted { color: #666; } /* 補助的なメッセージを控えめな色にする */
+  </style>
+
+  <script src="./script.js" defer></script> <!-- 同じフォルダのJavaScriptをHTML読込後に実行する -->
+</head>
+<body> <!-- ブラウザ画面に表示される内容を書く領域 -->
+  <div class="container"> <!-- 見出し・検索欄・テーブルをまとめる外枠 -->
+    <h1>ユーザー管理（JavaScript練習）</h1> <!-- 画面の見出し -->
+
+    <!-- 検索条件を入力する領域 -->
     <section class="row">
       <label>
         ユーザー名で検索
+        <!-- JavaScriptは id を目印にして、この入力欄の値を取得する -->
         <input id="user-search-input" type="search" placeholder="例: tanaka" autocomplete="off" />
       </label>
 
       <label>
         ロールで絞り込み
+        <!-- JavaScriptは id を目印にして、現在選択されている value を取得する -->
         <select id="role-filter-select">
-          <option value="">すべて</option>
-          <option value="ROLE_USER">ROLE_USER</option>
-          <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+          <option value="">すべて</option> <!-- 空文字は「ロールで絞り込まない」ことを表す -->
+          <option value="ROLE_USER">ROLE_USER</option> <!-- 一般ユーザーだけを表示する選択値 -->
+          <option value="ROLE_ADMIN">ROLE_ADMIN</option> <!-- 管理者だけを表示する選択値 -->
         </select>
       </label>
 
+      <!-- JavaScriptが「表示件数: 3件 / 3件」のような結果を書き込む -->
       <p id="user-filter-result" class="muted"></p>
-    </section>
+    </section> <!-- 検索条件領域の終わり -->
 
+    <!-- ユーザー一覧を表示する表 -->
     <table>
-      <thead>
+      <thead> <!-- 表の見出し行をまとめる領域 -->
         <tr>
-          <th>ID</th>
-          <th>ユーザー名</th>
-          <th>ロール</th>
-          <th>操作</th>
+          <th>ID</th> <!-- 1列目: ユーザーを識別する番号 -->
+          <th>ユーザー名</th> <!-- 2列目: ログイン名 -->
+          <th>ロール</th> <!-- 3列目: 権限 -->
+          <th>操作</th> <!-- 4列目: 削除ボタン -->
         </tr>
       </thead>
-      <tbody>
+      <tbody> <!-- 実際のユーザーデータ行をまとめる領域 -->
+        <!-- class は取得対象の行である目印、data-* は絞り込み判定に使う値 -->
         <tr class="js-user-row" data-username="tanaka" data-role="ROLE_USER">
           <td>1</td>
           <td>tanaka</td>
           <td>ROLE_USER</td>
           <td>
+            <!-- JavaScriptはこの class のフォームすべてに削除確認処理を設定する -->
             <form class="js-delete-user-form" data-username="tanaka">
-              <button type="submit">削除</button>
+              <button type="submit">削除</button> <!-- 押すとフォームの submit イベントが発生する -->
             </form>
           </td>
         </tr>
+
+        <!-- 2件目のユーザーデータ行 -->
         <tr class="js-user-row" data-username="suzuki" data-role="ROLE_USER">
           <td>2</td>
           <td>suzuki</td>
@@ -442,6 +651,8 @@ DOMは、HTMLをJavaScriptから扱うための仕組みです。
             </form>
           </td>
         </tr>
+
+        <!-- 3件目のユーザーデータ行 -->
         <tr class="js-user-row" data-username="admin" data-role="ROLE_ADMIN">
           <td>3</td>
           <td>admin</td>
@@ -452,12 +663,15 @@ DOMは、HTMLをJavaScriptから扱うための仕組みです。
             </form>
           </td>
         </tr>
+
+        <!-- 条件に一致するユーザーが0件の場合だけ、JavaScriptで表示する行 -->
         <tr id="no-match-row" hidden>
+          <!-- colspan="4" によって、4列分をつなげてメッセージを表示する -->
           <td colspan="4" class="muted">条件に一致するユーザーがいません。</td>
         </tr>
       </tbody>
-    </table>
-  </div>
+    </table> <!-- ユーザー一覧表の終わり -->
+  </div> <!-- container の終わり -->
 </body>
 </html>
 ```
@@ -466,22 +680,90 @@ DOMは、HTMLをJavaScriptから扱うための仕組みです。
 - 検索欄・選択欄・テーブルが表示される
 - この時点では検索しても何も起きない（正常）
 
-コード解説:
-- `data-username` / `data-role` はJavaScript用のデータ置き場
-- `id` は1件取得、`class` は複数取得に使う
+画面の構成:
+
+| HTML | 画面での役割 |
+|---|---|
+| `<input id="user-search-input">` | ユーザー名を入力する検索欄 |
+| `<select id="role-filter-select">` | 表示するロールを選ぶ欄 |
+| `<p id="user-filter-result">` | 絞り込み後の件数を表示する場所 |
+| `<table>` | ユーザー一覧を表示する表 |
+| `<form class="js-delete-user-form">` | 行ごとの削除操作 |
+| `<tr id="no-match-row" hidden>` | 0件のときに表示するメッセージ行 |
+
+HTMLとJavaScriptをつなぐ目印:
+
+| HTMLの記述 | 意味 | 次のStepでのJavaScript処理 |
+|---|---|---|
+| `id="user-search-input"` | 検索欄を1件だけ特定する名前 | 入力された文字を取得する |
+| `id="role-filter-select"` | ロール選択欄を1件だけ特定する名前 | 選択された `value` を取得する |
+| `id="user-filter-result"` | 件数表示欄を1件だけ特定する名前 | 表示件数の文章を書き換える |
+| `class="js-user-row"` | ユーザー行に共通で付ける目印 | すべての行を取得し、表示/非表示を切り替える |
+| `data-username="tanaka"` | 行に保持するユーザー名データ | 入力されたキーワードと比較する |
+| `data-role="ROLE_USER"` | 行に保持するロールデータ | 選択されたロールと比較する |
+| `id="no-match-row"` | 0件メッセージ行の目印 | 表示件数が0件なら表示する |
+
+`id` と `class` の違い:
+- `id` は、ページ内で1つだけの要素を特定するときに使います
+- 検索欄や件数表示欄はそれぞれ1つだけなので、`id` を付けています
+- `class` は、複数の要素をまとめて扱うときに使います
+- ユーザー行や削除フォームは複数あるため、共通の `class` を付けています
+
+`data-*` の役割:
+- `<td>tanaka</td>` は、利用者に見せる文字です
+- `data-username="tanaka"` は、JavaScriptが判定で使う値です
+- 画面表示とは別に判定用データを持っておくと、JavaScriptで読み取りやすくなります
+- 次のStepでは、`data-username` を `row.dataset.username` として取得します
+- `data-role` は、`row.dataset.role` として取得します
+
+`hidden` の役割:
+- `hidden` が付いた要素は、最初は画面に表示されません
+- `no-match-row` は、通常は非表示でよいため、最初から `hidden` を付けています
+- 次のStepでは、該当データが0件になったときにJavaScriptで `hidden` を解除して表示します
+
+なぜこの時点では検索が動かないのか:
+- HTMLは、検索欄や表などの画面部品を配置しているだけです
+- 「入力されたら行を確認する」「一致しない行を隠す」という動きは、まだ書かれていません
+- 次の `script.js` のStepで、HTMLの `id` / `class` / `data-*` を使って動きを追加します
 
 よくあるミス:
 - `id` 重複（同じ `id` を複数要素につける）
+- `user-search-input` などの `id` と、JavaScript側で指定する文字列が一致していない
+- `js-user-row` を付け忘れて、絞り込み対象の行を取得できない
 - `data-role` の値と絞り込みの比較値が一致していない
+- `<option value="">すべて</option>` の `value=""` を別の値に変更して、未選択時の判定が合わなくなる
 
 ### 2-3. JavaScriptで画面を操作する（`script.js`）
 
 #### Step 0: `DOMContentLoaded` を確認
+ここから、JavaScriptでHTMLを操作する練習に入ります。
+
+最初に `document` を使います。
+`document` は自分で定義する変数ではなく、ブラウザが最初から用意しているオブジェクトです。
+
+`document` は、**今ブラウザで開いているHTMLページ全体**を表します。
+
+例えば、次のように考えると分かりやすいです。
+
+```javascript
+document.getElementById("user-search-input");
+```
+
+これは、次の意味です。
+
+```text
+今開いているHTMLページ全体の中から、
+id="user-search-input" の要素を探す
+```
+
+`console.log(...)` の `console` も、ブラウザが用意しているオブジェクトです。
+同じように、`document` もブラウザが用意しているため、自分で `const document = ...` のように定義しなくても使えます。
+
 `script.js` を次の内容に更新:
 
 ```javascript
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM読み込み完了");
+document.addEventListener("DOMContentLoaded", () => { // HTMLの読み込みが終わってから中の処理を実行する
+  console.log("DOM読み込み完了"); // DOM操作を始められる状態になったことをConsoleに表示する
 });
 ```
 
@@ -489,29 +771,33 @@ document.addEventListener("DOMContentLoaded", () => {
 - Consoleに `DOM読み込み完了` が表示される
 
 コード解説:
-- HTMLの要素取得はDOM読み込み後に行うと安全
+- `document` は、ブラウザで開いているHTMLページ全体を表す
+- `document.addEventListener(...)` は、HTMLページ全体に対してイベント処理を登録する書き方
+- `DOMContentLoaded` は、HTMLの読み込みが終わったタイミングで発火するイベント
+- HTMLの要素をJavaScriptで取得する処理は、このイベントの中に書くと安全
+- `defer` を付けていても、DOM操作に慣れるまではこの形で書くと処理順を把握しやすい
 
 #### Step 1: 要素取得とガード節
 `script.js` を次の内容に更新:
 
 ```javascript
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("user-search-input");
-  const roleSelect = document.getElementById("role-filter-select");
-  const resultText = document.getElementById("user-filter-result");
-  const noMatchRow = document.getElementById("no-match-row");
-  const rows = Array.from(document.querySelectorAll("tr.js-user-row"));
+document.addEventListener("DOMContentLoaded", () => { // HTMLの読み込み完了後にDOM操作を始める
+  const searchInput = document.getElementById("user-search-input"); // ユーザー名検索欄を取得する
+  const roleSelect = document.getElementById("role-filter-select"); // ロール選択欄を取得する
+  const resultText = document.getElementById("user-filter-result"); // 件数表示用のp要素を取得する
+  const noMatchRow = document.getElementById("no-match-row"); // 0件メッセージ行を取得する
+  const rows = Array.from(document.querySelectorAll("tr.js-user-row")); // ユーザー行をすべて取得し、配列に変換する
 
-  if (!(searchInput instanceof HTMLInputElement) ||
-      !(roleSelect instanceof HTMLSelectElement) ||
-      !(resultText instanceof HTMLElement) ||
-      !(noMatchRow instanceof HTMLTableRowElement) ||
-      rows.length === 0) {
-    console.log("必要要素が見つからないため終了");
-    return;
+  if (!(searchInput instanceof HTMLInputElement) || // 検索欄がinput要素でなければ異常
+      !(roleSelect instanceof HTMLSelectElement) || // ロール欄がselect要素でなければ異常
+      !(resultText instanceof HTMLElement) || // 件数表示欄がHTML要素でなければ異常
+      !(noMatchRow instanceof HTMLTableRowElement) || // 0件行がtr要素でなければ異常
+      rows.length === 0) { // ユーザー行が1件も取得できなければ異常
+    console.log("必要要素が見つからないため終了"); // 異常時の確認メッセージ
+    return; // 以降の処理を実行せずに終了する
   }
 
-  console.log("要素取得OK", { rowCount: rows.length });
+  console.log("要素取得OK", { rowCount: rows.length }); // 取得できた行数を表示する
 });
 ```
 
@@ -519,8 +805,17 @@ document.addEventListener("DOMContentLoaded", () => {
 - Consoleに `要素取得OK` と件数が表示される
 
 コード解説:
-- `instanceof` で型を確認し、安全に処理できる
-- ガード節（早期 `return`）でエラー連鎖を防ぐ
+- `document.getElementById("user-search-input")` は、`id="user-search-input"` の要素を1件取得する
+- `document.querySelectorAll("tr.js-user-row")` は、`class="js-user-row"` が付いた `tr` 要素をすべて取得する
+- `querySelectorAll` の結果は配列そのものではないため、`Array.from(...)` で配列に変換している
+- `instanceof HTMLInputElement` は、「取得した要素が input かどうか」を確認している
+- `instanceof HTMLSelectElement` は、「取得した要素が select かどうか」を確認している
+- ガード節（早期 `return`）は、必要な要素が見つからない場合に処理をそこで止める書き方
+- 途中で処理を止めることで、存在しない要素を操作してエラーになるのを防ぐ
+
+ガード節の考え方:
+- 要素が正しく取得できた場合: `if` の中には入らず、下の処理へ進む
+- 要素が見つからない場合: Consoleにメッセージを出して `return` で終了する
 
 よくあるミス:
 - `querySelectorAll` のセレクタが間違って `rows.length === 0`
@@ -530,44 +825,44 @@ document.addEventListener("DOMContentLoaded", () => {
 `script.js` を次の内容に更新:
 
 ```javascript
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("user-search-input");
-  const roleSelect = document.getElementById("role-filter-select");
-  const resultText = document.getElementById("user-filter-result");
-  const noMatchRow = document.getElementById("no-match-row");
-  const rows = Array.from(document.querySelectorAll("tr.js-user-row"));
+document.addEventListener("DOMContentLoaded", () => { // HTMLの読み込み完了後にDOM操作を始める
+  const searchInput = document.getElementById("user-search-input"); // ユーザー名検索欄を取得する
+  const roleSelect = document.getElementById("role-filter-select"); // ロール選択欄を取得する
+  const resultText = document.getElementById("user-filter-result"); // 件数表示用のp要素を取得する
+  const noMatchRow = document.getElementById("no-match-row"); // 0件メッセージ行を取得する
+  const rows = Array.from(document.querySelectorAll("tr.js-user-row")); // ユーザー行をすべて取得し、配列に変換する
 
-  if (!(searchInput instanceof HTMLInputElement) ||
-      !(roleSelect instanceof HTMLSelectElement) ||
-      !(resultText instanceof HTMLElement) ||
-      !(noMatchRow instanceof HTMLTableRowElement) ||
-      rows.length === 0) {
-    return;
+  if (!(searchInput instanceof HTMLInputElement) || // 検索欄がinput要素でなければ終了する
+      !(roleSelect instanceof HTMLSelectElement) || // ロール欄がselect要素でなければ終了する
+      !(resultText instanceof HTMLElement) || // 件数表示欄がHTML要素でなければ終了する
+      !(noMatchRow instanceof HTMLTableRowElement) || // 0件行がtr要素でなければ終了する
+      rows.length === 0) { // ユーザー行がない場合は終了する
+    return; // 必要な要素がない状態で処理を続けない
   }
 
-  const applyFilter = () => {
-    const keyword = searchInput.value.trim().toLowerCase();
-    const selectedRole = roleSelect.value;
-    let visibleCount = 0;
+  const applyFilter = () => { // 現在の入力条件でテーブルを絞り込む関数
+    const keyword = searchInput.value.trim().toLowerCase(); // 検索欄の値を空白除去・小文字化して取得する
+    const selectedRole = roleSelect.value; // 選択中のロール値を取得する
+    let visibleCount = 0; // 表示している行数を数える変数
 
-    rows.forEach((row) => {
-      const username = (row.dataset.username || "").toLowerCase();
-      const role = row.dataset.role || "";
-      const matchedKeyword = keyword === "" || username.includes(keyword);
-      const matchedRole = selectedRole === "" || role === selectedRole;
-      const visible = matchedKeyword && matchedRole;
+    rows.forEach((row) => { // ユーザー行を1行ずつ確認する
+      const username = (row.dataset.username || "").toLowerCase(); // 行のdata-usernameを取得して小文字化する
+      const role = row.dataset.role || ""; // 行のdata-roleを取得する
+      const matchedKeyword = keyword === "" || username.includes(keyword); // キーワード未入力、または名前に含まれればtrue
+      const matchedRole = selectedRole === "" || role === selectedRole; // ロール未選択、または一致すればtrue
+      const visible = matchedKeyword && matchedRole; // 両方の条件に合う場合だけ表示対象にする
 
-      row.hidden = !visible;
-      if (visible) {
-        visibleCount += 1;
+      row.hidden = !visible; // visible が false の行は hidden で非表示にする
+      if (visible) { // 表示対象の行だけ件数に加える
+        visibleCount += 1; // 表示件数を1増やす
       }
     });
 
-    noMatchRow.hidden = visibleCount > 0;
-    resultText.textContent = `表示件数: ${visibleCount}件 / ${rows.length}件`;
+    noMatchRow.hidden = visibleCount > 0; // 表示件数が0なら0件メッセージを表示する
+    resultText.textContent = `表示件数: ${visibleCount}件 / ${rows.length}件`; // 件数表示を更新する
   };
 
-  applyFilter();
+  applyFilter(); // 初期表示時にも件数と表示状態を更新する
 });
 ```
 
@@ -580,6 +875,25 @@ document.addEventListener("DOMContentLoaded", () => {
 - `hidden` を `true/false` で切り替えて表示制御できる
 - `.trim().toLowerCase()` で入力ゆれを吸収できる
 
+処理の流れ:
+1. 検索欄の値を `keyword` に入れる
+2. ロール選択欄の値を `selectedRole` に入れる
+3. `rows.forEach` で、テーブルの行を1行ずつ確認する
+4. その行の `data-username` と `data-role` を取り出す
+5. ユーザー名条件に合うかを `matchedKeyword` に入れる
+6. ロール条件に合うかを `matchedRole` に入れる
+7. 両方に合う場合だけ `visible` が `true` になる
+8. `row.hidden = !visible` で、表示するか非表示にするかを切り替える
+9. 表示した行の数を `visibleCount` で数える
+
+`row.hidden = !visible` の読み方:
+- `visible` が `true` のとき、`!visible` は `false` になるため、行は表示される
+- `visible` が `false` のとき、`!visible` は `true` になるため、行は非表示になる
+
+`|| ""` の意味:
+- `row.dataset.username` が取得できない場合でも、空文字 `""` として扱う
+- これにより、`toLowerCase()` を呼び出したときのエラーを防ぎやすくなる
+
 よくあるミス:
 - `row.dataSet` と書いてしまう（正しくは `dataset`）
 - `rows` が `NodeList` のままで配列メソッド制限に引っかかる
@@ -588,45 +902,45 @@ document.addEventListener("DOMContentLoaded", () => {
 `script.js` を次の内容に更新:
 
 ```javascript
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("user-search-input");
-  const roleSelect = document.getElementById("role-filter-select");
-  const resultText = document.getElementById("user-filter-result");
-  const noMatchRow = document.getElementById("no-match-row");
-  const rows = Array.from(document.querySelectorAll("tr.js-user-row"));
+document.addEventListener("DOMContentLoaded", () => { // HTMLの読み込み完了後にDOM操作を始める
+  const searchInput = document.getElementById("user-search-input"); // ユーザー名検索欄を取得する
+  const roleSelect = document.getElementById("role-filter-select"); // ロール選択欄を取得する
+  const resultText = document.getElementById("user-filter-result"); // 件数表示用のp要素を取得する
+  const noMatchRow = document.getElementById("no-match-row"); // 0件メッセージ行を取得する
+  const rows = Array.from(document.querySelectorAll("tr.js-user-row")); // ユーザー行をすべて取得し、配列に変換する
 
-  if (!(searchInput instanceof HTMLInputElement) ||
-      !(roleSelect instanceof HTMLSelectElement) ||
-      !(resultText instanceof HTMLElement) ||
-      !(noMatchRow instanceof HTMLTableRowElement) ||
-      rows.length === 0) {
-    return;
+  if (!(searchInput instanceof HTMLInputElement) || // 検索欄がinput要素でなければ終了する
+      !(roleSelect instanceof HTMLSelectElement) || // ロール欄がselect要素でなければ終了する
+      !(resultText instanceof HTMLElement) || // 件数表示欄がHTML要素でなければ終了する
+      !(noMatchRow instanceof HTMLTableRowElement) || // 0件行がtr要素でなければ終了する
+      rows.length === 0) { // ユーザー行がない場合は終了する
+    return; // 必要な要素がない状態で処理を続けない
   }
 
-  const applyFilter = () => {
-    const keyword = searchInput.value.trim().toLowerCase();
-    const selectedRole = roleSelect.value;
-    let visibleCount = 0;
+  const applyFilter = () => { // 現在の入力条件でテーブルを絞り込む関数
+    const keyword = searchInput.value.trim().toLowerCase(); // 検索欄の値を空白除去・小文字化して取得する
+    const selectedRole = roleSelect.value; // 選択中のロール値を取得する
+    let visibleCount = 0; // 表示している行数を数える変数
 
-    rows.forEach((row) => {
-      const username = (row.dataset.username || "").toLowerCase();
-      const role = row.dataset.role || "";
-      const matchedKeyword = keyword === "" || username.includes(keyword);
-      const matchedRole = selectedRole === "" || role === selectedRole;
-      const visible = matchedKeyword && matchedRole;
-      row.hidden = !visible;
-      if (visible) {
-        visibleCount += 1;
+    rows.forEach((row) => { // ユーザー行を1行ずつ確認する
+      const username = (row.dataset.username || "").toLowerCase(); // 行のdata-usernameを取得して小文字化する
+      const role = row.dataset.role || ""; // 行のdata-roleを取得する
+      const matchedKeyword = keyword === "" || username.includes(keyword); // キーワード条件に合うか判定する
+      const matchedRole = selectedRole === "" || role === selectedRole; // ロール条件に合うか判定する
+      const visible = matchedKeyword && matchedRole; // 両方の条件に合う場合だけ表示対象にする
+      row.hidden = !visible; // 条件に合わない行を非表示にする
+      if (visible) { // 表示対象の行だけ件数に加える
+        visibleCount += 1; // 表示件数を1増やす
       }
     });
 
-    noMatchRow.hidden = visibleCount > 0;
-    resultText.textContent = `表示件数: ${visibleCount}件 / ${rows.length}件`;
+    noMatchRow.hidden = visibleCount > 0; // 表示件数が0なら0件メッセージを表示する
+    resultText.textContent = `表示件数: ${visibleCount}件 / ${rows.length}件`; // 件数表示を更新する
   };
 
-  searchInput.addEventListener("input", applyFilter);
-  roleSelect.addEventListener("change", applyFilter);
-  applyFilter();
+  searchInput.addEventListener("input", applyFilter); // 入力欄に文字が入力されるたびに絞り込みを実行する
+  roleSelect.addEventListener("change", applyFilter); // ロール選択が変わるたびに絞り込みを実行する
+  applyFilter(); // 初期表示時にも件数と表示状態を更新する
 });
 ```
 
@@ -638,69 +952,72 @@ document.addEventListener("DOMContentLoaded", () => {
 コード解説:
 - `input`: 文字入力のたびに発火
 - `change`: 選択値が変わったタイミングで発火
+- `addEventListener("input", applyFilter)` は、「入力されたら `applyFilter` を実行する」という意味
+- Step 2では最初の1回だけ `applyFilter()` を実行していた
+- Step 3では、ユーザー操作のたびに `applyFilter()` が実行されるようにしている
 
 #### Step 4: 削除確認ダイアログを追加（`submit` + `confirm`）
 `script.js` を次の内容に更新:
 
 ```javascript
-document.addEventListener("DOMContentLoaded", () => {
-  setupDeleteConfirmation();
-  setupUserTableFilter();
+document.addEventListener("DOMContentLoaded", () => { // HTMLの読み込み完了後に初期設定を行う
+  setupDeleteConfirmation(); // 削除フォームに確認ダイアログを設定する
+  setupUserTableFilter(); // ユーザー一覧の検索・絞り込みを設定する
 });
 
-function setupDeleteConfirmation() {
-  const deleteForms = document.querySelectorAll("form.js-delete-user-form");
+function setupDeleteConfirmation() { // 削除確認ダイアログを設定する関数
+  const deleteForms = document.querySelectorAll("form.js-delete-user-form"); // 削除フォームをすべて取得する
 
-  deleteForms.forEach((form) => {
-    form.addEventListener("submit", (event) => {
-      const username = form.dataset.username || "このユーザー";
-      const accepted = window.confirm(`ユーザー「${username}」を削除します。よろしいですか？`);
-      if (!accepted) {
-        event.preventDefault();
+  deleteForms.forEach((form) => { // 各削除フォームに同じ処理を設定する
+    form.addEventListener("submit", (event) => { // フォーム送信時に実行する処理
+      const username = form.dataset.username || "このユーザー"; // data-username からユーザー名を取得する
+      const accepted = window.confirm(`ユーザー「${username}」を削除します。よろしいですか？`); // 確認ダイアログを表示する
+      if (!accepted) { // キャンセルされた場合
+        event.preventDefault(); // フォーム送信を止める
       }
     });
   });
 }
 
-function setupUserTableFilter() {
-  const searchInput = document.getElementById("user-search-input");
-  const roleSelect = document.getElementById("role-filter-select");
-  const resultText = document.getElementById("user-filter-result");
-  const noMatchRow = document.getElementById("no-match-row");
-  const rows = Array.from(document.querySelectorAll("tr.js-user-row"));
+function setupUserTableFilter() { // ユーザー一覧の絞り込みを設定する関数
+  const searchInput = document.getElementById("user-search-input"); // ユーザー名検索欄を取得する
+  const roleSelect = document.getElementById("role-filter-select"); // ロール選択欄を取得する
+  const resultText = document.getElementById("user-filter-result"); // 件数表示用のp要素を取得する
+  const noMatchRow = document.getElementById("no-match-row"); // 0件メッセージ行を取得する
+  const rows = Array.from(document.querySelectorAll("tr.js-user-row")); // ユーザー行をすべて取得し、配列に変換する
 
-  if (!(searchInput instanceof HTMLInputElement) ||
-      !(roleSelect instanceof HTMLSelectElement) ||
-      !(resultText instanceof HTMLElement) ||
-      !(noMatchRow instanceof HTMLTableRowElement) ||
-      rows.length === 0) {
-    return;
+  if (!(searchInput instanceof HTMLInputElement) || // 検索欄がinput要素でなければ終了する
+      !(roleSelect instanceof HTMLSelectElement) || // ロール欄がselect要素でなければ終了する
+      !(resultText instanceof HTMLElement) || // 件数表示欄がHTML要素でなければ終了する
+      !(noMatchRow instanceof HTMLTableRowElement) || // 0件行がtr要素でなければ終了する
+      rows.length === 0) { // ユーザー行がない場合は終了する
+    return; // 必要な要素がない状態で処理を続けない
   }
 
-  const applyFilter = () => {
-    const keyword = searchInput.value.trim().toLowerCase();
-    const selectedRole = roleSelect.value;
-    let visibleCount = 0;
+  const applyFilter = () => { // 現在の入力条件でテーブルを絞り込む関数
+    const keyword = searchInput.value.trim().toLowerCase(); // 検索欄の値を空白除去・小文字化して取得する
+    const selectedRole = roleSelect.value; // 選択中のロール値を取得する
+    let visibleCount = 0; // 表示している行数を数える変数
 
-    rows.forEach((row) => {
-      const username = (row.dataset.username || "").toLowerCase();
-      const role = row.dataset.role || "";
-      const matchedKeyword = keyword === "" || username.includes(keyword);
-      const matchedRole = selectedRole === "" || role === selectedRole;
-      const visible = matchedKeyword && matchedRole;
-      row.hidden = !visible;
-      if (visible) {
-        visibleCount += 1;
+    rows.forEach((row) => { // ユーザー行を1行ずつ確認する
+      const username = (row.dataset.username || "").toLowerCase(); // 行のdata-usernameを取得して小文字化する
+      const role = row.dataset.role || ""; // 行のdata-roleを取得する
+      const matchedKeyword = keyword === "" || username.includes(keyword); // キーワード条件に合うか判定する
+      const matchedRole = selectedRole === "" || role === selectedRole; // ロール条件に合うか判定する
+      const visible = matchedKeyword && matchedRole; // 両方の条件に合う場合だけ表示対象にする
+      row.hidden = !visible; // 条件に合わない行を非表示にする
+      if (visible) { // 表示対象の行だけ件数に加える
+        visibleCount += 1; // 表示件数を1増やす
       }
     });
 
-    noMatchRow.hidden = visibleCount > 0;
-    resultText.textContent = `表示件数: ${visibleCount}件 / ${rows.length}件`;
+    noMatchRow.hidden = visibleCount > 0; // 表示件数が0なら0件メッセージを表示する
+    resultText.textContent = `表示件数: ${visibleCount}件 / ${rows.length}件`; // 件数表示を更新する
   };
 
-  searchInput.addEventListener("input", applyFilter);
-  roleSelect.addEventListener("change", applyFilter);
-  applyFilter();
+  searchInput.addEventListener("input", applyFilter); // 入力欄に文字が入力されるたびに絞り込みを実行する
+  roleSelect.addEventListener("change", applyFilter); // ロール選択が変わるたびに絞り込みを実行する
+  applyFilter(); // 初期表示時にも件数と表示状態を更新する
 }
 ```
 
@@ -713,6 +1030,17 @@ function setupUserTableFilter() {
 - `submit` イベントでフォーム送信を捕捉できる
 - `event.preventDefault()` で既定動作（送信）を止められる
 - `dataset.username` で確認文言を動的に生成できる
+- `setupDeleteConfirmation()` は、削除フォームに確認ダイアログを設定する関数
+- `setupUserTableFilter()` は、検索と絞り込みを設定する関数
+- 役割ごとに関数を分けると、どこに何の処理があるか追いやすくなる
+
+削除確認の流れ:
+1. 削除ボタンを押す
+2. フォームの `submit` イベントが発火する
+3. `window.confirm(...)` で確認ダイアログを表示する
+4. キャンセルされた場合、`accepted` が `false` になる
+5. `event.preventDefault()` で送信を止める
+6. OKされた場合は、送信を止めずに通常の送信処理へ進む
 
 よくあるミス:
 - `button` が `type="button"` になっていて `submit` が発火しない
@@ -736,10 +1064,10 @@ Step 4のコードがそのまま最終形です。
 
 1. 次の配列を作る
    ```javascript
-   const attendances = [
-     { username: "tanaka", status: "WORKING", minutes: 120 },
-     { username: "suzuki", status: "FINISHED", minutes: 480 },
-     { username: "sato", status: "WORKING", minutes: 240 }
+   const attendances = [ // 勤怠データを配列で用意する
+     { username: "tanaka", status: "WORKING", minutes: 120 }, // tanaka は勤務中で120分勤務
+     { username: "suzuki", status: "FINISHED", minutes: 480 }, // suzuki は退勤済みで480分勤務
+     { username: "sato", status: "WORKING", minutes: 240 } // sato は勤務中で240分勤務
    ];
    ```
 2. `WORKING` のユーザーだけ `filter` で抽出する
@@ -771,7 +1099,40 @@ Step 4のコードがそのまま最終形です。
 ## 5. ミニ制作（30〜45分）
 テーマ: **ユーザー管理ミニ画面（ローカル版）**
 
-実装要件:
+### 5-1. 実装前に知っておくこと
+ミニ制作では、ここまでの検索・絞り込みに加えて、JavaScriptでテーブル行を追加します。
+画面に要素を追加するときは、次の流れで考えます。
+
+1. 配列に新しいユーザーデータを追加する
+2. 画面のテーブル表示を作り直す
+3. 検索条件に合うユーザーだけを表示する
+
+テーブル行を追加する最小例:
+
+```javascript
+const row = document.createElement("tr"); // 新しいテーブル行 tr を作る
+const usernameCell = document.createElement("td"); // ユーザー名を表示するセル td を作る
+
+usernameCell.textContent = "tanaka"; // セルに表示する文字を設定する
+row.appendChild(usernameCell); // 作成したセルを行の中に追加する
+tableBody.appendChild(row); // 作成した行をテーブル本体に追加する
+```
+
+コード解説:
+- `document.createElement("tr")` で、新しい `tr` 要素を作る
+- `document.createElement("td")` で、新しい `td` 要素を作る
+- `textContent` で、セルに表示する文字を設定する
+- `appendChild` で、親要素の中に子要素を追加する
+- 実際の制作では、ユーザー1件につき `tr` を1つ作り、その中に `td` を追加していく
+
+作り方の目安:
+- `users` 配列にユーザー一覧を持たせる
+- 追加フォームが送信されたら、`users.push(...)` で配列に追加する
+- `renderUsers()` のような関数で、配列からテーブルを描画する
+- 検索や削除の後も、同じ `renderUsers()` を呼び出して画面を更新する
+
+### 5-2. 実装要件
+
 - ユーザー作成フォーム（ユーザー名 / ロール）
 - 追加ボタンでテーブルに新規行を追加（ページ再読込なし）
 - 検索とロール絞り込みが動作する
