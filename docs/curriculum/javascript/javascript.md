@@ -302,6 +302,105 @@ console.log(formatUserLabel(user2)); // user2 を関数に渡して、戻り値�
 - `return` を書き忘れて `undefined` になる
 - `username` と `userName` のように表記揺れする
 
+#### 補足: アロー関数（`=>`）の基本
+JavaScriptでは、`function` 以外にも、アロー関数という書き方で関数を作れます。
+
+この後の `map` / `filter` / `find` やDOM操作では、アロー関数がよく出てきます。
+ここで `function` との違いを一度確認しておきます。
+
+まず、Step 5で書いた `function` 版です。
+
+```javascript
+function formatUserLabel(user) { // function を使って formatUserLabel という関数を作る
+  return `${user.username} (${user.role})`; // 表示用の文字列を返す
+}
+```
+
+同じ処理は、アロー関数で次のように書けます。
+
+```javascript
+const formatUserLabelArrow = (user) => { // formatUserLabelArrow という変数に関数を入れる
+  return `${user.username} (${user.role})`; // 表示用の文字列を返す
+};
+```
+
+このコードは、次のように読みます。
+
+```text
+formatUserLabelArrow という名前の変数に、
+user を受け取って表示用文字列を返す関数を入れる
+```
+
+アロー関数の形:
+
+```javascript
+const 関数名 = (引数) => {
+  // 実行する処理
+};
+```
+
+それぞれの意味:
+- `const 関数名 =`: 関数を入れる変数を用意する
+- `(引数)`: 関数に渡される値を書く
+- `=>`: ここから関数の処理を書く、という記号
+- `{ ... }`: 関数が実行されたときの処理を書く
+
+実行方法は、`function` 版と同じです。
+
+```javascript
+const user = { username: "tanaka", role: "ROLE_USER" }; // 関数に渡すユーザー情報
+
+console.log(formatUserLabel(user)); // function 版の関数を呼び出す
+console.log(formatUserLabelArrow(user)); // アロー関数版の関数を呼び出す
+```
+
+戻り値をすぐ返すだけなら、さらに短く書くこともできます。
+
+```javascript
+const formatUserLabelShort = (user) => `${user.username} (${user.role})`; // return と {} を省略した短い書き方
+
+console.log(formatUserLabelShort(user)); // 短いアロー関数を呼び出す
+```
+
+3つの書き方の比較:
+
+| 書き方 | 例 | 特徴 |
+|---|---|---|
+| `function 関数名(...) { ... }` | `function formatUserLabel(user) { ... }` | 基本形。初学者には処理の範囲が見えやすい |
+| `const 関数名 = (...) => { ... };` | `const formatUserLabelArrow = (user) => { ... };` | 関数を変数に入れる書き方 |
+| `(user) => user.username` | `users.map((user) => user.username)` | 1行で値を返す短い書き方 |
+
+この後に出てくる書き方:
+
+```javascript
+const applyFilter = () => { // applyFilter という変数に、引数なしの関数を入れる
+  // 絞り込み処理を書く
+};
+```
+
+これは、次のように読むと分かりやすいです。
+
+```text
+applyFilter という名前で、あとから呼び出せる処理を作っている
+```
+
+`function` で書くと、ほぼ同じ意味のコードは次のようになります。
+
+```javascript
+function applyFilter() { // function を使って applyFilter という関数を作る
+  // 絞り込み処理を書く
+}
+```
+
+この教材では、配列処理やイベント処理でよく使われる書き方に慣れるため、アロー関数も使います。
+まずは、`=>` が出てきたら「関数を書いている」と読めれば問題ありません。
+
+よくあるミス:
+- `=>` を比較記号だと思ってしまう
+- `const applyFilter = () => { ... };` の最後の `;` を忘れる
+- `applyFilter` と `applyFilter()` の違いを混同する
+- 複数行の処理なのに `return` を書き忘れる
+
 #### Step 6: 配列とオブジェクトを扱う
 `script.js` を次の内容に更新:
 
@@ -778,6 +877,16 @@ document.addEventListener("DOMContentLoaded", () => { // HTMLの読み込みが�
 - `defer` を付けていても、DOM操作に慣れるまではこの形で書くと処理順を把握しやすい
 
 #### Step 1: 要素取得とガード節
+ここでいうガード節とは、本来の処理に入る前に「このまま処理を続けてもよいか」を確認し、問題があれば早めに `return` で終了する書き方です。
+
+今回のようにJavaScriptでHTML要素を操作する場合、HTML側の `id` や `class` を書き間違えると、JavaScriptは目的の要素を取得できません。
+
+例えば、検索欄を取得できなかった場合、`searchInput` にはHTML要素ではなく `null` が入ります。  
+その状態で `searchInput.value` のように値を読もうとすると、存在しないものから値を読もうとしてエラーになります。
+
+そのため、Step 1では最初に必要な要素が取得できているか確認します。  
+確認に通った場合だけ、Step 2以降の絞り込み処理へ進めるようにします。
+
 `script.js` を次の内容に更新:
 
 ```javascript
