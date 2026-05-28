@@ -132,13 +132,48 @@ HTMLには、次のような行があります。
 
 そのため、3件の行が見つかります。
 
-`querySelectorAll` の結果は、厳密には普通の配列ではありません。（HTML要素の集まり）  
+`querySelectorAll` の結果は、厳密には普通の配列ではありません。（配列の処理で使用したい機能が使えない）  
 そこで、`Array.from(...)` を使って配列に変換しています。
 
 意味:
 - ユーザー行を全部探す
 - 配列に変換する
 - `rows` に入れる
+
+## getElementById と querySelectorAll の違い
+
+ここまでで、HTML要素を取得する方法が2種類出てきました。
+
+```javascript
+document.getElementById("user-search-input")
+```
+
+`getElementById(...)` は、`id` に一致する要素を1件取得します。
+
+```text
+getElementById(...)
+→ idに一致する要素を1件取得する
+→ Array.from は不要
+```
+
+一方、次のコードは複数の要素を取得します。
+
+```javascript
+document.querySelectorAll("tr.js-user-row")
+```
+
+`querySelectorAll(...)` は、条件に一致する要素をすべて取得します。  
+その結果は `NodeList` になります。
+
+```text
+querySelectorAll(...)
+→ 条件に一致する要素を複数件取得する
+→ NodeListになる
+→ 必要なら Array.from で配列に変換する
+```
+
+今回のコードでは、検索欄やロール選択欄は1つだけなので `getElementById(...)` を使っています。  
+ユーザー行は複数あるため `querySelectorAll(...)` を使い、`Array.from(...)` で配列に変換しています。
 
 ## ガード節の概要
 
