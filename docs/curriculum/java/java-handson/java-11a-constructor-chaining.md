@@ -28,6 +28,74 @@ javac -version
 3. `this(...)` はコンストラクタの先頭に1回だけ書ける
 4. コンストラクタを1つも定義しないときだけ、引数なしコンストラクタが自動補完される
 
+### 書式の基本
+
+#### コンストラクタのオーバーロード
+
+```java
+class Product {
+    String name;
+    int price;
+
+    Product() {
+        this.name = "UNKNOWN";
+        this.price = 0;
+    }
+
+    Product(String name) {
+        this.name = name;
+        this.price = 0;
+    }
+
+    Product(String name, int price) {
+        this.name = name;
+        this.price = price;
+    }
+}
+```
+
+ポイント:
+- コンストラクタも、引数の数や型が違えば複数定義できる
+- `new Product()`、`new Product("Mouse")`、`new Product("Keyboard", 5000)` のように呼び分けできる
+- 戻り値の型は書かない
+
+#### `this(...)` によるコンストラクタ連鎖
+
+```java
+Product() {
+    this("UNKNOWN", 0);
+}
+
+Product(String name) {
+    this(name, 0);
+}
+
+Product(String name, int price) {
+    this.name = name;
+    this.price = price;
+}
+```
+
+ポイント:
+- `this(...)` は同じクラスの別コンストラクタを呼ぶ
+- 共通の初期化処理を1か所に集約できる
+- `this(...)` はコンストラクタの先頭に1回だけ書ける
+
+#### デフォルトコンストラクタ
+
+```java
+class User {
+    String name;
+}
+
+User user = new User();
+```
+
+ポイント:
+- コンストラクタを1つも書かない場合だけ、引数なしコンストラクタが自動で補われる
+- 引数ありコンストラクタを1つでも書くと、引数なしコンストラクタは自動補完されない
+- `new User()` を使いたい場合は、必要に応じて `User() {}` を自分で定義する
+
 ---
 
 ## 4. ハンズオン
@@ -186,9 +254,27 @@ constructor User in class User cannot be applied to given types
 ---
 
 ## 5. ミニ演習（10分）
+### レベル1（基本）
 1. `Product(String name, int price, int quantity)` を追加し、他のコンストラクタから `this(...)` で委譲する。
-2. Step 3 の `User` に引数なしコンストラクタを追加して `new User()` を成功させる。
-3. `this(...)` の前に代入文を書いてコンパイルエラーを確認する。
+
+期待出力例:
+```text
+Keyboard / 5000 / 2
+```
+
+### レベル2（拡張）
+1. Step 3 の `User` に引数なしコンストラクタを追加して `new User()` を成功させる。
+
+期待出力例:
+```text
+guest
+```
+
+### レベル3（実務）
+1. `this(...)` の前に代入文を書いてコンパイルエラーを確認する。
+
+期待結果:
+- `call to this must be first statement in constructor` のようなエラーが表示される
 
 ---
 

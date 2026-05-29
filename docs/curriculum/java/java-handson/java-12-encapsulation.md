@@ -27,6 +27,69 @@ javac -version
 2. getter/setter でアクセスを制御する
 3. setter 内でバリデーションすると不正状態を防げる
 
+### 書式の基本
+
+#### `private` フィールド
+
+```java
+public class UserAccount {
+    private String username;
+    private int age;
+}
+```
+
+ポイント:
+- `private` を付けたフィールドは、同じクラス内からだけ直接アクセスできる
+- クラス外から `user.username` のように直接変更できない
+- 不正な値を勝手に入れられないようにするための基本形
+
+#### getter / setter
+
+```java
+public String getUsername() {
+    return username;
+}
+
+public void setUsername(String username) {
+    this.username = username;
+}
+```
+
+ポイント:
+- getter はフィールドの値を返すメソッド
+- setter はフィールドの値を変更するメソッド
+- `this.username` はフィールド、右辺の `username` は引数
+- クラス外からはメソッド経由で値を扱う
+
+#### setter 内のバリデーション
+
+```java
+public void setUsername(String username) {
+    if (username == null || username.isBlank()) {
+        throw new IllegalArgumentException("username は必須です");
+    }
+    this.username = username.trim();
+}
+```
+
+ポイント:
+- setter の中で代入前に値をチェックできる
+- `throw new IllegalArgumentException(...)` は不正値を呼び出し元へ知らせる
+- 妥当な値だけをフィールドへ保存する
+
+#### 利用側の書き方
+
+```java
+UserAccount user = new UserAccount();
+user.setUsername("tanaka");
+System.out.println(user.getUsername());
+```
+
+ポイント:
+- 値の設定は setter 経由で行う
+- 値の取得は getter 経由で行う
+- フィールドを直接触らせないことで、クラス内のルールを守れる
+
 ---
 
 ## 4. ハンズオン
@@ -115,6 +178,10 @@ age: 25
 ### Step 3: setter にバリデーションを入れる（仕上げ）
 `UserAccount.java` を次の内容に更新:
 
+先取り補足:
+- `throw new IllegalArgumentException(...)` は、入力値が不正なときに処理を止めて呼び出し元へ知らせる書き方
+- 例外処理の詳しい扱いは Java-17 で学ぶため、ここでは「不正値を保存しないためのガード」として読む
+
 ```java
 public class UserAccount { // バリデーション付きのカプセル化クラス
     private String username; // ユーザー名
@@ -165,9 +232,25 @@ age: 25
 ---
 
 ## 5. ミニ演習（10分）
-1. `setUsername("   ")` を試して例外を確認
-2. `setAge(130)` を試して例外を確認
-3. `email` フィールドを追加し、`@` 含有チェックを実装
+### レベル1（基本）
+1. `setUsername("   ")` を試して例外を確認する。
+
+期待結果:
+- `username は必須です` のような例外メッセージが表示される
+
+### レベル2（拡張）
+1. `setAge(130)` を試して例外を確認する。
+
+期待結果:
+- `age の範囲が不正です` のような例外メッセージが表示される
+
+### レベル3（実務）
+1. `email` フィールドを追加し、`@` 含有チェックを実装する。
+
+期待出力例:
+```text
+email: user@example.com
+```
 
 ---
 

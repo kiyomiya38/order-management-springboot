@@ -203,9 +203,27 @@ java -cp out model.AccountInspector
 ---
 
 ## 5. ミニ演習（10分）
+### レベル1（基本）
 1. `Account` に `private int loginFailures` を追加し、公開メソッド経由でのみ更新できるようにする。
-2. `app` 側で `Account` を継承しない通常クラスから `protected` へアクセスしてエラーを確認する。
-3. `InternalRule` を `public` に変えて `app` から参照できることを確認する。
+
+期待出力例:
+```text
+loginFailures: 1
+```
+
+### レベル2（拡張）
+1. `app` 側で `Account` を継承しない通常クラスから `protected` へアクセスしてエラーを確認する。
+
+期待結果:
+- `protected` メンバへ直接アクセスできないことがコンパイルエラーで確認できる
+
+### レベル3（実務）
+1. `InternalRule` を `public` に変えて `app` から参照できることを確認する。
+
+期待出力例:
+```text
+internal-rule
+```
 
 ---
 

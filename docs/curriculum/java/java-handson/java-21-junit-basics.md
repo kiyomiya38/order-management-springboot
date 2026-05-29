@@ -28,6 +28,73 @@ mvn -version
 3. `assertEquals(期待値, 実際値)` は一致確認
 4. `assertThrows(例外型, 実行処理)` は異常系確認
 
+### 書式の基本
+
+#### Maven の標準フォルダ
+
+```text
+src/main/java/com/example/tax/TaxCalculator.java
+src/test/java/com/example/tax/TaxCalculatorTest.java
+```
+
+ポイント:
+- `src/main/java` には実装コードを置く
+- `src/test/java` にはテストコードを置く
+- 同じパッケージにすると、テスト対象を扱いやすい
+
+#### JUnit 5 の import
+
+```java
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+```
+
+ポイント:
+- `@Test` を使うために `org.junit.jupiter.api.Test` を import する
+- `assertEquals` や `assertThrows` は static import すると短く書ける
+
+#### 正常系テスト
+
+```java
+@Test
+void calcWithTax_rate10Percent() {
+    int actual = calculator.calcWithTax(1000, 0.10);
+    assertEquals(1100, actual);
+}
+```
+
+ポイント:
+- `@Test` を付けたメソッドがテストとして実行される
+- `actual` は実際の実行結果を入れる変数
+- `assertEquals(期待値, 実際値)` の順で書く
+
+#### 異常系テスト
+
+```java
+@Test
+void calcWithTax_negativePrice_throwsException() {
+    assertThrows(IllegalArgumentException.class, () -> calculator.calcWithTax(-1, 0.10));
+}
+```
+
+ポイント:
+- `assertThrows` は指定した例外が発生することを確認する
+- `IllegalArgumentException.class` は期待する例外型
+- `() -> ...` はテスト中に実行する処理を表す
+
+#### テスト実行
+
+```bash
+mvn test
+```
+
+ポイント:
+- Maven プロジェクトのルートで実行する
+- テストがすべて成功すると `BUILD SUCCESS` が表示される
+- 失敗した場合は、失敗したテスト名と期待値・実際値を確認する
+
 ---
 
 ## 4. ハンズオン

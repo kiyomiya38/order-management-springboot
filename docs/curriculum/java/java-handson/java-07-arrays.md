@@ -28,6 +28,90 @@ javac -version
 2. 先頭要素のインデックスは `0`
 3. 有効範囲は `0` 〜 `length - 1`
 
+### 書式の基本
+
+#### 配列の宣言と初期化
+
+```java
+int[] quantities = {3, 5, 2, 8};
+String[] productNames = {"Laptop", "Mouse", "Keyboard"};
+```
+
+ポイント:
+- `int[]` は「int の配列」を表す
+- `String[]` は「String の配列」を表す
+- `{...}` の中に、同じ型の値を並べる
+- 配列に入れた値は、順番を持つ
+
+#### 要素の参照
+
+```java
+System.out.println(quantities[0]);
+System.out.println(quantities[1]);
+```
+
+ポイント:
+- 配列の位置番号をインデックスと呼ぶ
+- インデックスは `0` から始まる
+- `quantities[0]` は1件目
+- `quantities[1]` は2件目
+- 最後の要素は `配列名[配列名.length - 1]`
+
+#### length
+
+```java
+System.out.println(quantities.length);
+```
+
+ポイント:
+- `length` は配列の要素数を表す
+- 配列では `length()` ではなく `length` と書く
+- 要素数が4なら、有効なインデックスは `0`, `1`, `2`, `3`
+- `4` 番目のインデックスに見える `quantities[4]` は範囲外
+
+#### for で配列を処理する定番形
+
+```java
+for (int i = 0; i < quantities.length; i++) {
+    System.out.println(quantities[i]);
+}
+```
+
+ポイント:
+- `i = 0` から始める
+- `i < quantities.length` の間だけ繰り返す
+- `i++` で次の要素へ進む
+- `i <= quantities.length` にすると範囲外アクセスになる
+
+#### 拡張for
+
+```java
+for (int quantity : quantities) {
+    System.out.println(quantity);
+}
+```
+
+ポイント:
+- 配列の値を先頭から順番に取り出せる
+- インデックスが不要なときは読みやすい
+- インデックス番号が必要なときは通常の `for` を使う
+
+#### 2つの配列を対応させる
+
+```java
+String[] productNames = {"Laptop", "Mouse", "Keyboard"};
+int[] quantities = {3, 5, 2};
+
+for (int i = 0; i < productNames.length; i++) {
+    System.out.println(productNames[i] + " 数量: " + quantities[i]);
+}
+```
+
+ポイント:
+- `productNames[0]` と `quantities[0]` のように、同じインデックス同士を対応させる
+- 2つの配列の件数がずれると、範囲外エラーや対応ずれが起きる
+- 実務では後で学ぶクラスやコレクションでまとめて扱うことが多い
+
 ---
 
 ## 4. ハンズオン
@@ -48,6 +132,8 @@ cd ~/order-management-springboot/practice/java/handson07
 
 ### Step 1: 数値配列を作る
 `ArrayDemo.java` を次の内容で作成:
+
+まずは配列の作成、先頭要素の参照、要素数の確認を行う。
 
 ```java
 public class ArrayDemo { // 配列の基本確認クラス
@@ -75,6 +161,8 @@ java ArrayDemo
 
 ### Step 2: ループで合計する
 `ArrayDemo.java` を次の内容に更新:
+
+配列全体を処理するときは、`for` と `length` を組み合わせる。
 
 ```java
 public class ArrayDemo { // 配列をループで集計するクラス
@@ -106,6 +194,8 @@ java ArrayDemo
 
 ### Step 3: 文字列配列を追加（仕上げ）
 `ArrayDemo.java` を次の内容に更新:
+
+複数の配列を同じインデックスで対応付けて扱う。
 
 ```java
 public class ArrayDemo { // 文字列配列と数値配列を組み合わせて扱うクラス

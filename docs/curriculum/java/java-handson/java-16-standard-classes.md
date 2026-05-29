@@ -30,6 +30,83 @@ javac -version
 4. `Path` はファイルパス、`Pattern` は正規表現パターンを表す型
 5. `private static final` は「クラス内で共有し、再代入しない定数」の定番宣言
 
+### 書式の基本
+
+#### `toString` のオーバーライド
+
+```java
+@Override
+public String toString() {
+    return "Product{code='" + code + "'}";
+}
+```
+
+ポイント:
+- `toString()` は表示用の文字列を返すメソッド
+- 必要に応じてクラスごとの見やすい表示形式に上書きする
+- `System.out.println(product)` でも `toString()` の結果が使われる
+
+#### `equals` のオーバーライド
+
+```java
+@Override
+public boolean equals(Object obj) {
+    if (this == obj) {
+        return true;
+    }
+    if (!(obj instanceof Product other)) {
+        return false;
+    }
+    return Objects.equals(code, other.code);
+}
+```
+
+ポイント:
+- `equals` は「同じ値とみなすか」を決めるメソッド
+- `this == obj` は同じ実体なら `true`
+- `obj instanceof Product other` は、`obj` が `Product` のときだけ `other` として扱う書き方
+- `Objects.equals(...)` は `null` に強い比較を行う
+
+#### ラッパークラス
+
+```java
+String quantityText = "25";
+int quantity = Integer.parseInt(quantityText);
+
+Integer boxed = quantity;
+int unboxed = boxed;
+```
+
+ポイント:
+- `Integer` は `int` に対応するラッパークラス
+- `Integer.parseInt(...)` で文字列を `int` に変換できる
+- `int` と `Integer` は必要に応じて自動変換される
+
+#### `StringBuilder`
+
+```java
+StringBuilder sb = new StringBuilder();
+sb.append("受注ID=").append("ORD-1001");
+String logLine = sb.toString();
+```
+
+ポイント:
+- `StringBuilder` は文字列を少しずつ組み立てるためのクラス
+- `append(...)` は連続して呼び出せる
+- 最後に `toString()` で通常の `String` に変換する
+
+#### `Path` / `Pattern` と定数
+
+```java
+private static final Path STATIC_DIR = Path.of("static");
+private static final Pattern NAME_PATTERN = Pattern.compile("\"name\"\\s*:\\s*\"(.*?)\"");
+```
+
+ポイント:
+- `Path.of(...)` はファイルパスを表す `Path` を作る
+- `Pattern.compile(...)` は正規表現パターンを事前に作る
+- `private static final` はクラス内だけで使う再代入しない共有値に向いている
+
 ---
 
 ## 4. ハンズオン
@@ -50,6 +127,10 @@ cd ~/order-management-springboot/practice/java/handson16
 
 ### Step 1: Objectメソッドを使う
 `StandardClassDemo.java` を次の内容で作成:
+
+先取り補足:
+- `obj instanceof Product other` は「`obj` が `Product` なら、`other` という名前で Product として使う」という書き方
+- 通常の `instanceof` とキャストを短く安全に書くための構文として読む
 
 ```java
 import java.util.Objects; // null 安全な比較ユーティリティ
@@ -223,11 +304,31 @@ name: Tanaka
 ---
 
 ## 5. ミニ演習（10分）
-1. `Integer.parseInt` に不正文字列を渡したときの挙動を確認
-2. `StringBuilder` で3行分のログを作る
-3. `Product` に `hashCode` も実装し、`HashSet` で重複判定を確認
-4. `body` を `{"name":"Suzuki"}` に変更し、抽出結果が変わることを確認
-5. `STATIC_DIR` の宣言から `final` を外し、再代入して挙動の違いを確認する（確認後は元に戻す）
+### レベル1（基本）
+1. `Integer.parseInt` に不正文字列を渡したときの挙動を確認する。
+2. `StringBuilder` で3行分のログを作る。
+
+期待出力例:
+```text
+START
+PROCESS
+END
+```
+
+### レベル2（拡張）
+1. `Product` に `hashCode` も実装し、`HashSet` で重複判定を確認する。
+2. `body` を `{"name":"Suzuki"}` に変更し、抽出結果が変わることを確認する。
+
+期待出力例:
+```text
+抽出名: Suzuki
+```
+
+### レベル3（実務）
+1. `STATIC_DIR` の宣言から `final` を外し、再代入して挙動の違いを確認する（確認後は元に戻す）。
+
+期待結果:
+- `final` があると再代入できず、外すと再代入できる
 
 ---
 

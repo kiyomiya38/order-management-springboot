@@ -27,6 +27,66 @@ javac -version
 2. これにより呼び出し側のコードを共通化できる
 3. ダウンキャストは `instanceof` で判定してから行う
 
+### 書式の基本
+
+#### 親型の変数で子クラスの実体を受ける
+
+```java
+Employee e = new Manager();
+```
+
+ポイント:
+- 左辺の型は親クラス `Employee`
+- 右辺の実体は子クラス `Manager`
+- 親型で受けると、複数の子クラスを同じ型として扱える
+
+#### 実体に応じたメソッドが呼ばれる
+
+```java
+class Employee {
+    String roleLabel() {
+        return "社員";
+    }
+}
+
+class Manager extends Employee {
+    @Override
+    String roleLabel() {
+        return "管理者";
+    }
+}
+```
+
+ポイント:
+- 変数型が `Employee` でも、実体が `Manager` なら `Manager` 側の `roleLabel()` が呼ばれる
+- 呼び出し側は共通の `roleLabel()` だけを見ればよい
+
+#### 親型を引数にする共通処理
+
+```java
+static void printRole(Employee e) {
+    System.out.println(e.name + " は " + e.roleLabel());
+}
+```
+
+ポイント:
+- 引数を親型にすると、`Manager` や `PartTimer` などを同じメソッドで扱える
+- 子クラスが増えても、呼び出し側の処理を共通化しやすい
+
+#### `instanceof` とダウンキャスト
+
+```java
+if (e instanceof Manager) {
+    Manager m = (Manager) e;
+    m.teamName = "Platform";
+}
+```
+
+ポイント:
+- 親型変数から子クラス固有のフィールドやメソッドを使うにはダウンキャストが必要
+- 先に `instanceof` で実体の型を確認する
+- 確認せずに誤った型へキャストすると実行時エラーになる
+
 ---
 
 ## 4. ハンズオン
@@ -145,9 +205,27 @@ Tanaka / Platform
 ---
 
 ## 5. ミニ演習（10分）
-1. `Engineer` クラスを追加して `printRole` で表示
-2. `instanceof` 分岐を増やして型ごとの表示を変える
-3. 共通メソッドだけで処理できるように設計を見直す
+### レベル1（基本）
+1. `Engineer` クラスを追加して `printRole` で表示する。
+
+期待出力例:
+```text
+Engineer: Tanaka
+```
+
+### レベル2（拡張）
+1. `instanceof` 分岐を増やして型ごとの表示を変える。
+
+期待出力例:
+```text
+-> 技術担当
+```
+
+### レベル3（実務）
+1. 共通メソッドだけで処理できるように設計を見直す。
+
+期待結果:
+- 呼び出し側の `if` / `instanceof` 分岐を減らせる
 
 ---
 

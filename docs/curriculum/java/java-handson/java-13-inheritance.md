@@ -28,6 +28,62 @@ javac -version
 3. 同名メソッドを子で再定義するのがオーバーライド
 4. `@Override` は「親メソッドを上書きしている」ことを明示するアノテーション（推奨）
 
+### 書式の基本
+
+#### `extends` による継承
+
+```java
+class Employee {
+    String name;
+
+    void printName() {
+        System.out.println("名前: " + name);
+    }
+}
+
+class Manager extends Employee {
+}
+```
+
+ポイント:
+- `class 子クラス extends 親クラス` の形で継承する
+- 子クラスは親クラスのフィールドやメソッドを利用できる
+- 共通部分を親クラスにまとめると重複を減らせる
+
+#### 親クラスのメンバーを使う
+
+```java
+Manager m = new Manager();
+m.name = "Tanaka";
+m.printName();
+```
+
+ポイント:
+- `Manager` のインスタンスから、親クラス `Employee` の `name` や `printName()` を使える
+- 子クラス固有のフィールドやメソッドも追加できる
+
+#### オーバーライド
+
+```java
+class Employee {
+    String roleLabel() {
+        return "社員";
+    }
+}
+
+class Manager extends Employee {
+    @Override
+    String roleLabel() {
+        return "管理者";
+    }
+}
+```
+
+ポイント:
+- 親クラスと同じメソッドを子クラスで再定義することをオーバーライドと呼ぶ
+- `@Override` を付けると、メソッド名や引数の間違いをコンパイル時に見つけやすい
+- 呼び出し時は、実体のクラスに応じたメソッドが実行される
+
 ---
 
 ## 4. ハンズオン
@@ -206,9 +262,33 @@ java InheritanceDemo
 ---
 
 ## 5. ミニ演習（10分）
-1. `PartTimeEmployee` クラスを追加
-2. `roleLabel()` をそれぞれ上書き
-3. 出力を「役割: 名前」の形式で統一
+### レベル1（基本）
+1. `PartTimeEmployee` クラスを追加する。
+
+期待出力例:
+```text
+PartTimeEmployee: Sato
+```
+
+### レベル2（拡張）
+1. `roleLabel()` をそれぞれ上書きする。
+
+期待出力例:
+```text
+社員
+管理者
+アルバイト
+```
+
+### レベル3（実務）
+1. 出力を「役割: 名前」の形式で統一する。
+
+期待出力例:
+```text
+社員: Tanaka
+管理者: Suzuki
+アルバイト: Sato
+```
 
 ---
 

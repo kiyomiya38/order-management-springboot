@@ -27,6 +27,62 @@ javac -version
 2. `this` はインスタンス自身、`static` はクラス全体共有
 3. `static` メソッドはインスタンスなしで呼べる
 
+### 書式の基本
+
+#### コンストラクタ
+
+```java
+class Product {
+    String name;
+    int price;
+
+    Product(String name, int price) {
+        this.name = name;
+        this.price = price;
+    }
+}
+
+Product p = new Product("Laptop", 120000);
+```
+
+ポイント:
+- コンストラクタ名はクラス名と同じ
+- コンストラクタには戻り値の型を書かない
+- `new Product(...)` のときにコンストラクタが呼ばれる
+- `this.name` はフィールド、右辺の `name` は引数
+
+#### `static` フィールド
+
+```java
+class Product {
+    static int createdCount = 0;
+}
+
+System.out.println(Product.createdCount);
+```
+
+ポイント:
+- `static` フィールドはクラス全体で共有される
+- インスタンスごとではなく、クラスに1つだけ存在する
+- クラス名経由で `Product.createdCount` のように参照できる
+
+#### `static` メソッド
+
+```java
+class PriceUtil {
+    static int calcTaxIncluded(int basePrice) {
+        return basePrice * 110 / 100;
+    }
+}
+
+int taxed = PriceUtil.calcTaxIncluded(5000);
+```
+
+ポイント:
+- `static` メソッドはインスタンスを作らずに呼び出せる
+- `クラス名.メソッド名(...)` の形で使う
+- 共通計算や変換処理のように、個別の状態を持たない処理に向いている
+
 ---
 
 ## 4. ハンズオン
@@ -164,9 +220,29 @@ Keyboard 税込: 5500
 ---
 
 ## 5. ミニ演習（10分）
-1. `Product` に `quantity` を追加し、コンストラクタで初期化
-2. `PriceUtil` に割引計算メソッドを追加
-3. `createdCount` を表示するサンプルを再追加
+### レベル1（基本）
+1. `Product` に `quantity` を追加し、コンストラクタで初期化する。
+
+期待出力例:
+```text
+Keyboard quantity: 2
+```
+
+### レベル2（拡張）
+1. `PriceUtil` に割引計算メソッドを追加する。
+
+期待出力例:
+```text
+割引後価格: 4500
+```
+
+### レベル3（実務）
+1. `createdCount` を表示するサンプルを再追加し、生成件数を確認する。
+
+期待出力例:
+```text
+作成件数: 2
+```
 
 ---
 

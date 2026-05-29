@@ -27,6 +27,57 @@ javac -version
 2. 引数は入力、戻り値は出力
 3. 同名メソッドでも引数が違えば共存できる（オーバーロード）
 
+### 書式の基本
+
+#### 引数なし・戻り値なしメソッド
+
+```java
+static void printStartMessage() {
+    System.out.println("受注処理を開始します");
+}
+
+printStartMessage();
+```
+
+ポイント:
+- メソッドはクラスの中、`main` メソッドの外に定義する
+- `void` は戻り値がないことを表す
+- 呼び出すときは `メソッド名();` と書く
+- この資料では、同じクラスの `main` から直接呼び出すため `static` を付ける
+
+#### 引数と戻り値があるメソッド
+
+```java
+static int calcTotal(int quantity, int unitPrice) {
+    return quantity * unitPrice;
+}
+
+int total = calcTotal(3, 1200);
+```
+
+ポイント:
+- `calcTotal(int quantity, int unitPrice)` の `quantity` と `unitPrice` が引数
+- 先頭の `int` は戻り値の型
+- `return` は呼び出し元へ値を返す
+- 呼び出し側では戻り値を変数に代入できる
+
+#### オーバーロード
+
+```java
+static int calcTotal(int quantity, int unitPrice) {
+    return quantity * unitPrice;
+}
+
+static int calcTotal(int quantity, int unitPrice, int shippingFee) {
+    return quantity * unitPrice + shippingFee;
+}
+```
+
+ポイント:
+- 同じメソッド名でも、引数の数や型が違えば定義できる
+- 呼び出し時の引数に合うメソッドが選ばれる
+- 戻り値の型だけが違う同名メソッドは作れない
+
 ---
 
 ## 4. ハンズオン

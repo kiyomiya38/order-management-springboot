@@ -27,6 +27,87 @@ javac -version
 2. `Set`: 重複なし
 3. `Map`: キーと値の対応
 
+### 書式の基本
+
+#### `List`
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+List<String> productCodes = new ArrayList<>();
+productCodes.add("P-001");
+productCodes.add("P-002");
+
+System.out.println(productCodes.size());
+```
+
+ポイント:
+- `List<String>` は文字列を順番に保持するリスト
+- `new ArrayList<>()` で代表的な `List` 実装を作る
+- `add` で要素を追加する
+- `size()` で要素数を取得する
+
+#### 拡張forで走査する
+
+```java
+for (String code : productCodes) {
+    System.out.println(code);
+}
+```
+
+ポイント:
+- コレクションの要素を先頭から順番に取り出せる
+- インデックスが不要なときに読みやすい
+
+#### `Set`
+
+```java
+import java.util.HashSet;
+import java.util.Set;
+
+Set<String> tags = new HashSet<>();
+tags.add("PAID");
+tags.add("PAID");
+tags.add("URGENT");
+```
+
+ポイント:
+- `Set` は重複を許可しない
+- 同じ値を複数回 `add` しても1件として扱われる
+- `HashSet` は代表的な `Set` 実装
+
+#### `Map`
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+Map<String, Integer> stockByCode = new HashMap<>();
+stockByCode.put("P-001", 12);
+
+System.out.println(stockByCode.get("P-001"));
+System.out.println(stockByCode.containsKey("P-003"));
+```
+
+ポイント:
+- `Map<String, Integer>` は文字列キーと整数値の対応を保持する
+- `put` でキーと値を登録する
+- `get` でキーに対応する値を取得する
+- `containsKey` でキーの存在を確認する
+
+#### `Map` の全件走査
+
+```java
+for (Map.Entry<String, Integer> entry : stockByCode.entrySet()) {
+    System.out.println(entry.getKey() + " -> " + entry.getValue());
+}
+```
+
+ポイント:
+- `entrySet()` でキーと値の組を順番に取り出せる
+- `getKey()` でキー、`getValue()` で値を取得する
+
 ---
 
 ## 4. ハンズオン
@@ -159,9 +240,29 @@ P-002 -> 5
 ---
 
 ## 5. ミニ演習（10分）
-1. `List` に商品名を5件追加して表示
-2. `Set` で重複データが消えることを確認
-3. `Map` に `put` で同じキーを入れたときの上書きを確認
+### レベル1（基本）
+1. `List` に商品名を5件追加して表示する。
+
+期待出力例:
+```text
+Keyboard
+Mouse
+Monitor
+```
+
+### レベル2（拡張）
+1. `Set` で重複データが消えることを確認する。
+
+期待結果:
+- 同じ値を複数回追加しても、表示される件数は1件分になる
+
+### レベル3（実務）
+1. `Map` に `put` で同じキーを入れたときの上書きを確認する。
+
+期待出力例:
+```text
+P-001 -> 20
+```
 
 ---
 

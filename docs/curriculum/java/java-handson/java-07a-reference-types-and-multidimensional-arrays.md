@@ -27,6 +27,83 @@ javac -version
 2. `String` の値比較は `equals` を使う
 3. 2次元配列は「配列の配列」として扱う
 
+### 書式の基本
+
+#### 参照型の代入
+
+```java
+int[] quantitiesA = {3, 5, 2};
+int[] quantitiesB = quantitiesA;
+
+quantitiesB[0] = 99;
+```
+
+ポイント:
+- 配列は参照型
+- `quantitiesB = quantitiesA` は配列の中身をコピーしているのではなく、同じ配列を指す参照をコピーしている
+- `quantitiesB[0]` を変更すると、`quantitiesA[0]` から見ても変更後の値になる
+
+#### 配列の中身を表示する
+
+```java
+import java.util.Arrays;
+
+System.out.println(Arrays.toString(quantitiesA));
+```
+
+ポイント:
+- 配列をそのまま `println` すると中身が見やすく表示されない
+- `Arrays.toString(配列名)` を使うと、配列の要素を確認しやすい
+
+#### `String` の比較
+
+```java
+String s1 = new String("PAID");
+String s2 = new String("PAID");
+
+System.out.println(s1 == s2);
+System.out.println(s1.equals(s2));
+```
+
+ポイント:
+- `==` は同じ実体を指しているかを比較する
+- `equals` は文字列の内容が同じかを比較する
+- `String` の値比較では基本的に `equals` を使う
+
+#### 2次元配列の宣言と参照
+
+```java
+int[][] seats = {
+        {101, 102, 103},
+        {201, 202, 203},
+        {301, 302, 303}
+};
+
+System.out.println(seats[0][0]);
+System.out.println(seats[1][2]);
+```
+
+ポイント:
+- `int[][]` は int の2次元配列を表す
+- `seats[行][列]` の形で要素を参照する
+- インデックスは行も列も `0` から始まる
+
+#### 2次元配列を `for` で処理する定番形
+
+```java
+for (int row = 0; row < seats.length; row++) {
+    for (int col = 0; col < seats[row].length; col++) {
+        System.out.println(seats[row][col]);
+    }
+}
+```
+
+ポイント:
+- 外側の `for` は行を処理する
+- 内側の `for` は列を処理する
+- 行数は `seats.length`
+- 各行の列数は `seats[row].length`
+
 ---
 
 ## 4. ハンズオン

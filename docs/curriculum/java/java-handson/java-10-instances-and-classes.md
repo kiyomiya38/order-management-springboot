@@ -28,6 +28,64 @@ javac -version
 2. クラスは設計図、インスタンスは実体。`new` で作った各インスタンスは別状態を持つ（`c1` を変えても `c2` は自動では変わらない）
 3. `this` は「今このインスタンス自身」。引数名とフィールド名が同じとき（例: `name`）に、`this.name` と書いて「フィールド側」を明確にするために使う
 
+### 書式の基本
+
+#### クラスとフィールド
+
+```java
+class Customer {
+    String name;
+    int point;
+}
+```
+
+ポイント:
+- クラスはデータや処理をまとめる設計図
+- `name` や `point` のように、インスタンスが持つ値をフィールドと呼ぶ
+- この段階では、まず最小形としてアクセス修飾子なしで書く
+
+#### インスタンス生成とフィールド代入
+
+```java
+Customer c1 = new Customer();
+c1.name = "Tanaka";
+c1.point = 120;
+```
+
+ポイント:
+- `new Customer()` で `Customer` のインスタンスを作る
+- `c1` は作成したインスタンスを参照する変数
+- `c1.name` のように `.` を使ってフィールドへアクセスする
+
+#### インスタンスメソッド
+
+```java
+void addPoint(int value) {
+    point += value;
+}
+
+c1.addPoint(30);
+```
+
+ポイント:
+- インスタンスメソッドは、各インスタンスの状態を使って処理できる
+- `c1.addPoint(30)` は `c1` のポイントだけを変更する
+- 別のインスタンス `c2` には自動では影響しない
+
+#### `this` でフィールドを明示する
+
+```java
+void setProfile(String name, int point) {
+    this.name = name;
+    this.point = point;
+}
+```
+
+ポイント:
+- `this` は今処理しているインスタンス自身を表す
+- `this.name` はフィールド、右辺の `name` は引数
+- 引数名とフィールド名が同じときに区別しやすくなる
+
 ---
 
 ## 4. ハンズオン
@@ -177,9 +235,32 @@ Suzuki point: 80
 ---
 
 ## 5. ミニ演習（10分）
-1. `Customer` を3件作成して表示
-2. `addPoint` メソッドを復活させ、1件だけポイント加算
-3. `setProfile` の `point` を `0` 未満なら `0` に補正
+### レベル1（基本）
+1. `Customer` を3件作成して、それぞれの名前とポイントを表示する。
+
+期待出力例:
+```text
+Tanaka point: 120
+Suzuki point: 80
+Sato point: 50
+```
+
+### レベル2（拡張）
+1. `addPoint` メソッドを復活させ、1件だけポイント加算する。
+
+期待出力例:
+```text
+Tanaka point: 150
+Suzuki point: 80
+```
+
+### レベル3（実務）
+1. `setProfile` の `point` を、`0` 未満なら `0` に補正する。
+
+期待出力例:
+```text
+Tanaka point: 0
+```
 
 ---
 

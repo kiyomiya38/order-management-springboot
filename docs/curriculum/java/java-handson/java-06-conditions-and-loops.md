@@ -28,6 +28,109 @@ javac -version
 2. ループは「同じ処理を繰り返す」
 3. `break` はループ終了、`continue` は次の周回へ進む
 
+### 書式の基本
+
+#### if / else if / else
+
+```java
+if (条件式) {
+    条件式が true のときの処理
+} else if (別の条件式) {
+    別の条件式が true のときの処理
+} else {
+    どの条件にも当てはまらないときの処理
+}
+```
+
+ポイント:
+- `if` の条件は必ず `()` で囲む
+- 条件式の結果は `boolean` になる
+- `else if` は必要な数だけ書ける
+- `else` は最後に1回だけ書ける
+- 上から順に判定され、最初に `true` になったブロックだけ実行される
+
+条件式の例:
+
+```java
+stock <= 0
+stock < 10
+score >= 80
+paid == true
+```
+
+#### for
+
+```java
+for (初期化; 継続条件; 更新) {
+    繰り返したい処理
+}
+```
+
+例:
+
+```java
+for (int day = 1; day <= 5; day++) {
+    System.out.println(day);
+}
+```
+
+ポイント:
+- `int day = 1` は最初に1回だけ実行される
+- `day <= 5` が `true` の間だけ繰り返す
+- `day++` は1周終わるたびに実行される
+- 回数が決まっている繰り返しに向いている
+
+#### while
+
+```java
+while (条件式) {
+    繰り返したい処理
+}
+```
+
+例:
+
+```java
+int retry = 0;
+while (retry < 3) {
+    System.out.println(retry);
+    retry++;
+}
+```
+
+ポイント:
+- 条件式が `true` の間だけ繰り返す
+- 更新処理を書き忘れると無限ループになる
+- 回数よりも「条件を満たす間」という考え方に向いている
+
+#### break / continue
+
+```java
+break;    // ループを終了する
+continue; // 今回の周回だけスキップして次へ進む
+```
+
+例:
+
+```java
+for (int orderNo = 1; orderNo <= 5; orderNo++) {
+    if (orderNo == 2) {
+        continue;
+    }
+    if (orderNo == 4) {
+        break;
+    }
+    System.out.println(orderNo);
+}
+```
+
+期待出力例:
+
+```text
+1
+3
+```
+
 ---
 
 ## 4. ハンズオン
@@ -48,6 +151,8 @@ cd ~/order-management-springboot/practice/java/handson06
 
 ### Step 1: if/else を使う
 `ControlFlowDemo.java` を次の内容で作成:
+
+まずは `if` / `else if` / `else` が上から順に判定される動きを確認する。
 
 ```java
 public class ControlFlowDemo { // 条件分岐の動作確認クラス
@@ -81,6 +186,8 @@ java ControlFlowDemo
 ### Step 2: for ループを追加
 `ControlFlowDemo.java` を次の内容に更新:
 
+`for` は、回数が決まっている繰り返しに使う。
+
 ```java
 public class ControlFlowDemo { // for ループの動作確認クラス
     public static void main(String[] args) {
@@ -111,6 +218,8 @@ java ControlFlowDemo
 ### Step 3: while ループを追加
 `ControlFlowDemo.java` を次の内容に更新:
 
+`while` は、条件が成り立つ間だけ繰り返したいときに使う。
+
 ```java
 public class ControlFlowDemo { // while ループの動作確認クラス
     public static void main(String[] args) {
@@ -140,6 +249,8 @@ java ControlFlowDemo
 
 ### Step 4: break / continue を使う（仕上げ）
 `ControlFlowDemo.java` を次の内容に更新:
+
+`continue` は今回の周回だけスキップし、`break` はループ全体を終了する。
 
 ```java
 public class ControlFlowDemo { // break / continue の動作確認クラス

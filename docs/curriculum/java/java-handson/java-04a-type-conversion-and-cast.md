@@ -27,6 +27,65 @@ javac -version
 2. 演算時は、より大きい型に揃えて計算される
 3. 明示キャストは便利だが、値が欠けることがある
 
+### 書式の基本
+
+#### 代入時の暗黙変換
+
+```java
+int qty = 3;
+long longQty = qty;
+```
+
+ポイント:
+- `int` から `long` のように、表せる範囲が広い型へは自動変換される
+- 逆方向の `long` から `int` は自動では代入できない
+
+#### 演算時の型変換
+
+```java
+int price = 1200;
+double taxRate = 0.10;
+double taxed = price * (1 + taxRate);
+```
+
+ポイント:
+- `int` と `double` を一緒に計算すると、結果は `double` に揃う
+- 小数を含む計算結果を受ける変数は `double` にする
+
+#### 文字列から数値へ変換する
+
+```java
+String quantityText = "15";
+int quantity = Integer.parseInt(quantityText);
+```
+
+ポイント:
+- `Integer.parseInt(...)` は数値文字列を `int` に変換する
+- `"15"` は変換できるが、`"abc"` は変換できず例外になる
+
+#### 数値から文字列へ変換する
+
+```java
+int subtotal = 12000;
+String subtotalText = String.valueOf(subtotal);
+```
+
+ポイント:
+- `String.valueOf(...)` は値を文字列へ変換する
+- 画面表示やログ用の文字列を作るときに使える
+
+#### 明示キャスト
+
+```java
+double average = 9.8;
+int roundedDown = (int) average;
+```
+
+ポイント:
+- `(int)` のように型を指定して変換することをキャストと呼ぶ
+- `double` から `int` へキャストすると、小数部分は切り捨てられる
+- 範囲外の値を小さい型へキャストすると、意図しない値になることがある
+
 ---
 
 ## 4. ハンズオン
@@ -70,12 +129,14 @@ javac -encoding UTF-8 TypeConversionDemo.java
 java TypeConversionDemo
 ```
 
-期待結果:
-- `longQty: 3` が表示される
-- `taxed: 1320.0` が表示される
+期待出力例:
+```text
+longQty: 3
+taxed: 1320.0
+```
 
 ### Step 2: 文字列と数値を相互変換する
-`TypeConversionDemo.java` を次の内容に更新:
+前のコード全体を置き換え、`TypeConversionDemo.java` を次の内容に更新:
 
 ```java
 public class TypeConversionDemo {
@@ -99,12 +160,14 @@ javac -encoding UTF-8 TypeConversionDemo.java
 java TypeConversionDemo
 ```
 
-期待結果:
-- `quantity(int): 15` が表示される
-- `subtotal(String): 12000` が表示される
+期待出力例:
+```text
+quantity(int): 15
+subtotal(String): 12000
+```
 
 ### Step 3: 明示キャストの挙動を確認する
-`TypeConversionDemo.java` を次の内容に更新:
+前のコード全体を置き換え、`TypeConversionDemo.java` を次の内容に更新:
 
 ```java
 public class TypeConversionDemo {
@@ -127,9 +190,15 @@ javac -encoding UTF-8 TypeConversionDemo.java
 java TypeConversionDemo
 ```
 
-期待結果:
-- `scoreInt: 99` が表示される
-- `narrowed` は `3000000000` ではない値になる
+期待出力例:
+```text
+scoreInt: 99
+narrowed: -1294967296
+```
+
+確認ポイント:
+- `double` から `int` へのキャストでは、小数点以下が切り捨てられる
+- `long` から `int` へのキャストでは、`int` の範囲を超えると値が崩れる
 
 ---
 
@@ -137,8 +206,10 @@ java TypeConversionDemo
 ### レベル1（基本）
 1. `int orderCount = 7;` を `double orderCount = 7;` に変え、出力差分を確認する。
 
-期待結果:
-- `7.0` のように小数型表現で表示される。
+期待出力例:
+```text
+7.0
+```
 
 ### レベル2（拡張）
 1. `"1080"` を `parseInt` して、税率 `0.10` を適用した金額を表示する。
@@ -148,10 +219,16 @@ java TypeConversionDemo
 
 ### レベル3（実務）
 1. 価格文字列が不正なとき（例: `"10A0"`）に例外が起きることを確認する。
-2. `try-catch` で補足して「不正な数値です」と表示する。
+2. `try-catch` で捕捉して「不正な数値です」と表示する。
 
-期待結果:
-- 不正入力時にプログラムが落ちず、メッセージで通知できる。
+補足:
+- 例外処理は Java-17 で詳しく扱う
+- ここでは「数値ではない文字列を `parseInt` すると失敗する」「失敗を `catch` で受け取れる」ことだけ確認する
+
+期待出力例:
+```text
+不正な数値です
+```
 
 ### 実行前予想問題（1分）
 次の2つの出力を実行前に予想してください。

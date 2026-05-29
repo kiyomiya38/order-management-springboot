@@ -28,6 +28,80 @@ javac -version
 2. 同一パッケージなら `import` なしで相互参照できる
 3. 別パッケージを使うときは `package` と `import` を揃える
 
+### 書式の基本
+
+#### 1つのファイルに複数クラスを書く
+
+```java
+class OrderItemLite {
+    String productName;
+    int quantity;
+}
+
+public class InstanceWarmup {
+    public static void main(String[] args) {
+    }
+}
+```
+
+ポイント:
+- `public` を付けるクラス名はファイル名と一致させる
+- 補助的なクラスは `public` なしで同じファイルに書ける
+- 実務では責務ごとにファイルを分けることが多い
+
+#### インスタンス生成とフィールド参照
+
+```java
+OrderItem item = new OrderItem();
+item.productName = "Laptop";
+item.quantity = 2;
+```
+
+ポイント:
+- `new OrderItem()` で `OrderItem` の実体を作る
+- 左辺の `OrderItem item` は、実体を参照する変数
+- `item.productName` のように `変数名.フィールド名` で値を扱う
+
+#### 複数ファイルをまとめてコンパイルする
+
+```bash
+javac -encoding UTF-8 OrderItem.java OrderCalculator.java OrderApp.java
+java OrderApp
+```
+
+ポイント:
+- 別ファイルのクラスを使う場合、関係する `.java` をまとめてコンパイルする
+- パッケージなしの場合は、クラス名だけで実行する
+
+#### `package` と `import`
+
+```java
+package service;
+
+import model.OrderItem;
+
+public class OrderCalculator {
+}
+```
+
+ポイント:
+- `package` はクラスが所属する名前空間を表す
+- `package` 宣言はファイルの先頭に書く
+- 別パッケージのクラスを短い名前で使うには `import` する
+- `package model;` のクラスは `src/model/` のような対応するフォルダに置く
+
+#### `-d` と `-cp`
+
+```bash
+javac -encoding UTF-8 -d out src/model/OrderItem.java src/app/OrderApp.java
+java -cp out app.OrderApp
+```
+
+ポイント:
+- `javac -d out` は、コンパイル結果を `out` 配下へ出力する
+- `java -cp out app.OrderApp` は、`out` を起点に `app.OrderApp` を探して実行する
+- パッケージ付きクラスは `パッケージ名.クラス名` で実行する
+
 ---
 
 ## 4. ハンズオン

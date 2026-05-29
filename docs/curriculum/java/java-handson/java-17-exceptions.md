@@ -27,6 +27,56 @@ javac -version
 2. `try` で実行、`catch` で捕捉、`finally` で後処理
 3. 不正入力は `throw` で呼び出し元へ通知する
 
+### 書式の基本
+
+#### `try-catch-finally`
+
+```java
+try {
+    int value = 10 / 0;
+    System.out.println(value);
+} catch (ArithmeticException e) {
+    System.out.println("計算エラー: " + e.getMessage());
+} finally {
+    System.out.println("後処理を実行");
+}
+```
+
+ポイント:
+- `try` には例外が起きる可能性のある処理を書く
+- `catch` には捕捉したい例外型を書く
+- 例外が発生すると、`try` の残り処理は飛ばされて対応する `catch` が実行される
+- `finally` は例外の有無に関係なく最後に実行される
+
+#### 例外オブジェクトから原因を読む
+
+```java
+catch (NumberFormatException e) {
+    System.out.println(e.getMessage());
+}
+```
+
+ポイント:
+- `e` は発生した例外の情報を持つ変数
+- `getMessage()` で原因メッセージを取得できる
+- 実務では、入力値や処理名も一緒に出すと原因を追いやすい
+
+#### `throw` で例外を発生させる
+
+```java
+static int validateQuantity(int quantity) {
+    if (quantity <= 0) {
+        throw new IllegalArgumentException("quantity は 1 以上である必要があります");
+    }
+    return quantity;
+}
+```
+
+ポイント:
+- `throw new 例外型(...)` で意図的に例外を発生させる
+- 不正値を見つけた時点で処理を止められる
+- 呼び出し側は `try-catch` で受け取って処理できる
+
 ---
 
 ## 4. ハンズオン
@@ -146,9 +196,25 @@ java ExceptionDemo
 ---
 
 ## 5. ミニ演習（10分）
-1. `validateQuantity` を `quantity > 1000` もエラーにする
-2. `validatePrice(int price)` を追加して0未満を弾く
-3. 例外メッセージに入力値を含める
+### レベル1（基本）
+1. `validateQuantity` を `quantity > 1000` もエラーにする。
+
+期待結果:
+- `validateQuantity(1001)` で例外が発生する
+
+### レベル2（拡張）
+1. `validatePrice(int price)` を追加して0未満を弾く。
+
+期待結果:
+- `validatePrice(-1)` で例外が発生する
+
+### レベル3（実務）
+1. 例外メッセージに入力値を含める。
+
+期待出力例:
+```text
+quantity が不正です: 1001
+```
 
 ---
 

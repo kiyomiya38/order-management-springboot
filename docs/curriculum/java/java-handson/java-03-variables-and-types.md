@@ -22,10 +22,61 @@ javac -version
 
 ---
 
-## 3. 先に覚えるルール
+## 3. 先に覚えるポイント
 1. 変数は「宣言→代入→参照」の順で使う
 2. 変数名は lowerCamelCase（例: `orderCount`, `unitPrice`）
 3. 型に合わない値は代入できない
+
+### 書式の基本
+
+#### 変数の宣言
+
+```java
+int quantity;
+String productName;
+```
+
+ポイント:
+- `型 変数名;` の形で変数を用意する
+- `int` は整数、`String` は文字列を扱う型
+- 変数名は lowerCamelCase で書く
+
+#### 代入と参照
+
+```java
+quantity = 3;
+System.out.println(quantity);
+```
+
+ポイント:
+- `=` は右辺の値を左辺の変数へ代入する
+- 変数名を書くと、保存されている値を参照できる
+- 代入前のローカル変数を参照するとコンパイルエラーになる
+
+#### 宣言と初期化を同時に行う
+
+```java
+String productName = "Laptop";
+int unitPrice = 120000;
+boolean paid = true;
+```
+
+ポイント:
+- `型 変数名 = 値;` の形で、宣言と最初の代入を同時にできる
+- 文字列は `"` で囲む
+- `boolean` は `true` または `false` を入れる
+
+#### 再代入
+
+```java
+int stock = 10;
+stock = 8;
+```
+
+ポイント:
+- 変数には後から別の値を代入できる
+- 再代入しても、変数の型は変わらない
+- `int` の変数に `"8"` のような文字列は代入できない
 
 実務でよく使う型（優先）:
 
@@ -36,6 +87,18 @@ javac -version
 | `long` | 大きいID、時刻値 | およそ ±900京 | `orderId`, `userId` |
 | `double` | 小数（比率など） | 小数（floatより精度が高い） | `taxRate`, `score` |
 | `boolean` | true/false 状態 | true か false | `paid`, `active` |
+
+型の分類:
+
+| 分類 | この資料での例 | 説明 |
+| --- | --- | --- |
+| 基本データ型 | `int`, `long`, `double`, `boolean`, `char` | Java言語に組み込まれている型。クラスではない |
+| 標準ライブラリのクラス | `String` | JDKに含まれるクラス。文字列を扱う |
+
+補足:
+- `int` や `double` は標準ライブラリではなく、Java言語の基本データ型
+- `String` は基本データ型ではなく、`java.lang.String` という標準ライブラリのクラス
+- 標準ライブラリは Java-05 で詳しく扱う
 
 ---
 
@@ -269,6 +332,4 @@ public class CharEscapeDemo {
   -> 型と代入値が一致しているか確認
 - `integer number too large`
   -> 大きな整数は `long` + `L` を使う
-
-
 

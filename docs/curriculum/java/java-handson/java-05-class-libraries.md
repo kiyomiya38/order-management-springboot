@@ -39,6 +39,13 @@ javac -version
 | `LocalDate`, `LocalDateTime` | `java.time` | Step 3 | 必要 |
 | `UUID` | `java.util` | Step 3 | 必要 |
 
+基本データ型との違い:
+
+| 種類 | 例 | 説明 |
+| --- | --- | --- |
+| 基本データ型 | `int`, `double`, `boolean`, `char` | Java言語に組み込まれている型。標準ライブラリではない |
+| 標準ライブラリのクラス | `String`, `Math`, `LocalDate`, `UUID` | JDKに含まれるクラス |
+
 補足:
 - `String` や `Math` も JDK標準ライブラリだが、`java.lang` パッケージは自動的に使えるため `import` しない
 - `LocalDate`、`LocalDateTime`、`UUID` も JDK標準ライブラリだが、`java.lang` 以外のパッケージにあるため `import` する
@@ -56,7 +63,7 @@ C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot
 
 実際に使われている JDK の場所は、次のコマンドで確認できる。
 
-```powershell
+```bash
 java -XshowSettings:properties -version
 ```
 

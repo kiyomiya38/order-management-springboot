@@ -151,9 +151,23 @@ java ExceptionTypesDemo
 ---
 
 ## 5. ミニ演習（10分）
+### レベル1（基本）
 1. `loadMode("")` を呼び、`ConfigException` の発生を確認する。
-2. `requirePositive(0)` を呼び、`IllegalArgumentException` を確認する。
-3. `main` に `throws ConfigException` を付け、`catch` しない構成も試す。
+
+期待結果:
+- checked例外を `catch` できる
+
+### レベル2（拡張）
+1. `requirePositive(0)` を呼び、`IllegalArgumentException` を確認する。
+
+期待結果:
+- unchecked例外を `catch` できる
+
+### レベル3（実務）
+1. `main` に `throws ConfigException` を付け、`catch` しない構成も試す。
+
+期待結果:
+- `catch` ではなく `throws` で上位へ委譲できる
 
 ---
 

@@ -3,6 +3,13 @@
 関連資料:
 - [Java初学者 -> Spring Boot 実務導入ロードマップ](../../java-to-springboot-roadmap.md)
 
+## 実行環境
+- この教材のコマンドは Git Bash で実行する前提
+- `mkdir -p`、`~/order-management-springboot/...`、`*.java` などは Git Bash の書き方
+- PowerShell や cmd では一部のコマンド表記が異なる
+- 前提環境は JDK 17（17.x）
+- Java-21 の JUnit 演習のみ Maven が必要
+
 ## 作成済み
 1. [Java-01 ハンズオン: Javaをはじめよう](./java-01-intro.md)
 2. [Java-02 ハンズオン: プログラムの書き方](./java-02-program-flow.md)
@@ -37,8 +44,17 @@
 - [Java-16A 補講: 正規表現の基礎（メタ文字とエスケープ）](./java-16a-regex-basics.md)
 - [Java-17A 補講: 例外の分類とthrows（checked / unchecked）](./java-17a-exception-types-and-throws.md)
 
+## 読み方のルール
+- `次の内容で作成` は、新しいファイルをその内容で作るという意味
+- `次の内容に更新` は、前のコード全体を置き換えるという意味
+- `期待出力例` は、画面に表示される内容の例
+- `期待結果` は、コンパイル成功、エラー確認、挙動の違いなど、画面出力以外も含む確認結果
+
+## 解答例
+- Java-01〜Java-19 のミニ演習解答は `ミニ演習解答/` 配下に配置
+- Java-20 と Java-21 は本文内に `解答例` セクションを含むため、別ファイルは作成していない
+
 ## 方針
 - `docs/curriculum/java/java.md` と同じ進行スタイル
 - 実務で使う内容を優先
 - 各章を独立した markdown ファイルで管理
-- 前提環境は JDK 17（17.x）

@@ -27,6 +27,104 @@ javac -version
 2. `do-while` は1回実行してから条件判定する
 3. ラベル付き `break` は外側ループまで一気に抜けられる
 
+### 書式の基本
+
+#### switch
+
+```java
+switch (判定する値) {
+    case 値1:
+        値1だったときの処理
+        break;
+    case 値2:
+        値2だったときの処理
+        break;
+    default:
+        どの case にも当てはまらないときの処理
+        break;
+}
+```
+
+例:
+
+```java
+String status = "PAID";
+
+switch (status) {
+    case "PAID":
+        System.out.println("支払い済み");
+        break;
+    case "PENDING":
+        System.out.println("支払い待ち");
+        break;
+    default:
+        System.out.println("不明な状態");
+        break;
+}
+```
+
+ポイント:
+- `switch` は1つの値を複数の候補と照合するときに使う
+- `case` には一致させたい値を書く
+- `default` はどの `case` にも一致しないときに実行される
+- `break;` を書かないと、次の `case` の処理へ流れることがある（フォールスルー）
+
+#### do-while
+
+```java
+do {
+    繰り返したい処理
+} while (条件式);
+```
+
+例:
+
+```java
+int retry = 0;
+
+do {
+    retry++;
+    System.out.println(retry);
+} while (retry < 3);
+```
+
+ポイント:
+- `do` の中身は、条件式に関係なく最低1回は実行される
+- 条件式が `true` の間だけ繰り返す
+- 最後の `while (条件式);` には `;` が必要
+- 「まず1回実行してから継続判定したい」処理に向いている
+
+#### ラベル付き break
+
+```java
+ラベル名:
+for (...) {
+    for (...) {
+        break ラベル名;
+    }
+}
+```
+
+例:
+
+```java
+outer:
+for (int row = 1; row <= 3; row++) {
+    for (int col = 1; col <= 3; col++) {
+        if (row == 2 && col == 2) {
+            break outer;
+        }
+        System.out.println("row=" + row + ", col=" + col);
+    }
+}
+```
+
+ポイント:
+- 通常の `break` は、今いる一番内側のループだけを終了する
+- `break outer;` のように書くと、指定したラベルのループまで終了できる
+- ラベル名は任意だが、`outer` のように外側だと分かる名前にする
+- 多用すると読みづらくなるため、必要な場面だけ使う
+
 ---
 
 ## 4. ハンズオン
@@ -47,6 +145,8 @@ cd ~/order-management-springboot/practice/java/handson06a
 
 ### Step 1: `switch` を使った多分岐
 `AdvancedControlFlowDemo.java` を次の内容で作成:
+
+`switch` は、1つの値を複数の候補に分けて処理したいときに使う。
 
 ```java
 public class AdvancedControlFlowDemo {
@@ -83,6 +183,8 @@ java AdvancedControlFlowDemo
 ### Step 2: `do-while` で後判定ループ
 `AdvancedControlFlowDemo.java` を次の内容に更新:
 
+`do-while` は、条件に関係なく最初の1回は必ず実行される。
+
 ```java
 public class AdvancedControlFlowDemo {
     public static void main(String[] args) {
@@ -107,6 +209,8 @@ java AdvancedControlFlowDemo
 
 ### Step 3: ラベル付き `break` を使う
 `AdvancedControlFlowDemo.java` を次の内容に更新:
+
+ラベル付き `break` は、ネストしたループの外側まで一気に抜けたいときに使う。
 
 ```java
 public class AdvancedControlFlowDemo {
