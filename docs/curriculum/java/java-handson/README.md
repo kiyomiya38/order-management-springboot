@@ -43,6 +43,8 @@
 - [Java-13A 補講: 継承ルールの深掘り（super / 単一継承 / final）](./java-13a-inheritance-rules.md)
 - [Java-16A 補講: 正規表現の基礎（メタ文字とエスケープ）](./java-16a-regex-basics.md)
 - [Java-17A 補講: 例外の分類とthrows（checked / unchecked）](./java-17a-exception-types-and-throws.md)
+- [Java-20A 補講: record / enum 入門](./java-20a-record-enum.md)
+- [Java-20B 補講: Web API前準備（HttpServer + POST + MessageStore）](./java-20b-web-api-prep.md)
 
 ## 読み方のルール
 - `次の内容で作成` は、新しいファイルをその内容で作るという意味

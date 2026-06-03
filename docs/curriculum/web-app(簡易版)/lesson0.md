@@ -7,9 +7,37 @@
 - JavaScript の `fetch` / `async` / `await` で API 通信できる
 - `record` / `enum` / `AtomicLong` / `synchronized` の役割を、Webアプリ文脈で読める
 
+## HTTPメソッドとステータスの対応表
+
+### HTTPメソッド（リクエストの目的）
+| メソッド | 主な役割 | Lesson0での使い方 |
+| --- | --- | --- |
+| `GET` | データを取得する | `GET /api/health`, `GET /api/messages` |
+| `POST` | データを送信・登録する | `POST /api/messages` |
+| `PUT` | データを丸ごと更新する | Lesson0では未使用 |
+| `PATCH` | データの一部を更新する | Lesson0では未使用 |
+| `DELETE` | データを削除する | Lesson0では未使用 |
+| `OPTIONS` | 使えるメソッドなどを問い合わせる | Lesson0では未使用 |
+| `HEAD` | `GET` と似ているが、本文なしでヘッダーだけ取得する | Lesson0では未使用 |
+
+補足:
+- Web API学習の最初は、まず `GET` と `POST` を押さえれば十分です。
+- `PUT` / `PATCH` / `DELETE` は、Lesson2以降の「更新」「削除」で使う考え方につながります。
+- `CONNECT` / `TRACE` というメソッドもありますが、通常のWebアプリ開発では最初に覚える必要はありません。
+
+### HTTPステータス（レスポンスの結果）
+| ステータス | 意味 | Lesson0で起きる例 |
+| --- | --- | --- |
+| `200 OK` | 成功。取得や処理が正常に終わった | `GET /api/health`, `GET /api/messages` |
+| `201 Created` | 作成成功。新しいデータを登録できた | `POST /api/messages` でメッセージ登録成功 |
+| `400 Bad Request` | リクエスト内容が不正 | 名前が空欄のまま `POST /api/messages` した |
+| `404 Not Found` | URLやファイルが見つからない | `/api/health-x` など存在しないURLへアクセスした |
+| `405 Method Not Allowed` | URLはあるが、そのHTTPメソッドは許可されていない | `/api/messages` に `PUT` を送る、または `/api/health` に `POST` を送る |
+
 ## 前提
 - Java基礎学習を実施済み
 - JavaScript基礎学習を実施済み
+- Java補講 `java-20a-record-enum.md` / `java-20b-web-api-prep.md` を実施済み
 - Git Bash を使える
 - JDK 17 がインストール済み
 
@@ -843,7 +871,7 @@ http://localhost:8089
 
 `createMessage` の `method` を一時変更:
 ```javascript
-method: "GET",
+method: "PUT",
 ```
 
 確認:
@@ -852,7 +880,8 @@ method: "GET",
 
 コード解説:
 - Java側の `handleMessages` は `GET` を一覧取得、`POST` を登録として扱う
-- 登録APIに `GET` を送ると、登録処理には入らない
+- `/api/messages` に `PUT` を送ると、Java側に対応する分岐がないため `405 Method Not Allowed` になる
+- `GET` に変更した場合は、登録ではなく一覧取得の扱いになる
 - フロントとサーバーでHTTPメソッドの約束を揃える必要がある
 
 ### 2. 空入力の400エラーを確認する

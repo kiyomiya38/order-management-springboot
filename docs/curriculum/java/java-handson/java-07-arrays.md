@@ -81,7 +81,7 @@ for (int i = 0; i < quantities.length; i++) {
 - `i = 0` から始める
 - `i < quantities.length` の間だけ繰り返す
 - `i++` で次の要素へ進む
-- `i <= quantities.length` にすると範囲外アクセスになる
+- `i <= quantities.length` にすると範囲外アクセスになる（quantities[0]からなので、quantities[4]は存在しない）
 
 #### 拡張for
 
