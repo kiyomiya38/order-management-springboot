@@ -1,6 +1,14 @@
 # Lesson0拡張: 追加学習項目（分割版）
 
-Lesson0の基礎（HTML/CSS/Java）の後に学ぶ、Webアプリ開発向けの追加項目です。  
+このフォルダは、旧構成でLesson0の後に補足していた分割資料です。
+現在の初学者向け本線は、次の順で進めます。
+
+1. `docs/curriculum/html_css/html_css.md`
+2. `docs/curriculum/javascript/javascript.md`
+3. `docs/curriculum/javascript/javascript-fetch-json.md`
+4. `docs/curriculum/web-app(簡易版)/README.md`
+
+このフォルダの資料は、本線でつまずいた項目を短く復習するための参考資料として使います。
 1項目1ファイルで分割しています。
 
 ## 学習順
@@ -20,5 +28,6 @@ Lesson0の基礎（HTML/CSS/Java）の後に学ぶ、Webアプリ開発向けの
 14. [14-debugging-splitting.md](./14-debugging-splitting.md)
 
 ## 使い方
-- 各ファイルの「完了条件」を満たしたら次へ進む
-- 迷ったら `practice/pre-springboot/step1〜step5` で手を動かして確認する
+- 本線教材の代わりに全件実施するのではなく、必要な項目だけ読む
+- `fetch` / JSON通信は `docs/curriculum/javascript/javascript-fetch-json.md` と `docs/curriculum/web-app(簡易版)` を優先する
+- 迷ったら `docs/curriculum/web-app(簡易版)/README.md` の推奨順に戻る

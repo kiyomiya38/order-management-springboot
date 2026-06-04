@@ -1,23 +1,62 @@
-﻿# Lesson2 CRUD入門（ToDo Lite）
+﻿# Lesson2 Web API補強（Java API + fetch / GET / POST / メモリ保存）
+
+位置づけ:
+- このLessonは、[lesson1.md](./lesson1.md) で最小Webアプリを一度動かした後に実施する補強教材です。
+- `GET` / `POST` / API状態 / 一覧取得 / メモリ保存を整理し、Lesson3のCRUDへつなげます。
+- 学習順の全体は [README.md](./README.md) を確認してください。
 
 ## 目的（Lesson2でできるようになること）
-- CRUD（Create / Read / Update / Delete）の基本をWebアプリで実装できる
-- JavaScriptで画面遷移なしの一覧更新ができる
-- 削除確認ダイアログを含む基本UI操作が分かる
+- Java標準のHTTPサーバーで、最小APIを起動できる
+- `GET` / `POST` と HTTPステータス（`200` / `201` / `400` / `404` / `405`）の役割が分かる
+- JSON文字列を Java API で受け取り、JSON文字列を返せる
+- JavaScript の `fetch` / `async` / `await` で API 通信できる
+- `record` / `enum` / `AtomicLong` / `synchronized` の役割を、Webアプリ文脈で読める
+
+## HTTPメソッドとステータスの対応表
+
+### HTTPメソッド（リクエストの目的）
+| メソッド | 主な役割 | Lesson2での使い方 |
+| --- | --- | --- |
+| `GET` | データを取得する | `GET /api/health`, `GET /api/messages` |
+| `POST` | データを送信・登録する | `POST /api/messages` |
+| `PUT` | データを丸ごと更新する | Lesson2では未使用 |
+| `PATCH` | データの一部を更新する | Lesson2では未使用 |
+| `DELETE` | データを削除する | Lesson2では未使用 |
+| `OPTIONS` | 使えるメソッドなどを問い合わせる | Lesson2では未使用 |
+| `HEAD` | `GET` と似ているが、本文なしでヘッダーだけ取得する | Lesson2では未使用 |
+
+補足:
+- Web API学習の最初は、まず `GET` と `POST` を押さえれば十分です。
+- `PUT` / `PATCH` / `DELETE` は、Lesson3以降の「更新」「削除」で使う考え方につながります。
+- `CONNECT` / `TRACE` というメソッドもありますが、通常のWebアプリ開発では最初に覚える必要はありません。
+
+### HTTPステータス（レスポンスの結果）
+| ステータス | 意味 | Lesson2で起きる例 |
+| --- | --- | --- |
+| `200 OK` | 成功。取得や処理が正常に終わった | `GET /api/health`, `GET /api/messages` |
+| `201 Created` | 作成成功。新しいデータを登録できた | `POST /api/messages` でメッセージ登録成功 |
+| `400 Bad Request` | リクエスト内容が不正 | 名前が空欄のまま `POST /api/messages` した |
+| `404 Not Found` | URLやファイルが見つからない | `/api/health-x` など存在しないURLへアクセスした |
+| `405 Method Not Allowed` | URLはあるが、そのHTTPメソッドは許可されていない | `/api/messages` に `PUT` を送る、または `/api/health` に `POST` を送る |
 
 ## 前提
-- Lesson1 を完了している
+- Java基礎学習を実施済み
+- JavaScript基礎学習を実施済み
+- [lesson1.md](./lesson1.md) を実施済み
+- Java補講 `java-20a-record-enum.md` / `java-20b-web-api-prep.md` を実施済み
 - Git Bash を使える
 - JDK 17 がインストール済み
 
 ## Lesson2で作るもの
-- 画面: タスク登録フォーム + 一覧
+- 画面: 名前入力フォーム + API状態表示 + メッセージ一覧
 - API:
-  - `GET /api/todos`
-  - `POST /api/todos`
-  - `PATCH /api/todos/{id}/toggle`
-  - `DELETE /api/todos/{id}`
-- 動作: タスク追加 / 完了切替 / 削除
+  - `GET /api/health`
+  - `GET /api/messages`
+  - `POST /api/messages`
+- 動作:
+  - APIの起動状態を画面に表示する
+  - 入力した名前を `POST` で Java API に送る
+  - Java側でメッセージをメモリ保存し、一覧をJSONで返す
 
 ### 全体構成図（ファイルと役割）
 ```mermaid
@@ -34,16 +73,16 @@ flowchart LR
     MAIN["main(String[] args)"]
     ROOT[handleRoot]
     HSTATIC[handleStatic]
-    TODOS[handleTodos]
-    TODOID[handleTodoById]
+    HEALTH[handleHealth]
+    MESSAGES[handleMessages]
     SJ[sendJson]
-    STORE[TodoStore]
+    STORE[MessageStore]
   end
 
   MAIN --> ROOT
   MAIN --> HSTATIC
-  MAIN --> TODOS
-  MAIN --> TODOID
+  MAIN --> HEALTH
+  MAIN --> MESSAGES
 
   B -->|GET /| ROOT
   ROOT -->|index.html返却| B
@@ -57,53 +96,50 @@ flowchart LR
   HSTATIC -->|app.js返却| B
   HSTATIC --> JS
 
-  JS -->|GET /api/todos| TODOS
-  JS -->|POST /api/todos| TODOS
-  JS -->|PATCH /api/todos/:id/toggle| TODOID
-  JS -->|DELETE /api/todos/:id| TODOID
+  JS -->|GET /api/health| HEALTH
+  JS -->|GET /api/messages| MESSAGES
+  JS -->|POST /api/messages| MESSAGES
 
-  TODOS --> STORE
-  TODOID --> STORE
-  TODOS --> SJ
-  TODOID --> SJ
+  MESSAGES --> STORE
+  HEALTH --> SJ
+  MESSAGES --> SJ
   SJ -->|JSON返却| B
 ```
 
 ### JSON最小メモ（未学習者向け）
 - JSONは「キー（項目名）: 値」の組でデータを表す文字列。
-- 作成時の送信例（リクエスト）:
+- APIへ送る例（リクエスト）:
   ```json
-  {"title":"牛乳を買う"}
+  {"name":"Taro"}
   ```
-- 一覧取得の返却例（レスポンス）:
+- APIから返る例（レスポンス）:
   ```json
-  [{"id":1,"title":"牛乳を買う","completed":false}]
+  {"status":"CREATED","id":1,"name":"Taro","message":"こんにちは、Taroさん"}
   ```
-- 切替時の返却例（レスポンス）:
+- 一覧取得の例:
   ```json
-  {"id":1,"title":"牛乳を買う","completed":true}
-  ```
-- 削除時の返却例（レスポンス）:
-  ```json
-  {"message":"deleted"}
+  [{"id":1,"name":"Taro","text":"こんにちは、Taroさん"}]
   ```
 - エラー時の例:
   ```json
-  {"error":"title is required"}
-  {"error":"invalid id"}
-  {"error":"todo not found"}
+  {"error":"name is required"}
   ```
 
-### 画面表示からCRUD操作まで（正常系の時系列）
+補足:
+- このLessonでは学習用に、JSONを文字列として組み立てます。
+- 実務では Jackson などのライブラリでJSONを扱うことが多いです。
+- ここでは「画面とAPIの通信の流れ」を優先します。
+
+### 画面表示からメッセージ登録まで（正常系の時系列）
 ```mermaid
 sequenceDiagram
   participant User as 受講者
   participant Br as ブラウザ
-  participant Js as app.js
   participant App as App.java（HttpServer）
-  participant Store as TodoStore
+  participant Js as app.js
+  participant Store as MessageStore
 
-  User->>Br: http://localhost:8091 を開く
+  User->>Br: http://localhost:8089 を開く
   Br->>App: GET /
   App-->>Br: index.html
   Br->>App: GET /styles.css
@@ -112,44 +148,23 @@ sequenceDiagram
   App-->>Br: app.js
 
   Br->>Js: DOMContentLoaded
-  Js->>App: GET /api/todos
+  Js->>App: GET /api/health
+  App-->>Js: 200 {"status":"OK","message":"ready"}
+  Js->>App: GET /api/messages
   App->>Store: list()
   Store-->>App: []
   App-->>Js: 200 []
-  Js-->>Br: 一覧を初期表示
+  Js-->>Br: API状態と一覧を表示
 
-  User->>Br: タスク追加を送信
-  Br->>Js: submitイベント
-  Js->>App: POST /api/todos {"title":"牛乳を買う"}
-  App->>Store: create("牛乳を買う")
-  Store-->>App: Todo(id=1,...)
-  App-->>Js: 201 {"id":1,"title":"牛乳を買う","completed":false}
-  Js->>App: GET /api/todos
-  App->>Store: list()
-  Store-->>App: [Todo]
-  App-->>Js: 200 [...]
-  Js-->>Br: 一覧を再描画
-
-  User->>Br: チェックボックス変更
-  Br->>Js: changeイベント
-  Js->>App: PATCH /api/todos/1/toggle
-  App->>Store: toggle(1)
-  Store-->>App: completed=true のTodo
-  App-->>Js: 200 {"id":1,...,"completed":true}
-  Js->>App: GET /api/todos
-  App-->>Js: 200 [...]
-  Js-->>Br: 状態を再描画
-
-  User->>Br: 削除ボタン押下
-  Br->>Js: clickイベント
-  Js->>Br: confirm表示（OK）
-  Js->>App: DELETE /api/todos/1
-  App->>Store: delete(1)
-  Store-->>App: true
-  App-->>Js: 200 {"message":"deleted"}
-  Js->>App: GET /api/todos
-  App-->>Js: 200 []
-  Js-->>Br: 一覧を再描画
+  User->>Br: 名前を入力して送信
+  Br->>Js: submitイベント発火
+  Js->>App: POST /api/messages {"name":"Taro"}
+  App->>Store: create("Taro")
+  Store-->>App: Message(id=1,...)
+  App-->>Js: 201 {"status":"CREATED",...}
+  Js->>App: GET /api/messages
+  App-->>Js: 200 [Message]
+  Js-->>Br: メッセージ一覧を再描画
 ```
 
 ### ルーティングと異常系の分岐（404/405/400）
@@ -162,35 +177,23 @@ flowchart TD
   R1 -->|いいえ| E405A[405 Method Not Allowed]
 
   P -->|/styles.css or /app.js| R2{MethodはGETか}
+  R2 -->|いいえ| E405B[405 Method Not Allowed]
   R2 -->|はい| F{対象ファイルは存在するか}
   F -->|はい| OK2[静的ファイルを返却]
   F -->|いいえ| E404A[404 Not Found]
-  R2 -->|いいえ| E405B[405 Method Not Allowed]
 
-  P -->|/api/todos| R3{MethodはGETかPOSTか}
-  R3 -->|GET| OK3[200 一覧JSON]
-  R3 -->|POST| T{titleをtrim後に判定}
-  T -->|空| E400A[400 title is required]
-  T -->|空でない| OK4[201 作成JSON]
-  R3 -->|それ以外| E405C[405 Method Not Allowed]
+  P -->|/api/health| R3{MethodはGETか}
+  R3 -->|はい| OK3[200 ready JSON]
+  R3 -->|いいえ| E405C[405 Method Not Allowed]
 
-  P -->|/api/todos/:id/toggle| R4{idは数値か}
-  R4 -->|いいえ| E400B[400 invalid id]
-  R4 -->|はい| M1{MethodはPATCHか}
-  M1 -->|いいえ| E405D[405 Method Not Allowed]
-  M1 -->|はい| EX1{対象Todoは存在するか}
-  EX1 -->|いいえ| E404B[404 todo not found]
-  EX1 -->|はい| OK5[200 切替後JSON]
+  P -->|/api/messages| R4{MethodはGETかPOSTか}
+  R4 -->|GET| OK4[200 一覧JSON]
+  R4 -->|POST| N{nameをtrim後に判定}
+  N -->|空| E400[400 name is required]
+  N -->|空でない| OK5[201 作成JSON]
+  R4 -->|それ以外| E405D[405 Method Not Allowed]
 
-  P -->|/api/todos/:id| R5{idは数値か}
-  R5 -->|いいえ| E400C[400 invalid id]
-  R5 -->|はい| M2{MethodはDELETEか}
-  M2 -->|いいえ| E405E[405 Method Not Allowed]
-  M2 -->|はい| EX2{削除対象は存在するか}
-  EX2 -->|いいえ| E404C[404 todo not found]
-  EX2 -->|はい| OK6[200 deleted]
-
-  P -->|それ以外| E404D[404 Not Found]
+  P -->|それ以外| E404B[404 Not Found]
 ```
 
 ---
@@ -202,17 +205,21 @@ java -version
 javac -version
 ```
 
+期待状態:
+- `java -version` と `javac -version` の両方で `17` が表示される
+- `javac` が not found にならない
+
 ---
 
 ## 1. 作業フォルダ
 作業場所（絶対パス）:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite`
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement`
 
 Git Bash:
 ```bash
 cd ~/order-management-springboot
-mkdir -p practice/pre-springboot/step2-todo-lite/static
-cd ~/order-management-springboot/practice/pre-springboot/step2-todo-lite
+mkdir -p practice/pre-springboot/step2-web-api-reinforcement/static
+cd ~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement
 ```
 
 ---
@@ -229,507 +236,436 @@ cd ~/order-management-springboot/practice/pre-springboot/step2-todo-lite
 
 ## 3. `App.java` を作成
 作成ファイル:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/App.java`
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement/App.java`
 
 ### 演習中に確認する用語（このStepで使用）
-- `record`: 値をまとめる不変データ型。このLessonでは `Todo` を `id/title/completed` の1件データとして簡潔に表現する。
-- `AtomicLong`: スレッド安全な連番カウンタ。このLessonでは `Todo` の `id` を重複なく採番するために使う。
-- `synchronized`: 同時実行時の排他制御。このLessonでは `TodoStore` の `list/create/toggle/delete` でデータ競合を防ぐ。
-- `HttpServer.create(...)`: ToDo APIを待受するHTTPサーバーを生成する。`8091` ポートで起動してブラウザからアクセス可能にする。
-- `createContext("/api/todos", ...)` と `createContext("/api/todos/", ...)`: 一覧/作成とID付き操作（切替・削除）で入口URLを分けるためのルーティング設定。
-- `PATCH`: リソースの一部更新を表すHTTPメソッド。このLessonでは `completed` の切替に使用する。
+- `HttpServer`: Java標準の簡易HTTPサーバー。Spring Bootを使わずにWeb APIを待ち受ける。
+- `HttpExchange`: 1回分のHTTP通信情報。リクエストメソッド、URL、本文、レスポンス出力先を扱う。
+- `record`: 値をまとめる不変データ型。このLessonでは `Message` 1件分を表す。
+- `enum`: 決まった候補だけを表す型。このLessonでは `OK` / `CREATED` のようなAPI状態を表す。
+- `AtomicLong`: スレッド安全な連番カウンタ。このLessonでは `Message` の `id` 採番に使う。
+- `synchronized`: 同時実行時の排他制御。このLessonではメモリ上の `messages` を安全に更新するために使う。
+- `Files` / `Path`: HTML/CSS/JavaScript の静的ファイルを読み込むために使う。
+- `Pattern` / `Matcher`: JSON文字列から `name` を取り出すために使う。
 
 ```java
-// 1回分のHTTP通信（リクエスト情報 + レスポンス出力先）を扱う型
-import com.sun.net.httpserver.HttpExchange;
-// Java標準の簡易HTTPサーバー
-import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpExchange; // HTTPリクエスト/レスポンス本体を扱うクラス
+import com.sun.net.httpserver.HttpServer; // Java標準の簡易HTTPサーバー
 
-// 入出力エラー例外
-import java.io.IOException;
-// 待受IP/ポートの指定に使う
-import java.net.InetSocketAddress;
-// UTF-8などの文字コード定数
-import java.nio.charset.StandardCharsets;
-// ファイル存在確認/読み込み
-import java.nio.file.Files;
-// OS差異を吸収してパスを扱う
-import java.nio.file.Path;
-// 可変長リスト実装
-import java.util.ArrayList;
-// リスト型のインターフェース
-import java.util.List;
-// スレッド安全に連番を採番
-import java.util.concurrent.atomic.AtomicLong;
-// 正規表現の検索結果
-import java.util.regex.Matcher;
-// 正規表現パターン
-import java.util.regex.Pattern;
+import java.io.IOException; // 入出力エラー例外
+import java.net.InetSocketAddress; // IPアドレス + ポートの組み合わせ
+import java.nio.charset.StandardCharsets; // UTF-8などの文字コード定数
+import java.nio.file.Files; // ファイル存在確認・読み込みに使用
+import java.nio.file.Path; // ファイルパスを安全に扱う型
+import java.util.ArrayList; // 可変長リストの代表実装
+import java.util.List; // リスト型のインターフェース
+import java.util.concurrent.atomic.AtomicLong; // 同時アクセスでも安全に連番を増やすクラス
+import java.util.regex.Matcher; // 正規表現の検索結果
+import java.util.regex.Pattern; // 正規表現パターン
 
-// アプリ全体のエントリポイントクラス
-public class App {
-    // 引数でポート指定が無いときに使う既定ポート
-    private static final int DEFAULT_PORT = 8091;
-    // HTML/CSS/JS の静的ファイルを置くディレクトリ
-    private static final Path STATIC_DIR = Path.of("static");
-    // JSON本文から必要項目を取り出すための正規表現
-    private static final Pattern TITLE_PATTERN = Pattern.compile("\"title\"\\s*:\\s*\"(.*?)\"");
-    // メモリ上でデータを保持するストア
-    private static final TodoStore STORE = new TodoStore();
+public class App { // Lesson2で作るWebアプリ本体
+    private static final int DEFAULT_PORT = 8089; // Lesson2用の待受ポート
+    private static final Path STATIC_DIR = Path.of("static"); // 画面ファイル置き場
+    private static final Pattern NAME_PATTERN = Pattern.compile("\"name\"\\s*:\\s*\"(.*?)\""); // {"name":"..."} の name を抽出
+    private static final MessageStore STORE = new MessageStore(); // メモリ上のメッセージ保存先
 
-    // アプリ起動の入口。ルーティングを登録してサーバーを開始する
+    // Javaアプリのエントリーポイント（JVMが最初に呼ぶメソッド）
+    // public: 外部（JVM）から呼び出せるようにする
+    // static: Appのインスタンス生成なしで呼び出せるようにする
+    // void: 戻り値なし / String[] args: 起動引数（例: 8089）
+    // throws IOException: ファイル・通信などの入出力エラーを呼び出し元へ伝える
     public static void main(String[] args) throws IOException {
-        int port = resolvePort(args);
+        int port = resolvePort(args); // 引数があれば引数、なければDEFAULT_PORT
 
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-        // ルーティング登録: "/" にアクセスされたときの処理を関連付ける
-        server.createContext("/", App::handleRoot);
-        // ルーティング登録: "/styles.css" にアクセスされたときの処理を関連付ける
-        // exchange は今回1回分のHTTP通信情報。handleStatic に委譲して静的ファイルを返す
-        server.createContext("/styles.css", exchange -> handleStatic(exchange, "styles.css", "text/css; charset=UTF-8"));
-        // ルーティング登録: "/app.js" にアクセスされたときの処理を関連付ける
-        // exchange は今回1回分のHTTP通信情報。handleStatic に委譲して静的ファイルを返す
-        server.createContext("/app.js", exchange -> handleStatic(exchange, "app.js", "application/javascript; charset=UTF-8"));
-        // ルーティング登録: "/api/todos" にアクセスされたときの処理を関連付ける
-        server.createContext("/api/todos", App::handleTodos);
-        // ルーティング登録: "/api/todos/" にアクセスされたときの処理を関連付ける
-        server.createContext("/api/todos/", App::handleTodoById);
-        // スレッド実行方式はデフォルト設定を使う
-        server.setExecutor(null);
-        // HTTPサーバーを起動して待受開始
-        server.start();
+        // localhost:port で待ち受けるHTTPサーバーを生成
+        // 第2引数の 0 は backlog（同時接続待ちキュー長）を OS 既定値に任せる指定
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0); // HTTPサーバー作成
+        server.createContext("/", App::handleRoot); // / へのアクセス（トップ画面）
+        // createContext(パス, 処理) で「そのURLが来た時の担当処理」を登録する
+        // exchange は「今回1回分の通信情報」が入った箱（メソッド/URL/ヘッダー/本文/レスポンス書き込み先）
+        // handleStatic(...) は共通メソッド。ここでは styles.css を返すように指定している
+        server.createContext("/styles.css", exchange -> handleStatic(exchange, "styles.css", "text/css; charset=UTF-8")); // CSS
+        server.createContext("/app.js", exchange -> handleStatic(exchange, "app.js", "text/javascript; charset=UTF-8")); // JavaScript
+        server.createContext("/api/health", App::handleHealth); // APIの起動状態確認
+        server.createContext("/api/messages", App::handleMessages); // メッセージ一覧/登録
+        server.setExecutor(null); // 既定の実行方式（シンプル構成）
+        server.start(); // 待受開始
 
-        System.out.println("ToDo Lite started: http://localhost:" + port);
+        System.out.println("started: http://localhost:" + port); // 起動確認メッセージ
     }
 
-    // 起動引数から使用ポートを決める（不正値なら既定ポート）
-    private static int resolvePort(String[] args) {
-        if (args.length == 0) {
+    private static int resolvePort(String[] args) { // 起動引数からポート番号を決める
+        if (args.length == 0) { // 引数なしなら既定ポート
             return DEFAULT_PORT;
         }
+
         try {
-            return Integer.parseInt(args[0]);
-        } catch (NumberFormatException ex) {
-            return DEFAULT_PORT;
+            return Integer.parseInt(args[0]); // 引数が数値ならそのポートを使う
+        } catch (NumberFormatException e) { // 数値に変換できない場合
+            return DEFAULT_PORT; // 既定ポートへフォールバック
         }
     }
 
-    // "/" へのアクセスを処理し、index.html を返す
-    private static void handleRoot(HttpExchange exchange) throws IOException {
-        // GET以外のHTTPメソッドは受け付けない
-        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
-            sendJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}");
+    private static void handleRoot(HttpExchange exchange) throws IOException { // / へのアクセスを処理する
+        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) { // GET以外は拒否
+            sendMethodNotAllowed(exchange);
             return;
         }
-        if (!"/".equals(exchange.getRequestURI().getPath())) {
-            sendJson(exchange, 404, "{\"error\":\"Not Found\"}");
+
+        if (!"/".equals(exchange.getRequestURI().getPath())) { // / 以外のパスは404
+            sendNotFound(exchange);
             return;
         }
-        handleStatic(exchange, "index.html", "text/html; charset=UTF-8");
+
+        handleStatic(exchange, "index.html", "text/html; charset=UTF-8"); // トップ画面HTMLを返す
     }
 
-    // static配下のファイルを読み込み、指定Content-Typeで返す共通処理
+    // 共通メソッド: 指定された fileName を static 配下から読み込み、contentType で返す
+    // exchange: 今回の通信情報（リクエスト情報 + レスポンス出力先）
+    // fileName: 返す実ファイル名（例: styles.css）
+    // contentType: 返すデータ種別（例: text/css; charset=UTF-8）
     private static void handleStatic(HttpExchange exchange, String fileName, String contentType) throws IOException {
-        // GET以外のHTTPメソッドは受け付けない
-        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
-            sendJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}");
-            return;
-        }
-        Path file = STATIC_DIR.resolve(fileName);
-        // 対象ファイルが存在しない場合は404を返す
-        if (!Files.exists(file)) {
-            sendJson(exchange, 404, "{\"error\":\"Not Found\"}");
+        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) { // 静的ファイルもGETのみ許可
+            sendMethodNotAllowed(exchange);
             return;
         }
 
-        byte[] body = Files.readAllBytes(file);
-        // ブラウザが中身を正しく解釈できるようContent-Typeを設定
-        exchange.getResponseHeaders().set("Content-Type", contentType);
-        // ステータスコードとボディ長を先に送信する
-        exchange.sendResponseHeaders(200, body.length);
-        // レスポンス本文を書き込む
-        exchange.getResponseBody().write(body);
-        // 通信を終了してリソースを解放する
-        exchange.close();
+        Path file = STATIC_DIR.resolve(fileName); // static配下の対象ファイルを指すPathを作る
+        if (!Files.exists(file)) { // ファイルがなければ404
+            sendNotFound(exchange);
+            return;
+        }
+
+        byte[] body = Files.readAllBytes(file); // ファイルをバイト配列で読み込み
+        exchange.getResponseHeaders().set("Content-Type", contentType); // Content-Type設定
+        exchange.sendResponseHeaders(200, body.length); // HTTP 200 + ボディ長を返す
+        exchange.getResponseBody().write(body); // レスポンスボディへ書き込み
+        exchange.close(); // レスポンスを閉じて完了
     }
 
-    // /api/todos の GET/POST を処理する
-    private static void handleTodos(HttpExchange exchange) throws IOException {
-        String method = exchange.getRequestMethod().toUpperCase();
-        if ("GET".equals(method)) {
-            List<Todo> todos = STORE.list();
-            sendJson(exchange, 200, toJsonList(todos));
+    private static void handleHealth(HttpExchange exchange) throws IOException { // /api/health を処理する
+        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) { // API状態確認はGETのみ許可
+            sendMethodNotAllowed(exchange);
             return;
         }
 
-        if ("POST".equals(method)) {
-            // リクエスト本文(JSON文字列)をUTF-8で読み取る
-            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            String title = extractTitle(body).trim();
-            // 必須入力が空ならエラーとして返す
-            if (title.isEmpty()) {
-                sendJson(exchange, 400, "{\"error\":\"title is required\"}");
-                return;
-            }
-            Todo created = STORE.create(title);
-            sendJson(exchange, 201, toJson(created));
-            return;
-        }
-
-        sendJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}");
+        ApiStatus status = ApiStatus.OK; // enumで固定値OKを表す
+        sendJson(exchange, 200, "{\"status\":\"" + status + "\",\"message\":\"ready\"}"); // API稼働中をJSONで返す
     }
 
-    // /api/todos/{id} 系（toggle/delete）を処理する
-    private static void handleTodoById(HttpExchange exchange) throws IOException {
-        String path = exchange.getRequestURI().getPath();
-        String method = exchange.getRequestMethod().toUpperCase();
-        String suffix = path.substring("/api/todos/".length());
+    private static void handleMessages(HttpExchange exchange) throws IOException { // /api/messages のGET/POSTを処理する
+        String method = exchange.getRequestMethod(); // GET / POST などのHTTPメソッドを取得
 
-        if (suffix.isBlank()) {
-            sendJson(exchange, 404, "{\"error\":\"Not Found\"}");
+        if ("GET".equalsIgnoreCase(method)) { // GETなら一覧取得
+            List<Message> messages = STORE.list(); // 保存済みメッセージを取得
+            sendJson(exchange, 200, toMessageListJson(messages)); // JSON配列として返す
             return;
         }
 
-        if (suffix.endsWith("/toggle")) {
-            String idPart = suffix.substring(0, suffix.length() - "/toggle".length());
-            long id = parseId(idPart);
-            if (id < 0) {
-                sendJson(exchange, 400, "{\"error\":\"invalid id\"}");
+        if ("POST".equalsIgnoreCase(method)) { // POSTなら新規登録
+            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8); // リクエスト本文(JSON文字列)をUTF-8で取得
+            String name = extractName(body).trim(); // JSONからnameを取り出して前後空白を除去
+
+            if (name.isEmpty()) { // nameが空なら入力エラー
+                sendJson(exchange, 400, "{\"error\":\"name is required\"}"); // HTTP 400でエラーJSONを返す
                 return;
             }
-            if (!"PATCH".equals(method)) {
-                sendJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}");
-                return;
-            }
-            Todo updated = STORE.toggle(id);
-            if (updated == null) {
-                sendJson(exchange, 404, "{\"error\":\"todo not found\"}");
-                return;
-            }
-            sendJson(exchange, 200, toJson(updated));
+
+            Message message = STORE.create(name); // メモリ上にメッセージを保存
+            sendJson(exchange, 201, toMessageJson(message, ApiStatus.CREATED)); // HTTP 201で作成結果を返す
             return;
         }
 
-        long id = parseId(suffix);
-        if (id < 0) {
-            sendJson(exchange, 400, "{\"error\":\"invalid id\"}");
-            return;
-        }
-
-        if ("DELETE".equals(method)) {
-            boolean deleted = STORE.delete(id);
-            if (!deleted) {
-                sendJson(exchange, 404, "{\"error\":\"todo not found\"}");
-                return;
-            }
-            sendJson(exchange, 200, "{\"message\":\"deleted\"}");
-            return;
-        }
-
-        sendJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}");
+        sendMethodNotAllowed(exchange); // GET/POST以外は405
     }
 
-    // URL文字列からIDを数値へ変換する（失敗時は-1）
-    private static long parseId(String idPart) {
-        try {
-            return Long.parseLong(idPart);
-        } catch (NumberFormatException ex) {
-            return -1;
-        }
-    }
-
-    // JSONからtitleを抜き出してエスケープを復元する
-    private static String extractTitle(String body) {
-        Matcher matcher = TITLE_PATTERN.matcher(body);
-        if (!matcher.find()) {
+    private static String extractName(String body) { // JSON文字列からname値を取り出す
+        Matcher matcher = NAME_PATTERN.matcher(body); // name抽出用正規表現を適用
+        if (!matcher.find()) { // nameが見つからなければ空文字
             return "";
         }
-        return matcher.group(1)
-            .replace("\\\"", "\"")
-            .replace("\\\\", "\\")
-            .replace("\\n", "\n")
-            .replace("\\r", "\r")
-            .replace("\\t", "\t");
+
+        return unescapeJson(matcher.group(1)); // 1番目のキャプチャグループ（name値）を復元して返す
     }
 
-    // ToDoリストをJSON配列文字列へ変換する
-    private static String toJsonList(List<Todo> todos) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        for (int i = 0; i < todos.size(); i++) {
-            if (i > 0) {
+    private static String toMessageListJson(List<Message> messages) { // メッセージ一覧をJSON配列文字列へ変換する
+        StringBuilder builder = new StringBuilder(); // 文字列連結を効率よく行うための入れ物
+        builder.append("["); // JSON配列の開始
+
+        for (int i = 0; i < messages.size(); i++) { // 一覧を先頭から順に処理
+            if (i > 0) { // 2件目以降は要素区切りのカンマを入れる
                 builder.append(",");
             }
-            builder.append(toJson(todos.get(i)));
+
+            Message message = messages.get(i); // i番目のMessageを取得
+            builder.append("{") // JSONオブジェクトの開始
+                .append("\"id\":").append(message.id()).append(",") // idは数値として出力
+                .append("\"name\":\"").append(escapeJson(message.name())).append("\",") // nameは文字列なのでエスケープして出力
+                .append("\"text\":\"").append(escapeJson(message.text())).append("\"") // textも文字列として出力
+                .append("}"); // JSONオブジェクトの終了
         }
-        builder.append("]");
-        return builder.toString();
+
+        builder.append("]"); // JSON配列の終了
+        return builder.toString(); // StringBuilderの内容をStringにして返す
     }
 
-    // 単一データをJSON文字列へ変換する
-    private static String toJson(Todo todo) {
-        return "{"
-            + "\"id\":" + todo.id + ","
-            + "\"title\":\"" + escapeJson(todo.title) + "\","
-            + "\"completed\":" + todo.completed
-            + "}";
+    private static String toMessageJson(Message message, ApiStatus status) { // 登録結果1件をJSON文字列へ変換する
+        return "{" // JSONオブジェクトの開始
+            + "\"status\":\"" + status + "\"," // 処理結果（CREATEDなど）
+            + "\"id\":" + message.id() + "," // 採番されたID
+            + "\"name\":\"" + escapeJson(message.name()) + "\"," // 入力された名前
+            + "\"message\":\"" + escapeJson(message.text()) + "\"" // 画面表示用メッセージ
+            + "}"; // JSONオブジェクトの終了
     }
 
-    // JSONレスポンスの共通送信処理
-    private static void sendJson(HttpExchange exchange, int status, String json) throws IOException {
-        byte[] body = json.getBytes(StandardCharsets.UTF_8);
-        // ブラウザが中身を正しく解釈できるようContent-Typeを設定
-        exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
-        // ステータスコードとボディ長を先に送信する
-        exchange.sendResponseHeaders(status, body.length);
-        // レスポンス本文を書き込む
-        exchange.getResponseBody().write(body);
-        // 通信を終了してリソースを解放する
-        exchange.close();
+    private static void sendMethodNotAllowed(HttpExchange exchange) throws IOException { // 405を返す共通処理
+        sendJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}"); // HTTPメソッド違反
     }
 
-    // JSON文字列として安全になるようにエスケープする
-    private static String escapeJson(String value) {
+    private static void sendNotFound(HttpExchange exchange) throws IOException { // 404を返す共通処理
+        sendJson(exchange, 404, "{\"error\":\"Not Found\"}"); // URLやファイルが見つからない
+    }
+
+    private static void sendJson(HttpExchange exchange, int status, String json) throws IOException { // JSONレスポンスの共通送信処理
+        byte[] body = json.getBytes(StandardCharsets.UTF_8); // JSON文字列をUTF-8バイト列へ変換
+        exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8"); // JSONのMIMEタイプ
+        exchange.sendResponseHeaders(status, body.length); // ステータスコードとボディ長を通知
+        exchange.getResponseBody().write(body); // レスポンス本文を書き込む
+        exchange.close(); // 必ずcloseしてレスポンス完了
+    }
+
+    private static String escapeJson(String value) { // JSON文字列として安全になるように特殊文字をエスケープする
         return value
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t");
+            .replace("\\", "\\\\") // \ は最初にエスケープ
+            .replace("\"", "\\\"") // " をエスケープ
+            .replace("\n", "\\n") // 改行をエスケープ
+            .replace("\r", "\\r") // CRをエスケープ
+            .replace("\t", "\\t"); // タブをエスケープ
     }
 
-    // record: 値をまとめる不変データ型（getter相当が自動で使える）
-    private record Todo(long id, String title, boolean completed) {
+    private static String unescapeJson(String value) { // JSON文字列内のエスケープを通常文字へ戻す
+        return value
+            .replace("\\\"", "\"") // \" を " へ戻す
+            .replace("\\\\", "\\") // \\ を \ へ戻す
+            .replace("\\n", "\n") // \n を改行文字へ戻す
+            .replace("\\r", "\r") // \r をCRへ戻す
+            .replace("\\t", "\t"); // \t をタブへ戻す
     }
 
-    private static final class TodoStore {
-        // AtomicLong: 同時アクセス時も安全に連番を採番する
-        private final AtomicLong sequence = new AtomicLong(0);
-        private final List<Todo> todos = new ArrayList<>();
+    private enum ApiStatus { // APIの処理状態を固定候補で表す
+        OK, // 正常に取得できた状態
+        CREATED // 新規作成できた状態
+    }
 
-        // synchronized: 共有データ（todos）更新の競合を防ぐ
-        public synchronized List<Todo> list() {
-            return new ArrayList<>(todos);
+    private record Message(long id, String name, String text) { // メッセージ1件分のデータ
+    }
+
+    private static final class MessageStore { // メモリ上でメッセージを管理するクラス
+        private final AtomicLong sequence = new AtomicLong(0); // ID採番用カウンタ
+        private final List<Message> messages = new ArrayList<>(); // 保存済みメッセージ一覧
+
+        public synchronized List<Message> list() { // 一覧取得。synchronizedで読み取り中の競合を防ぐ
+            return new ArrayList<>(messages); // 内部リストを直接渡さずコピーを返す
         }
 
-        // synchronized: 同時作成でもID重複やデータ破損を防ぐ
-        public synchronized Todo create(String title) {
-            Todo todo = new Todo(sequence.incrementAndGet(), title, false);
-            todos.add(todo);
-            return todo;
-        }
-
-        public synchronized Todo toggle(long id) {
-            for (int i = 0; i < todos.size(); i++) {
-                Todo current = todos.get(i);
-                if (current.id == id) {
-                    Todo updated = new Todo(current.id, current.title, !current.completed);
-                    todos.set(i, updated);
-                    return updated;
-                }
-            }
-            return null;
-        }
-
-        public synchronized boolean delete(long id) {
-            for (int i = 0; i < todos.size(); i++) {
-                if (todos.get(i).id == id) {
-                    todos.remove(i);
-                    return true;
-                }
-            }
-            return false;
+        public synchronized Message create(String name) { // 新規作成。synchronizedで同時登録時の競合を防ぐ
+            String text = "こんにちは、" + name + "さん"; // 保存するメッセージ本文を作成
+            Message message = new Message(sequence.incrementAndGet(), name, text); // IDを1つ進めてMessageを生成
+            messages.add(message); // メモリ上の一覧へ追加
+            return message; // 作成したデータを呼び出し元へ返す
         }
     }
 }
 ```
+
+確認ポイント:
+- `server.createContext(...)` がURLとJavaメソッドを結び付けている
+- `handleMessages` は同じ `/api/messages` でも `GET` と `POST` で処理を分けている
+- `record Message(...)` は1件分のデータを表している
+- `MessageStore` がメモリ上の保存先になっている
+- `sendJson` がステータスコードとJSON本文をまとめて返している
 
 ---
 
 ## 4. `index.html` を作成
 作成ファイル:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/static/index.html`
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement/static/index.html`
 
 ```html
-<!-- HTML5文書であることを宣言 -->
-<!doctype html>
-<!-- このページの言語設定（日本語） -->
-<html lang="ja">
-<!-- 画面に表示しないメタ情報をまとめる領域 -->
+<!doctype html> <!-- HTML5文書であることを宣言 -->
+<html lang="ja"> <!-- 文書言語を日本語に指定 -->
 <head>
-  <!-- 文字コードをUTF-8にして文字化けを防ぐ -->
-  <meta charset="utf-8">
-  <!-- スマホ表示で幅を適切に合わせる -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- ブラウザタブに表示されるタイトル -->
-  <title>ToDo Lite</title>
-  <!-- CSSファイルを読み込む -->
-  <link rel="stylesheet" href="/styles.css">
+  <meta charset="UTF-8"> <!-- 文字化け防止（UTF-8） -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ表示対応 -->
+  <title>Lesson2 Web API Bridge</title> <!-- ブラウザタブに表示されるタイトル -->
+  <link rel="stylesheet" href="/styles.css"> <!-- サーバーから配信されるCSSを読み込む -->
 </head>
-<!-- ユーザーに見える本体コンテンツ -->
 <body>
-  <!-- 画面の主コンテンツ領域 -->
-  <main class="container">
-    <!-- 画面の見出し領域 -->
-    <header>
-      <h1>ToDo Lite</h1>
-      <p class="muted">Java + HTML/CSS/JavaScript（CRUD基礎）</p>
-    </header>
+  <main class="container"> <!-- ページ全体の中央寄せ用ラッパー -->
+    <section class="panel"> <!-- 入力フォームと結果表示のパネル -->
+      <p class="eyebrow">Lesson2</p> <!-- 小見出し -->
+      <h1>Webアプリ前準備</h1> <!-- 画面タイトル -->
+      <p class="muted">Java API + fetch の最小接続を確認します。</p> <!-- 補足説明 -->
 
-    <section class="panel">
-      <!-- 入力フォーム。submitイベントをJSで受け取る -->
-      <form id="todo-form" class="row">
-        <!-- ユーザーが値を入力する要素 -->
-        <input id="todo-title" type="text" placeholder="タスクを入力" maxlength="100" required>
-        <!-- 押下操作を行うボタン -->
-        <button type="submit">追加</button>
+      <div class="status-box"> <!-- API状態表示エリア -->
+        <span>API状態</span>
+        <strong id="health-status">確認中...</strong> <!-- JSでAPI状態を書き換える対象 -->
+      </div>
+
+      <form id="message-form" class="form"> <!-- JSから取得するためにIDを付与 -->
+        <label for="name">名前</label> <!-- 入力欄の説明 -->
+        <div class="form-row"> <!-- 入力欄とボタンを横並びにするための枠 -->
+          <input id="name" name="name" type="text" placeholder="Taro"> <!-- APIへ送る名前入力欄 -->
+          <button type="submit">送信</button> <!-- フォーム送信ボタン -->
+        </div>
       </form>
-      <p id="message" class="muted"></p>
+
+      <p id="result-message" class="message" aria-live="polite"></p> <!-- JSで結果/エラーを表示する対象 -->
     </section>
 
-    <section class="panel">
-      <div class="row">
-        <h2>一覧</h2>
-        <span id="count" class="muted"></span>
-      </div>
-      <ul id="todo-list" class="todo-list"></ul>
+    <section class="panel"> <!-- 登録済みメッセージ一覧のパネル -->
+      <h2>メッセージ一覧</h2> <!-- 一覧見出し -->
+      <ul id="message-list" class="message-list"></ul> <!-- JSでli要素を追加する対象 -->
     </section>
   </main>
 
-  <!-- JavaScriptを読み込む。deferでHTML解析後に実行 -->
-  <script src="/app.js" defer></script>
+  <script src="/app.js"></script> <!-- サーバーから配信されるJavaScriptを読み込む -->
 </body>
 </html>
 ```
+
+確認ポイント:
+- `<link rel="stylesheet" href="/styles.css">` でCSSを読み込む
+- `<script src="/app.js"></script>` でJavaScriptを読み込む
+- `id="message-form"` や `id="message-list"` は JavaScript から要素を取得するための目印
 
 ---
 
 ## 5. `styles.css` を作成
 作成ファイル:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/static/styles.css`
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement/static/styles.css`
 
 ```css
-/* 画面全体で再利用するデザイン変数を定義 */
-:root {
-  /* ページ背景色 */
-  --bg: #f5f7fb;
-  /* カード/パネル背景色 */
-  --panel: #ffffff;
-  /* 基本文字色 */
-  --text: #1f2937;
-  /* 補助文字色 */
-  --muted: #6b7280;
-  /* 枠線色 */
-  --border: #d1d5db;
-  /* 強調色（主ボタン等） */
-  --accent: #0284c7;
-  /* 危険操作色（削除ボタン等） */
-  --danger: #dc2626;
-}
-
-/* 要素の幅計算を扱いやすくする共通設定 */
 * {
-  box-sizing: border-box;
+  box-sizing: border-box; /* 幅計算にpadding/borderを含める */
 }
 
-/* ページ全体の基本見た目 */
 body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Segoe UI", sans-serif;
+  margin: 0; /* 既定余白をリセット */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; /* OS標準に近いフォント指定 */
+  color: #1f2937; /* 基本文字色 */
+  background: #eef2f7; /* ページ背景色 */
 }
 
-/* コンテンツの最大幅と中央寄せ */
 .container {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 24px;
+  width: min(920px, calc(100% - 32px)); /* 最大幅と画面端余白を両立 */
+  margin: 32px auto; /* 上下余白 + 横方向中央寄せ */
+  display: grid; /* パネルを縦並びにしやすくする */
+  gap: 16px; /* パネル間余白 */
 }
 
-header {
-  margin-bottom: 12px;
+.panel {
+  background: #ffffff; /* パネル背景色 */
+  border: 1px solid #d8dee9; /* パネル枠線 */
+  border-radius: 8px; /* 角丸 */
+  padding: 24px; /* 内側余白 */
 }
 
-h1 {
-  margin: 0 0 4px;
+.eyebrow {
+  margin: 0 0 8px; /* 下だけ余白 */
+  color: #2563eb; /* 小見出しの強調色 */
+  font-size: 0.85rem; /* 小さめの文字サイズ */
+  font-weight: 700; /* 太字 */
 }
 
+h1,
 h2 {
-  margin: 0;
-  font-size: 18px;
+  margin: 0 0 12px; /* 見出し下の余白 */
 }
 
 .muted {
-  color: var(--muted);
+  margin: 0 0 20px; /* 補足説明下の余白 */
+  color: #667085; /* 補助文字色 */
 }
 
-/* カード風の共通パネルスタイル */
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 14px;
+.status-box {
+  display: flex; /* ラベルと状態を横並び */
+  justify-content: space-between; /* 左右に分けて配置 */
+  gap: 16px; /* 横並び要素の間隔 */
+  margin-bottom: 20px; /* 下余白 */
+  padding: 12px 14px; /* 内側余白 */
+  border: 1px solid #bfdbfe; /* 状態表示の枠線 */
+  border-radius: 8px; /* 角丸 */
+  background: #eff6ff; /* 状態表示の背景色 */
 }
 
-/* 横並び用の共通レイアウト */
-.row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+.form {
+  display: grid; /* ラベルと入力行を縦並び */
+  gap: 8px; /* 項目間余白 */
 }
 
-input[type="text"] {
-  flex: 1;
-  min-width: 240px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px;
+.form-row {
+  display: flex; /* 入力欄とボタンを横並び */
+  gap: 8px; /* 入力欄とボタンの間隔 */
 }
 
-/* ボタン共通スタイル */
+input {
+  flex: 1; /* 横幅の残りを入力欄が使う */
+  min-width: 0; /* 狭い画面で入力欄がはみ出すのを防ぐ */
+  padding: 10px 12px; /* 入力しやすい高さを確保 */
+  border: 1px solid #cbd5e1; /* 入力欄の枠線 */
+  border-radius: 6px; /* 角丸 */
+  font: inherit; /* bodyと同じフォントを使う */
+}
+
 button {
-  border: none;
-  border-radius: 6px;
-  padding: 8px 12px;
-  color: #fff;
-  background: var(--accent);
-  cursor: pointer;
+  padding: 10px 16px; /* クリックしやすい余白 */
+  border: 0; /* 既定の枠線を消す */
+  border-radius: 6px; /* 角丸 */
+  font: inherit; /* bodyと同じフォントを使う */
+  font-weight: 700; /* ボタン文字を太字 */
+  color: #ffffff; /* ボタン文字色 */
+  background: #2563eb; /* ボタン背景色 */
+  cursor: pointer; /* ホバー時カーソルを手にする */
 }
 
-button.delete {
-  background: var(--danger);
+button:hover {
+  background: #1d4ed8; /* ホバー時に少し濃くする */
 }
 
-.todo-list {
-  list-style: none;
-  margin: 12px 0 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
+.message {
+  min-height: 24px; /* メッセージ未表示時も高さを確保 */
+  margin: 16px 0 0; /* 上余白 */
+  font-weight: 700; /* メッセージを目立たせる */
 }
 
-.todo-item {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+.message.error {
+  color: #b42318; /* エラー時の文字色 */
 }
 
-.todo-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.message-list {
+  margin: 0; /* ulの既定余白をリセット */
+  padding: 0; /* ulの既定左余白をリセット */
+  list-style: none; /* 箇条書きマーカーを消す */
+  display: grid; /* liを縦並びにする */
+  gap: 8px; /* li同士の間隔 */
 }
 
-.todo-title.done {
-  text-decoration: line-through;
-  color: var(--muted);
+.message-list li {
+  padding: 10px 12px; /* 一覧項目の内側余白 */
+  border: 1px solid #e5e7eb; /* 一覧項目の枠線 */
+  border-radius: 6px; /* 角丸 */
+  background: #f9fafb; /* 一覧項目の背景色 */
+}
+
+@media (max-width: 560px) {
+  .form-row {
+    flex-direction: column; /* 狭い画面では縦並び */
+  }
+
+  button {
+    width: 100%; /* スマホではボタン幅を入力欄に合わせる */
+  }
 }
 ```
 
@@ -737,369 +673,339 @@ button.delete {
 
 ## 6. `app.js` を作成
 作成ファイル:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/static/app.js`
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement/static/app.js`
+
+### 演習中に確認する用語（このStepで使用）
+- `DOMContentLoaded`: HTML読み込み完了後にJavaScriptを実行するためのイベント。
+- `fetch`: ブラウザからHTTPリクエストを送る関数。
+- `async` / `await`: 非同期処理の完了を待ってから次の処理へ進める構文。
+- `JSON.stringify(...)`: JavaScriptオブジェクトをJSON文字列へ変換する。
+- `response.json()`: レスポンスJSONをJavaScriptオブジェクトへ変換する。
+- `response.ok`: HTTPステータスが `200` 番台なら `true` になる。
 
 ```javascript
-// HTMLの読み込み完了後に初期化処理を開始する
-document.addEventListener("DOMContentLoaded", () => {
-  // HTML要素をIDで取得して、後続処理で使えるようにする
-  const form = document.getElementById("todo-form");
-  // HTML要素をIDで取得して、後続処理で使えるようにする
-  const titleInput = document.getElementById("todo-title");
-  // HTML要素をIDで取得して、後続処理で使えるようにする
-  const list = document.getElementById("todo-list");
-  // HTML要素をIDで取得して、後続処理で使えるようにする
-  const message = document.getElementById("message");
-  // HTML要素をIDで取得して、後続処理で使えるようにする
-  const count = document.getElementById("count");
+document.addEventListener("DOMContentLoaded", () => { // HTML読込完了後に処理を開始
+  const healthStatus = document.getElementById("health-status"); // API状態表示要素を取得
+  const form = document.getElementById("message-form"); // フォーム要素を取得
+  const nameInput = document.getElementById("name"); // 名前入力欄を取得
+  const resultMessage = document.getElementById("result-message"); // 結果/エラー表示要素を取得
+  const messageList = document.getElementById("message-list"); // メッセージ一覧要素を取得
 
-  // 要素取得に失敗した場合は安全に処理を中断する
-  if (!(form instanceof HTMLFormElement) ||
-      !(titleInput instanceof HTMLInputElement) ||
-      !(list instanceof HTMLUListElement) ||
-      !(message instanceof HTMLElement) ||
-      !(count instanceof HTMLElement)) {
-    return;
+  // 要素が想定どおり取得できたかを型込みでチェック
+  if (!(healthStatus instanceof HTMLElement) ||
+      !(form instanceof HTMLFormElement) ||
+      !(nameInput instanceof HTMLInputElement) ||
+      !(resultMessage instanceof HTMLElement) ||
+      !(messageList instanceof HTMLUListElement)) {
+    return; // 取得失敗時は安全に処理終了
   }
 
-  const setMessage = (text) => {
-    message.textContent = text;
+  const showMessage = (text, isError = false) => { // 結果/エラー表示をまとめて更新する関数
+    resultMessage.textContent = text; // 表示文字列を更新
+    resultMessage.classList.toggle("error", isError); // エラー時だけerrorクラスを付ける
   };
 
-  const loadTodos = async () => {
-    // APIへHTTPリクエストを送信する
-    const response = await fetch("/api/todos");
-    // HTTPステータスが失敗系ならエラーメッセージを扱う
-    if (!response.ok) {
-      throw new Error("failed to load todos");
+  const loadHealth = async () => { // API状態を取得する非同期関数
+    const response = await fetch("/api/health"); // Java APIへGETリクエスト
+    const data = await response.json(); // レスポンスJSONをオブジェクト化
+
+    if (!response.ok) { // HTTPエラー（400/404/405など）の場合
+      throw new Error(data.error || "API状態確認に失敗しました"); // 呼び出し元のcatchへエラーを渡す
     }
-    const todos = await response.json();
-    renderTodos(todos);
+
+    healthStatus.textContent = `${data.status}: ${data.message}`; // 画面のAPI状態を更新
   };
 
-  const renderTodos = (todos) => {
-    count.textContent = `件数: ${todos.length}`;
-    list.innerHTML = "";
+  const renderMessages = (messages) => { // メッセージ一覧を画面に描画する関数
+    messageList.innerHTML = ""; // 既存の一覧表示を空にする
 
-    if (todos.length === 0) {
-      const li = document.createElement("li");
-      li.className = "muted";
-      li.textContent = "タスクがありません。";
-      list.appendChild(li);
-      return;
+    if (messages.length === 0) { // 一覧が空の場合
+      const emptyItem = document.createElement("li"); // 空表示用のli要素を作成
+      emptyItem.textContent = "まだメッセージはありません。"; // 空表示メッセージ
+      messageList.appendChild(emptyItem); // ulへliを追加
+      return; // ここで描画処理を終了
     }
 
-    todos.forEach((todo) => {
-      const li = document.createElement("li");
-      li.className = "todo-item";
-
-      const left = document.createElement("div");
-      left.className = "todo-left";
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = Boolean(todo.completed);
-      // 選択値変更時に再描画/再取得する
-      checkbox.addEventListener("change", () => toggleTodo(todo.id));
-
-      const title = document.createElement("span");
-      title.textContent = todo.title;
-      title.className = todo.completed ? "todo-title done" : "todo-title";
-
-      left.appendChild(checkbox);
-      left.appendChild(title);
-
-      const deleteButton = document.createElement("button");
-      deleteButton.type = "button";
-      deleteButton.className = "delete";
-      deleteButton.textContent = "削除";
-      // ボタンクリック時の処理を登録する
-      deleteButton.addEventListener("click", () => deleteTodo(todo.id, todo.title));
-
-      li.appendChild(left);
-      li.appendChild(deleteButton);
-      list.appendChild(li);
+    messages.forEach((message) => { // メッセージを1件ずつ処理
+      const item = document.createElement("li"); // 1件分のli要素を作成
+      item.textContent = `#${message.id} ${message.text}`; // IDと本文を表示
+      messageList.appendChild(item); // ulへliを追加
     });
   };
 
-  const addTodo = async (title) => {
-    // APIへHTTPリクエストを送信する
-    const response = await fetch("/api/todos", {
-      method: "POST",
+  const loadMessages = async () => { // メッセージ一覧をAPIから取得する非同期関数
+    const response = await fetch("/api/messages"); // Java APIへGETリクエスト
+    const messages = await response.json(); // レスポンスJSON配列をJavaScript配列へ変換
+
+    if (!response.ok) { // HTTPエラーの場合
+      throw new Error(messages.error || "一覧取得に失敗しました"); // 呼び出し元のcatchへエラーを渡す
+    }
+
+    renderMessages(messages); // 取得した一覧を画面へ描画
+  };
+
+  const createMessage = async (name) => { // メッセージを新規登録する非同期関数
+    const response = await fetch("/api/messages", { // Java APIへPOSTリクエスト
+      method: "POST", // 登録なのでPOSTを指定
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json" // JSON送信を宣言
       },
-      body: JSON.stringify({ title })
+      body: JSON.stringify({ name }) // {name: "..."} をJSON文字列化
     });
 
-    // レスポンスJSONをJavaScriptオブジェクトへ変換する
-    const data = await response.json();
-    // HTTPステータスが失敗系ならエラーメッセージを扱う
-    if (!response.ok) {
-      throw new Error(data.error || "failed to create todo");
+    const data = await response.json(); // レスポンスJSONをオブジェクト化
+
+    if (!response.ok) { // HTTPエラー（例: 400）の場合
+      throw new Error(data.error || "登録に失敗しました"); // 呼び出し元のcatchへエラーを渡す
     }
+
+    return data; // 正常時は作成結果を返す
   };
 
-  const toggleTodo = async (id) => {
-    // 通信成功時の処理
+  form.addEventListener("submit", async (event) => { // フォーム送信イベントを監視
+    event.preventDefault(); // ブラウザ既定の画面遷移を止める
+
+    const name = nameInput.value.trim(); // 入力値の前後空白を除去
+    showMessage(""); // 前回のメッセージを消す
+
     try {
-      // APIへHTTPリクエストを送信する
-      const response = await fetch(`/api/todos/${id}/toggle`, { method: "PATCH" });
-      // HTTPステータスが失敗系ならエラーメッセージを扱う
-      if (!response.ok) {
-        // レスポンスJSONをJavaScriptオブジェクトへ変換する
-        const data = await response.json();
-        throw new Error(data.error || "failed to toggle");
-      }
-      await loadTodos();
-      setMessage("状態を更新しました。");
-    // 通信失敗時の処理（ネットワークエラーなど）
-    } catch (error) {
-      setMessage("状態の更新に失敗しました。");
-    }
-  };
-
-  const deleteTodo = async (id, title) => {
-    // ユーザーに最終確認ダイアログを表示する
-    const ok = window.confirm(`「${title}」を削除します。よろしいですか？`);
-    if (!ok) {
-      return;
-    }
-
-    // 通信成功時の処理
-    try {
-      // APIへHTTPリクエストを送信する
-      const response = await fetch(`/api/todos/${id}`, { method: "DELETE" });
-      // HTTPステータスが失敗系ならエラーメッセージを扱う
-      if (!response.ok) {
-        // レスポンスJSONをJavaScriptオブジェクトへ変換する
-        const data = await response.json();
-        throw new Error(data.error || "failed to delete");
-      }
-      await loadTodos();
-      setMessage("削除しました。");
-    // 通信失敗時の処理（ネットワークエラーなど）
-    } catch (error) {
-      setMessage("削除に失敗しました。");
-    }
-  };
-
-  // フォーム送信イベントを捕捉し、画面遷移を止めて非同期処理する
-  form.addEventListener("submit", async (event) => {
-    // 既定の送信動作（ページ再読み込み）を止める
-    event.preventDefault();
-    const title = titleInput.value.trim();
-    if (title.length === 0) {
-      setMessage("タスク名を入力してください。");
-      return;
-    }
-
-    // 通信成功時の処理
-    try {
-      await addTodo(title);
-      titleInput.value = "";
-      await loadTodos();
-      setMessage("追加しました。");
-    // 通信失敗時の処理（ネットワークエラーなど）
-    } catch (error) {
-      setMessage("追加に失敗しました。");
+      const created = await createMessage(name); // APIへ登録リクエストを送信
+      showMessage(created.message); // 登録結果メッセージを表示
+      nameInput.value = ""; // 入力欄を空に戻す
+      await loadMessages(); // 登録後の一覧を再取得
+    } catch (error) { // APIエラーや通信失敗時
+      showMessage(error.message, true); // エラーメッセージを表示
     }
   });
 
-  // 初期表示に必要なデータを取得し、失敗時メッセージを表示する
-  loadTodos().catch(() => {
-    setMessage("一覧取得に失敗しました。");
-  });
+  (async () => { // 初期表示用の即時実行非同期関数
+    try {
+      await loadHealth(); // API状態を取得
+      await loadMessages(); // 初期一覧を取得
+    } catch (error) { // 初期表示時に失敗した場合
+      showMessage(error.message, true); // エラーメッセージを表示
+    }
+  })();
 });
 ```
+
+確認ポイント:
+- `fetch("/api/health")` は Java側の `server.createContext("/api/health", ...)` に対応する
+- `fetch("/api/messages", { method: "POST", ... })` は Java側の `handleMessages` の `POST` 分岐に対応する
+- `await loadMessages();` によって登録後の一覧を再取得している
+- `response.ok` によって `400` や `405` の失敗レスポンスを画面表示へつなげている
 
 ---
 
 ## 7. コンパイル
-Git Bash:
 
+Git Bash:
 ```bash
-cd ~/order-management-springboot/practice/pre-springboot/step2-todo-lite
+cd ~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement
 javac -encoding UTF-8 App.java
+```
+
+期待状態:
+```text
+(コンパイル成功: 出力なし)
 ```
 
 ---
 
 ## 8. 起動
-Git Bash:
 
+Git Bash:
 ```bash
-cd ~/order-management-springboot/practice/pre-springboot/step2-todo-lite
+cd ~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement
 java App
 ```
 
-起動メッセージ:
-- `ToDo Lite started: http://localhost:8091`
+期待出力:
+```text
+started: http://localhost:8089
+```
+
+補足:
+- 停止するときはターミナルで `Ctrl + C`
+- 別ポートで起動したい場合:
+  ```bash
+  java App 8189
+  ```
 
 ---
 
 ## 9. 画面確認（必須）
-1. ブラウザで `http://localhost:8091` を開く
-2. タスクを 2 件追加し、一覧に表示されることを確認
-3. チェックボックスで完了状態を切り替え、取り消し線が付くことを確認
-4. 削除ボタン押下時に確認ダイアログが出ることを確認
-5. OKで削除されることを確認
+
+ブラウザで開く:
+```text
+http://localhost:8089
+```
+
+確認:
+1. API状態に `OK: ready` が表示される
+2. 名前を入力して送信するとメッセージが表示される
+3. メッセージ一覧に `#1 こんにちは、〇〇さん` が追加される
+4. 空欄で送信するとエラーメッセージが表示される
 
 ---
 
 ## 10. 目的達成演習（必須）
-1. CRUD（Create / Read / Update / Delete）と API / コードの対応を説明できる
-2. JavaScript で画面遷移なし更新が成立する理由を説明できる
-3. 削除確認ダイアログで「キャンセル時は削除しない」分岐を説明できる
-4. `record` / `AtomicLong` / `synchronized` の役割分担を説明できる
+1. `GET` / `POST` と Java側の分岐を説明できる
+2. `fetch` で API を呼び、レスポンスJSONを画面に表示できる
+3. `record` / `enum` / `AtomicLong` / `synchronized` の役割を説明できる
+4. `400` / `404` / `405` が起きる条件を説明できる
 
 ## 10.5 目的達成演習の具体手順
 共通手順（各課題で共通）:
 1. 該当ファイルを編集
 2. コンパイル
    ```bash
-   cd ~/order-management-springboot/practice/pre-springboot/step2-todo-lite
+   cd ~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement
    javac -encoding UTF-8 App.java
    ```
 3. 起動（起動中なら `Ctrl + C` で再起動）
    ```bash
-   cd ~/order-management-springboot/practice/pre-springboot/step2-todo-lite
+   cd ~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement
    java App
    ```
 4. ブラウザで確認
+5. 一時変更の課題は必ず元のコードに戻す
 
-### 1. CRUD 対応をコード上で説明できるようにする
+### 1. GET API と POST API の違いを確認する
 編集ファイル:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/App.java`
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement/static/app.js`
 
-`handleTodos` / `handleTodoById` の分岐に、次のようなコメントを追記:
-```java
-if ("GET".equals(method)) { // Read: 一覧取得
-    ...
-}
-
-if ("POST".equals(method)) { // Create: 新規作成
-    ...
-}
-
-if (!"PATCH".equals(method)) { // Update: 完了状態切替は PATCH のみ
-    ...
-}
-
-if ("DELETE".equals(method)) { // Delete: 1件削除
-    ...
-}
-```
-
-コード解説:
-- 1つの API でも HTTP メソッドで処理が分かれる
-- CRUD は URL ではなく「メソッド + URL」の組み合わせで決まる
-
-確認:
-- 「Create=POST /api/todos」「Read=GET /api/todos」「Update=PATCH /api/todos/{id}/toggle」「Delete=DELETE /api/todos/{id}」を説明できること
-
-### 2. 画面遷移なし更新の仕組みを体感する
-編集ファイル:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/static/app.js`
-
-`form` 送信成功時の `loadTodos` を一時的にコメントアウト:
+`createMessage` の `method` を一時変更:
 ```javascript
-// await loadTodos();
-setMessage("追加しました。");
+method: "PUT",
 ```
 
-コード解説:
-- `fetch` でサーバー登録はできても、`loadTodos()` を呼ばないと DOM は更新されない
-- 「API更新」と「画面再描画」は別処理であることが分かる
-
 確認:
-1. タスク追加後、画面に即反映されないこと
-2. ブラウザ再読み込み後は反映されること
-3. 確認後は `await loadTodos();` を元に戻すこと
-
-### 3. 削除確認ダイアログの分岐を確認する
-編集ファイル:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/static/app.js`
-
-`deleteTodo` のキャンセル分岐を変更:
-```javascript
-if (!ok) {
-  setMessage("削除を中止しました。");
-  return;
-}
-```
+1. 名前を送信すると `Method Not Allowed` が表示されること
+2. `method: "POST"` に戻すと登録できること
 
 コード解説:
-- `return` で以降の `fetch(..., { method: "DELETE" })` を実行しない
-- UI確認（ダイアログ）と API 実行（削除）を明確に分離できる
+- Java側の `handleMessages` は `GET` を一覧取得、`POST` を登録として扱う
+- `/api/messages` に `PUT` を送ると、Java側に対応する分岐がないため `405 Method Not Allowed` になる
+- `GET` に変更した場合は、登録ではなく一覧取得の扱いになる
+- フロントとサーバーでHTTPメソッドの約束を揃える必要がある
 
-確認:
-1. ダイアログでキャンセルしたとき、メッセージが出ること
-2. Network タブに `DELETE /api/todos/{id}` が送信されないこと
-
-### 4. 発展（任意）: サーバー側タイトル上限を追加する
+### 2. 空入力の400エラーを確認する
 編集ファイル:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/App.java`
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/static/index.html`
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement/App.java`
 
-`App.java` の `title.isEmpty()` の下に追記:
+該当箇所:
 ```java
-if (title.length() > 20) {
-    sendJson(exchange, 400, "{\"error\":\"title must be 20 chars or less\"}");
+if (name.isEmpty()) {
+    sendJson(exchange, 400, "{\"error\":\"name is required\"}");
     return;
 }
 ```
 
-`index.html` の入力欄も合わせて変更:
-```html
-<input id="todo-title" type="text" placeholder="タスクを入力" maxlength="20" required>
+確認:
+1. 空欄で送信すると `name is required` が表示されること
+2. ステータスコード `400` は「入力が不正」を表すこと
+
+発展確認:
+- ブラウザの DevTools（Network）で `/api/messages` のステータスが `400` になることを確認する
+
+### 3. `record` の項目を増やしてみる
+編集ファイル:
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement/App.java`
+
+変更前:
+```java
+private record Message(long id, String name, String text) {
+}
+```
+
+変更後:
+```java
+private record Message(long id, String name, String text, String source) {
+}
+```
+
+あわせて `new Message(...)` を修正:
+```java
+Message message = new Message(sequence.incrementAndGet(), name, text, "web");
 ```
 
 確認:
-- 21文字以上がエラーになること
-
-### 5. 発展（任意）: HTTP メソッド契約違反を確認する
-編集ファイル:
-- `~/order-management-springboot/practice/pre-springboot/step2-todo-lite/static/app.js`
-
-`toggleTodo` のメソッドを一時変更:
-```javascript
-const response = await fetch(`/api/todos/${id}/toggle`, { method: "PUT" });
-```
+1. `record` の項目を増やすと、生成時の引数も増やす必要があること
+2. 確認後は元に戻すこと
 
 コード解説:
-- サーバーは `PATCH` のみ受け付けるため、`PUT` だと `405` になる
-- フロントとサーバーの API 契約が一致している必要がある
+- `record` はデータ項目をまとめる型
+- `new Message(...)` の引数は `record Message(...)` の定義と一致する必要がある
+
+### 4. `AtomicLong` の採番を確認する
+編集ファイル:
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement/App.java`
+
+該当箇所:
+```java
+Message message = new Message(sequence.incrementAndGet(), name, text);
+```
 
 確認:
-1. 完了切替で失敗すること
-2. 確認後は `PATCH` に戻すこと
+1. メッセージを3件登録し、`#1`, `#2`, `#3` と増えること
+2. サーバーを再起動すると `#1` から始まること
+
+コード解説:
+- `AtomicLong` はメモリ上の連番カウンタ
+- 今回はDB保存していないため、サーバー再起動でデータは消える
+- Lesson3以降の `TodoStore` でも同じ考え方を使う
+
+### 5. `fetch` の接続先URLを確認する
+編集ファイル:
+- `~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforcement/static/app.js`
+
+`loadHealth` のURLを一時変更:
+```javascript
+const response = await fetch("/api/health-x");
+```
+
+確認:
+1. 画面表示時に `Not Found` が表示されること
+2. URLを `/api/health` に戻すと成功すること
+
+コード解説:
+- Java側に登録していないURLは `404 Not Found`
+- `fetch` のURLと `server.createContext(...)` のURLを一致させる必要がある
 
 ---
 
 ## 11. 理解ポイント
-- CRUD を API として分割すると責務が明確になる
-- JavaScript で DOM を再描画することで画面遷移なし更新ができる
-- `window.confirm` により削除前の確認操作を入れられる
+- `HttpServer` は Spring Boot を使わずにHTTP通信を体験するための最小サーバー
+- `server.createContext(...)` がルーティングの入口になる
+- `GET` は取得、`POST` は登録や送信に使うことが多い
+- `sendJson` は「ステータスコード + JSON本文」を返す共通処理
+- `fetch` はブラウザからJava APIへHTTPリクエストを送る接続点
+- `record` はデータ1件、`MessageStore` はメモリ上の保存先を表す
+- `AtomicLong` と `synchronized` は、複数アクセス時のID重複やデータ競合を避けるために使う
 
 ---
 
 ## 12. つまずきポイント
-- `PATCH` が `405` になる:
-  - `/api/todos/{id}/toggle` に `PATCH` で送っているか確認
+- 日本語が文字化けする:
+  - `javac -encoding UTF-8 App.java` でコンパイルする
+- `404 Not Found`:
+  - `static/index.html`, `static/styles.css`, `static/app.js` の配置を確認
+  - `fetch` のURLと `server.createContext(...)` のURLが一致しているか確認
+- `405 Method Not Allowed`:
+  - `GET` と `POST` を取り違えていないか確認
+- 空欄送信で登録されない:
+  - Java側で `name.isEmpty()` を `400` として返している
 - 一覧が更新されない:
-  - `loadTodos()` 呼び出し漏れがないか確認
-- ポート競合:
-  - 別アプリが `8091` を使っている場合は先に停止する
+  - `await loadMessages();` が登録後に呼ばれているか確認
+- サーバーを再起動すると一覧が消える:
+  - 今回はメモリ保持だけなので正常
 
+---
 
-
-
-
-
-
-
-
-
-
+## 13. Lesson3以降への接続
+- Lesson1で体験した `POST /api/greeting` に、一覧取得とメモリ保存を足したものがこのLessonです。
+- Lesson3以降では、このLessonの `MessageStore` と同じ考え方で、ToDoや勤怠データをメモリ保持します。
+- Lesson3では `GET` / `POST` に加えて、`PATCH` / `DELETE` を使います。
+- Lesson4/5で出る `409 Conflict` や状態遷移は、`400` / `404` / `405` と同じく「サーバーが判断して結果を返す」考え方の応用です。
 

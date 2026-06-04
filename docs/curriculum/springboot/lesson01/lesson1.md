@@ -5,7 +5,9 @@
 - Thymeleafで画面が表示される仕組み（Controller → Template）が分かる
 
 ## 前提
-- Lesson0（HTML / Java 基礎）を実施済み
+- `docs/curriculum/web-app(簡易版)` の必修範囲を実施済み
+- `docs/curriculum/web-app(簡易版)/bridge-to-springboot.md` を読了済み
+- `docs/curriculum/springboot/lesson00/lesson0.md`（コンソール復習）を実施済み
 - Java 17 / Maven 3.9+ がインストール済み
 - このリポジトリのルートで作業する
 
@@ -19,8 +21,8 @@
 - フレームワーク:
   - 先に決まった流れ（枠組み）があり、その流れに自分のコードを当てはめる
 
-Lesson0との違い:
-- Lesson0:
+`web-app(簡易版)` との違い:
+- `web-app(簡易版)`:
   - Web起動やレスポンス処理を手作業で実装した
 - Lesson1（Spring Boot）:
   - `@Controller` / `@GetMapping` などで必要部分だけを書けば動く
@@ -39,8 +41,8 @@ Spring Bootでの具体例:
 - `@Controller` + `@GetMapping("/")` のような規約的な書き方で画面表示までつながる
 - `spring-boot-starter-web` を追加すると、Webに必要な主要ライブラリがまとまって入る
 
-Lesson0との比較:
-- Lesson0: ルーティングやレスポンス処理、起動設定を手作業で書いた
+`web-app(簡易版)` との比較:
+- `web-app(簡易版)`: ルーティングやレスポンス処理、起動設定を手作業で書いた
 - Lesson1: 規約に沿って配置・記述すると、設定量を減らして同じ目的を達成できる
 
 ## Spring Bootとは（Lesson1開始前に読む）
@@ -112,6 +114,9 @@ flowchart LR
 ### 値受け渡し最小メモ（JSONはLesson1では未使用）
 - このLessonでは `fetch` や JSON API はまだ使わない。
 - Controller から Template へは `Model`（キーと値）で渡す。
+- `web-app(簡易版)` ではブラウザのJavaScriptが `fetch` でJSON APIを呼び、DOMを更新した。
+- Spring Boot Lesson1〜5では、まずSpring MVCの基本を理解するため、サーバー側でHTMLを作る `Controller + Model + Thymeleaf` を使う。
+- JSON APIは後続の `lesson08` で `@RestController` として扱う。
 - 例:
   ```java
   model.addAttribute("statusLabel", "未出勤");
@@ -168,7 +173,7 @@ flowchart TD
 
 ---
 
-## 0. 事前確認（環境セットアップはLesson0）
+## 0. 事前確認（環境セットアップはspringboot/lesson00）
 環境セットアップ手順は `~/order-management-springboot/docs/curriculum/springboot/lesson00/lesson0.md` の「0. 環境セットアップ」で実施します。  
 Lesson1開始前に、以下だけ確認してください。
 
@@ -861,13 +866,13 @@ http://localhost:8080/
 
 ## 13. 今日のゴール
 - MVCの最低限構成（Controller → Template）が動くことを確認
-- Lesson0の手動実行と比べて、Maven/Spring Bootの便利さを説明できる
+- `web-app(簡易版)` の手動実行と比べて、Maven/Spring Bootの便利さを説明できる
 - Lesson2から「出勤ボタン」を実装する準備ができた
 
 ---
 
 ## 13.5 リフレクション（3分）
-1. Lesson0方式で同じ画面表示を作る場合、どの作業が増えるかを3つ書く
+1. `web-app(簡易版)` 方式で同じ画面表示を作る場合、どの作業が増えるかを3つ書く
 2. Mavenを使わない場合、依存ライブラリ管理で何がつらいかを1つ書く
 
 ---

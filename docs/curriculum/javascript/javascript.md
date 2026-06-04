@@ -12,6 +12,9 @@
 この資料は**ブラウザのみ**で進めます。  
 Node.js / npm / API通信（`fetch`）は扱いません。
 
+次に `docs/curriculum/web-app(簡易版)` へ進む場合は、続けて [javascript-fetch-json.md](./javascript-fetch-json.md) を実施します。
+この補講で `fetch` / `async` / `await` / JSON通信の最小形を確認してから、Java API連携に入ります。
+
 ---
 
 ## 0. 環境セットアップ（ブラウザのみ）
@@ -1250,7 +1253,9 @@ tableBody.appendChild(row); // 作成した行をテーブル本体に追加す�
 
 制約:
 - バックエンド連携なし（配列データのみで管理）
-- `fetch` は使わない
+- このミニ制作では `fetch` は使わない
+
+API通信は次の [javascript-fetch-json.md](./javascript-fetch-json.md) で扱います。
 
 提出チェック:
 - Consoleエラーが0件

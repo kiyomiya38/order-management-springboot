@@ -1,4 +1,4 @@
-# Lesson8（追加）REST API基礎（@RestController / DTO / 例外応答）
+# Lesson8 REST API基礎（@RestController / DTO / 例外応答）
 
 ## 目的（Lesson8でできるようになること）
 - `@RestController` で JSON API を実装できる
@@ -8,8 +8,23 @@
 
 ## 前提
 - Lesson5 を完了している
+- `docs/curriculum/web-app(簡易版)/bridge-to-springboot.md` の `fetch + JSON` と `Controller + Thymeleaf` の違いを説明できる
 - `~/order-management-springboot/stages/lesson05` が起動できる
 - `java -version` と `mvn -version` が通る
+
+## 位置づけ
+Lesson1〜5では、Spring MVCの基本を理解するために `@Controller + Model + Thymeleaf` を中心に扱いました。
+このLessonでは、`web-app(簡易版)` で使った `fetch + JSON API` の考え方に戻り、Spring Bootではどう書くかを学びます。
+
+対応関係:
+
+| web-app(簡易版) | Spring Boot Lesson8 |
+| --- | --- |
+| `server.createContext("/api/...", ...)` | `@RestController` + `@GetMapping` / `@PostMapping` |
+| 手書きJSON文字列 | DTOを返して Jackson がJSONへ変換 |
+| `sendJson(status, body)` | `ResponseEntity` / Controllerの戻り値 |
+| 個別のエラーJSON | `@RestControllerAdvice` で形式を統一 |
+| ブラウザの `fetch` | `curl` やAPIクライアントからHTTPリクエスト |
 
 ## Lesson8で作るもの
 - API:

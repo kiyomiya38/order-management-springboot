@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicLong; // 同時アクセスでも安全
 import java.util.regex.Matcher; // 正規表現の検索結果
 import java.util.regex.Pattern; // 正規表現パターン
 
-public class App { // Lesson0で作るWebアプリ本体
-    private static final int DEFAULT_PORT = 8089; // Lesson0用の待受ポート
+public class App { // Lesson2で作るWebアプリ本体
+    private static final int DEFAULT_PORT = 8089; // Lesson2用の待受ポート
     private static final Path STATIC_DIR = Path.of("static"); // 画面ファイル置き場
     private static final Pattern NAME_PATTERN = Pattern.compile("\"name\"\\s*:\\s*\"(.*?)\""); // {"name":"..."} の name を抽出
     private static final MessageStore STORE = new MessageStore(); // メモリ上のメッセージ保存先

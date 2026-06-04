@@ -33,6 +33,13 @@
 20. [Java-20 ハンズオン: Oracle Javadocの読み方](./java-20-javadoc-reading.md)
 21. [Java-21 ハンズオン: JUnit 5基礎](./java-21-junit-basics.md)
 
+## Webアプリ前の必修補講
+`docs/curriculum/web-app(簡易版)` に進む場合は、次の2本を必ず実施します。
+`record` / `enum` / `HttpServer` / HTTPステータス / メモリ保存は、Webアプリ教材で前提になります。
+
+- [Java-20A 補講: record / enum 入門](./java-20a-record-enum.md)
+- [Java-20B 補講: Web API前準備（HttpServer + POST + MessageStore）](./java-20b-web-api-prep.md)
+
 ## 補講（不足項目補完 / 任意）
 - [Java-04A 補講: 型変換とキャスト](./java-04a-type-conversion-and-cast.md)
 - [Java-06A 補講: switch / do-while / ラベル付き制御](./java-06a-advanced-control-flow.md)
@@ -43,8 +50,6 @@
 - [Java-13A 補講: 継承ルールの深掘り（super / 単一継承 / final）](./java-13a-inheritance-rules.md)
 - [Java-16A 補講: 正規表現の基礎（メタ文字とエスケープ）](./java-16a-regex-basics.md)
 - [Java-17A 補講: 例外の分類とthrows（checked / unchecked）](./java-17a-exception-types-and-throws.md)
-- [Java-20A 補講: record / enum 入門](./java-20a-record-enum.md)
-- [Java-20B 補講: Web API前準備（HttpServer + POST + MessageStore）](./java-20b-web-api-prep.md)
 
 ## 読み方のルール
 - `次の内容で作成` は、新しいファイルをその内容で作るという意味

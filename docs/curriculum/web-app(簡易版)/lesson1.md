@@ -7,6 +7,8 @@
 
 ## 前提
 - HTML/CSS/javascript/Java基礎学習を実施済み
+- `docs/curriculum/javascript/javascript-fetch-json.md` を実施済み
+- Java補講 `java-20a-record-enum.md` / `java-20b-web-api-prep.md` を実施済み
 - Git Bash を使える
 - JDK 17 がインストール済み
 

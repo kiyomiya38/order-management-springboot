@@ -1,4 +1,4 @@
-# Lesson9（追加）FlywayでDBスキーマ変更管理（Migration運用）
+# Lesson9 FlywayでDBスキーマ変更管理（Migration運用）
 
 ## 目的（Lesson9でできるようになること）
 - `ddl-auto: update` 依存をやめ、Flywayでスキーマを管理できる

@@ -18,6 +18,6 @@
 - [JDBC用サンプルスキーマ](./sample-jdbc-schema.sql)
 
 ## 方針
-- `docs/curriculum/java/handson` と同じ進行スタイル
+- `docs/curriculum/java/java-handson` と同じ進行スタイル
 - 1資料ごとにゴール、手順、ミニ演習、つまずきポイントを明示
 - MySQL 8系 + JDBC Connector/J 8系を想定

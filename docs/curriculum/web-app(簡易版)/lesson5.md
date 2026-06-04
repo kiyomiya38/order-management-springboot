@@ -6,7 +6,8 @@
 - ユーザー一覧の検索・絞り込みと削除確認ダイアログを実装できる
 
 ## 前提
-- Lesson1～Lesson4 を完了している
+- [README.md](./README.md) の学習順を確認している
+- Lesson1〜Lesson4 を完了している
 - Git Bash を使える
 - JDK 17 がインストール済み
 
@@ -1583,14 +1584,8 @@ userCount.textContent = `表示件数: ${filtered.length}件 / 全${users.length
 - 履歴が表示されない:
   - `userId` が正しくクエリに付与されているか確認
 
+---
 
-
-
-
-
-
-
-
-
-
-
+## 13. 次へ
+- 次は [bridge-to-springboot.md](./bridge-to-springboot.md) に進みます。
+- `HttpServer`、手書きルーティング、メモリ保存、手書きJSON、`fetch` が Spring Boot で何に置き換わるかを確認してから Spring Boot Lesson1 に入ります。

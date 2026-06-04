@@ -17,6 +17,6 @@
 - [初期データ作成SQL](./sample-schema-and-data.sql)
 
 ## 方針
-- 既存の `docs/curriculum/java/handson` と同じ進行スタイル
+- 既存の `docs/curriculum/java/java-handson` と同じ進行スタイル
 - 1資料ごとにゴール、手順、ミニ演習、つまずきポイントを明示
 - 実行環境は MySQL 8 系を想定
