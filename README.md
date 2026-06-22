@@ -1,7 +1,10 @@
 # 勤怠管理システム（MVP / 研修用）
 
-1週間研修向けに、最小構成で動く勤怠管理システムを用意しています。  
+新人研修向けに、最小構成で動く勤怠管理システムを用意しています。
 UIはThymeleaf、DBはH2、ログインありです。
+
+Spring Boot研修の正規入口は [`docs/curriculum/springboot/README.md`](./docs/curriculum/springboot/README.md) です。
+このルート直下の `src` はLesson8終了時点の完成例です。Lesson9（Flyway）はDB設定が異なるため含みません。
 
 ## 前提
 - Java 17
@@ -19,35 +22,37 @@ mvn spring-boot:run
 ### 停止
 - 起動ターミナルで `Ctrl + C`
 
-## Day別コード（段階学習用）
-Dayごとに独立して起動できるコードを用意しています。  
+## Lesson別の作業領域（段階学習用）
+受講者は教材の手順に従い、次の作業領域を自分で作成します。初期状態では `stages` は存在しません。
 ```
-stages/day1
-stages/day2
-stages/day3
-stages/day4
-stages/day5
+stages/lesson01
+stages/lesson02
+stages/lesson03
+stages/lesson04
+stages/lesson05
+stages/lesson08
+stages/lesson09
 ```
-各日で以下のように起動します（`dayX` を `day1` 〜 `day5` に置き換え）。
+各Lessonは、作成後に次のように起動します（`lessonXX` を対象番号へ置き換えます）。
 ```bash
-cd ~/order-management-springboot/stages/dayX
+cd ~/order-management-springboot/stages/lessonXX
 mvn spring-boot:run
 ```
 
-Day別の目的:
-- Day1: 最小MVCで画面表示
-- Day2: 出勤 + DB保存（JPA/H2）
-- Day3: 退勤 + 業務ルール
-- Day4: 一覧画面 + H2確認
-- Day5: ログイン/権限/管理者機能 + テスト
+Lesson別の目的:
+- Lesson0: Spring Boot開始前のJava復習
+- Lesson1: 最小MVCで画面表示
+- Lesson2: 出勤 + DB保存（JPA/H2）
+- Lesson3: 退勤 + 業務ルール
+- Lesson4: 一覧画面 + H2確認
+- Lesson5: ログイン/権限/管理者機能 + テスト
+- Lesson8: REST API + DTO + JSONエラー応答
+- Lesson9: FlywayによるDB変更管理
+- Lesson6/7: VMデプロイ / Docker Compose環境演習
 
 研修資料（カリキュラム）:
-- Day0: `docs/curriculum/day0/day0.md`
-- Day1: `docs/curriculum/day1/day1.md`
-- Day2: `docs/curriculum/day2/day2.md`
-- Day3: `docs/curriculum/day3/day3.md`
-- Day4: `docs/curriculum/day4/day4.md`
-- Day5: `docs/curriculum/day5/day5.md`
+- 学習順と合格基準: `docs/curriculum/springboot/README.md`
+- Lesson本文: `docs/curriculum/springboot/lessonXX/lessonX.md`
 
 ## 画面（ブラウザ）
 - ログイン: `http://localhost:8080/login`
@@ -55,6 +60,14 @@ Day別の目的:
 - 勤怠一覧: `http://localhost:8080/attendances`
 - アカウント管理（管理者のみ）: `http://localhost:8080/users`
 - 勤怠管理（管理者のみ）: `http://localhost:8080/admin/attendances`
+
+## REST API（Lesson8完成例）
+
+- 管理者ユーザーAPI: `/api/users`
+- 本人の出勤: `POST /api/attendances/clock-in`
+- 本人の退勤: `POST /api/attendances/clock-out`
+- curl確認ではHTTP Basic認証を使用
+- APIの401/403/400/409/500は `code` / `message` を持つJSONで返す
 
 アクセス制御:
 - 未ログイン時は `/login` にリダイレクト
@@ -87,6 +100,7 @@ Git Bashでの設定例:
 ```bash
 export APP_NAME=attendance-management
 export SERVER_PORT=8080
+export SERVER_ADDRESS=0.0.0.0
 export LOG_LEVEL=INFO
 export SPRING_PROFILES_ACTIVE=dev
 export DB_URL='jdbc:h2:mem:attendance;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE'
@@ -97,16 +111,19 @@ export DB_PASSWORD=
 主なキー:
 - `APP_NAME`: アプリ名
 - `SERVER_PORT`: 待受ポート
+- `SERVER_ADDRESS`: 待受アドレス（VMのNginx配下では`127.0.0.1`）
 - `LOG_LEVEL`: ログレベル
 - `SPRING_PROFILES_ACTIVE`: `dev` / `prod`
 - `DB_URL`, `DB_USER`, `DB_PASSWORD`: DB接続設定
 
 ## テスト
-Day5のコードで実行してください。
+ルート完成例、またはLesson5以降の作業コードで実行してください。
 ```bash
-cd ~/order-management-springboot/stages/day5
+cd ~/order-management-springboot
 mvn test
 ```
+
+期待結果: 17件成功（Service 9件、画面Security 3件、API 5件）。
 
 ## プロジェクト構成（抜粋）
 ```

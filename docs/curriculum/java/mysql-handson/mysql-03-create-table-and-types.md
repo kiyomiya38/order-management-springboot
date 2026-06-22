@@ -54,7 +54,7 @@ DESCRIBE sample_4_1;
 SHOW CREATE TABLE sample_4_1;
 ```
 
-期待結果:
+期待状態:
 - `id` が `PRI` で表示される
 - `regist_timestamp` に `DEFAULT CURRENT_TIMESTAMP` が入っている
 

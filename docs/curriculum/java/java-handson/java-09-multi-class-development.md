@@ -1,8 +1,5 @@
 ﻿# Java-09 ハンズオン: 複数クラスを用いた開発
 
-対応参考資料: `Java-09_複数クラスを用いた開発.pptx`
-補講（任意）: [Java-09A CLASSPATHとパッケージ解決](./java-09a-classpath-and-package-resolution.md)
-
 ## 1. この資料のゴール
 - クラスを責務ごとに分割できる
 - 複数 `.java` ファイルをコンパイル・実行できる
@@ -27,6 +24,33 @@ javac -version
 1. 1クラス1責務に分けると保守しやすい
 2. 同一パッケージなら `import` なしで相互参照できる
 3. 別パッケージを使うときは `package` と `import` を揃える
+
+### 全体構成図（クラスと役割）
+```mermaid
+flowchart LR
+  subgraph APP[app パッケージ]
+    OA["OrderApp: 実行と結果表示"]
+  end
+
+  subgraph MODEL[model パッケージ]
+    OI["OrderItem: 注文データ"]
+  end
+
+  subgraph SERVICE[service パッケージ]
+    OC["OrderCalculator: 金額計算"]
+  end
+
+  OA -->|new で作る| OI
+  OA -->|new で作る| OC
+  OA -->|小計計算を依頼| OC
+  OC -->|引数として受け取る| OI
+```
+
+ポイント:
+- `OrderApp` は処理を動かす入口
+- `OrderItem` は注文データを持つクラス
+- `OrderCalculator` は計算だけを担当するクラス
+- `package` を使うと、役割ごとにフォルダと名前空間を分けられる
 
 ### 書式の基本
 
@@ -58,9 +82,20 @@ item.quantity = 2;
 ```
 
 ポイント:
+- `OrderItem` は、自分で作ったクラス名であり、この場面では変数の型として使っている
+- `OrderItem item` は「OrderItem型の変数 item」を用意するという意味
 - `new OrderItem()` で `OrderItem` の実体を作る
-- 左辺の `OrderItem item` は、実体を参照する変数
+- `item` は、作成した実体を参照する変数
 - `item.productName` のように `変数名.フィールド名` で値を扱う
+
+`int quantity = 2;` と比べると:
+
+| 書き方 | 型 | 変数名 | 入るもの |
+| --- | --- | --- | --- |
+| `int quantity = 2;` | `int` | `quantity` | 整数値 |
+| `OrderItem item = new OrderItem();` | `OrderItem` | `item` | `OrderItem` の実体への参照 |
+
+`int` や `double` はJavaが最初から用意している型です。`OrderItem` は自分で作ったクラスですが、Javaではクラスを作ると、そのクラス名を型として使えるようになります。
 
 #### 複数ファイルをまとめてコンパイルする
 
@@ -90,6 +125,26 @@ public class OrderCalculator {
 - 別パッケージのクラスを短い名前で使うには `import` する
 - `package model;` のクラスは `src/model/` のような対応するフォルダに置く
 
+もう少し詳しく:
+- `package` は「クラスの住所」のようなもの
+- 同じ `OrderItem` というクラス名でも、`model.OrderItem` のように住所付きで区別できる
+- `package` 宣言とフォルダ階層は対応させる
+- `import` はファイルを読み込む命令ではない
+- `import model.OrderItem;` は、`model.OrderItem` を `OrderItem` と短く書けるようにする宣言
+
+対応イメージ:
+
+| package宣言 | 置く場所 | クラスの正式名 |
+| --- | --- | --- |
+| `package model;` | `src/model/OrderItem.java` | `model.OrderItem` |
+| `package service;` | `src/service/OrderCalculator.java` | `service.OrderCalculator` |
+| `package app;` | `src/app/OrderApp.java` | `app.OrderApp` |
+
+よくある誤解:
+- `import` は「別の `.java` ファイルをコンパイル対象に追加する」ものではない
+- コンパイル時は、使うクラスの `.java` ファイルも `javac` に渡す必要がある
+- 実行時は、`java` に「どのフォルダを起点にクラスを探すか」を教える必要がある
+
 #### `-d` と `-cp`
 
 ```bash
@@ -101,6 +156,20 @@ java -cp out app.OrderApp
 - `javac -d out` は、コンパイル結果を `out` 配下へ出力する
 - `java -cp out app.OrderApp` は、`out` を起点に `app.OrderApp` を探して実行する
 - パッケージ付きクラスは `パッケージ名.クラス名` で実行する
+
+コマンドの読み方:
+
+| 部分 | 意味 |
+| --- | --- |
+| `javac` | `.java` を `.class` にコンパイルする |
+| `-d out` | `.class` を `out` フォルダへ出力する |
+| `-cp out` | `out` フォルダをクラス探索の起点にする |
+| `app.OrderApp` | `app` パッケージの `OrderApp` クラスを実行する |
+
+`java OrderApp` ではない理由:
+- `OrderApp` は無名パッケージではなく `app` パッケージに所属している
+- そのため、実行時は `app.OrderApp` という正式名で指定する
+- `out/app/OrderApp.class` を探して実行するイメージ
 
 ---
 
@@ -114,7 +183,15 @@ java -cp out app.OrderApp
 
 補足（学習順）:
 - この章では複数クラス連携を体験するため、`new` によるインスタンス生成を先に使う
-- インスタンスの概念（設計図と実体、`this`）は次章 [Java-10 インスタンスとクラス](./java-10-instances-and-classes.md) で詳しく扱う
+- この時点では、インスタンスを「データを入れる実体」程度に理解できればよい
+- インスタンスの概念（設計図と実体、複数インスタンスの独立、`this`）は次章 [Java-10 インスタンスとクラス](./java-10-instances-and-classes.md) で詳しく扱う
+
+この章での仮理解:
+- `new OrderItem()` は、注文データを入れる実体を作る
+- `OrderItem item` は、その実体を参照する変数を用意する
+- `item.quantity` は、`item` が参照している実体の中の `quantity` を指す
+- `calculator.calcSubtotal(item)` は、注文データ1件分を計算メソッドに渡す
+- `new` の詳しい意味は、次章で「クラスは設計図 / インスタンスは実体」として整理する
 
 作成フォルダ: `~/order-management-springboot/practice/java/handson09`
 
@@ -124,7 +201,7 @@ mkdir -p ~/order-management-springboot/practice/java/handson09
 cd ~/order-management-springboot/practice/java/handson09
 ```
 
-### Step 0.5: インスタンスの最小確認（1ファイル版）
+### Step 0.5: new と自作クラス型の最小確認（1ファイル版）
 作成ファイル: `InstanceWarmup.java`
 
 ```java
@@ -157,6 +234,12 @@ java InstanceWarmup
 WarmupItem / 1 / 500
 ```
 
+ここで確認したいこと:
+- `class OrderItemLite` を作ったので、`OrderItemLite item` のように `OrderItemLite` を型として使える
+- `OrderItemLite item` は「OrderItemLite型の変数 item」
+- `new OrderItemLite()` は、`OrderItemLite` の実体を作る処理
+- `item.productName` は、`item` が参照している実体の中の `productName` フィールドを指す
+
 ### Step 1: データクラスを作る
 作成ファイル: `OrderItem.java`
 
@@ -178,6 +261,14 @@ javac -encoding UTF-8 OrderItem.java
 (コンパイル成功: 出力なし)
 ```
 
+ここで `OrderItem` というクラスを作ったため、以降のコードでは `OrderItem` を型として使えます。
+
+例:
+```java
+OrderItem item;
+```
+
+これは「`OrderItem` 型の変数 `item` を用意する」という意味です。`int count;` の `int` と同じ位置に、作成したクラス名 `OrderItem` が来ていると考えてください。
 
 ### Step 2: 計算クラスを作る
 作成ファイル: `OrderCalculator.java`
@@ -189,6 +280,17 @@ public class OrderCalculator { // 注文金額を計算するクラス
     }
 } // クラス定義の終わり
 ```
+
+`int calcSubtotal(OrderItem item)` の読み方:
+
+| 部分 | 意味 |
+| --- | --- |
+| `int` | このメソッドが返す値の型。ここでは整数を返す |
+| `calcSubtotal` | メソッド名 |
+| `OrderItem` | 引数の型。自分で作った `OrderItem` クラスを型として使っている |
+| `item` | メソッド内で使う引数名 |
+
+つまり、このメソッドは「`OrderItem` 型のデータを1件受け取り、その中の `quantity` と `unitPrice` を使って小計を `int` で返す」処理です。
 
 コンパイル確認:
 ```bash
@@ -226,12 +328,26 @@ javac -encoding UTF-8 OrderItem.java OrderCalculator.java OrderApp.java
 java OrderApp
 ```
 
-期待出力:
+期待出力例:
 ```text
 Laptop 小計: 240000
 ```
 
 ### Step 4: package と import を使って実行する（仕上げ）
+ここまでは、`OrderItem.java` / `OrderCalculator.java` / `OrderApp.java` を同じフォルダに置き、`package` 宣言なしで実行しました。
+この状態を「無名パッケージ」と呼びます。
+
+無名パッケージは、小さい練習コードでは簡単です。
+ただし、実務ではクラス数が増えるため、次のように役割ごとに分けます。
+
+| パッケージ | 役割 | 今回入れるクラス |
+| --- | --- | --- |
+| `model` | データを表す | `OrderItem` |
+| `service` | 計算や業務処理を担当する | `OrderCalculator` |
+| `app` | 実行開始点を持つ | `OrderApp` |
+
+ここからは、フォルダと `package` 宣言を対応させて実行します。
+
 作成フォルダ:
 ```bash
 mkdir -p src/model src/service src/app out
@@ -241,6 +357,7 @@ mkdir -p src/model src/service src/app out
 - `out` はコンパイル結果（`.class`）の出力先フォルダ（output の略）
 - `javac -d out ...` は `out` 配下にパッケージ構造付きで出力する指定
 - `java -cp out app.OrderApp` は `out` をクラス探索の起点として実行する指定
+- `app.OrderApp` は「`app` パッケージの `OrderApp` クラス」という意味
 
 作成ファイル: `src/model/OrderItem.java`
 ```java
@@ -293,7 +410,7 @@ javac -encoding UTF-8 -d out src/model/OrderItem.java src/service/OrderCalculato
 java -cp out app.OrderApp
 ```
 
-期待出力:
+期待出力例:
 ```text
 Laptop 小計: 240000
 ```
@@ -302,6 +419,62 @@ Laptop 小計: 240000
 学習ポイント:
 - 実務では `package` を使って構造化する
 - 同じ考え方は Spring Boot の `domain/service/controller` に直結する
+- `import` は別パッケージのクラスを短い名前で書くための宣言
+- 実行時は `java -cp out app.OrderApp` のように、クラスパスと正式なクラス名を指定する
+
+### Step 4.5: クラスパス指定の失敗を確認する
+ここでは、あえて間違った実行コマンドを試します。
+エラーの原因を切り分けられるようにするためです。
+
+先ほどのコンパイルで、`.class` ファイルは `out` フォルダ配下に作られています。
+
+```text
+out/
+  app/
+    OrderApp.class
+  model/
+    OrderItem.class
+  service/
+    OrderCalculator.class
+```
+
+失敗例1: `-cp out` を付けない
+```bash
+java app.OrderApp
+```
+
+想定結果:
+```text
+Error: Could not find or load main class app.OrderApp
+```
+
+理由:
+- `java app.OrderApp` は、現在のフォルダを起点に `app/OrderApp.class` を探す
+- 実際の `.class` は `out/app/OrderApp.class` にある
+- そのため、実行クラスを見つけられない
+
+失敗例2: クラスパスの起点を `.` にする
+```bash
+java -cp . app.OrderApp
+```
+
+想定結果:
+```text
+Error: Could not find or load main class app.OrderApp
+```
+
+理由:
+- `-cp .` は、現在のフォルダをクラス探索の起点にする指定
+- 今回は `.class` が `out` 配下にあるため、`-cp .` では起点がずれる
+- `app.OrderApp` を実行するには、`out/app/OrderApp.class` を探せるようにする必要がある
+
+正しい実行:
+```bash
+java -cp out app.OrderApp
+```
+
+`-cp out` は「`out` フォルダを起点にクラスを探す」という意味です。
+そのため、Javaは `out/app/OrderApp.class` を見つけて実行できます。
 
 ---
 
@@ -340,6 +513,15 @@ error: cannot find symbol
 Laptop 小計: 240000
 ```
 
+### レベル4（実務: classpath 失敗パターン修正）
+1. `java app.OrderApp` を実行し、失敗することを確認する。
+2. `java -cp . app.OrderApp` を実行し、失敗することを確認する。
+3. `java -cp out app.OrderApp` で成功することを確認する。
+4. `-cp out` と `-cp .` の違いを、クラス探索の起点という言葉で説明する。
+
+期待状態:
+- `-cp out` が必要な理由を、`out/app/OrderApp.class` の位置と結びつけて説明できる。
+
 ### 実行前予想問題（1分）
 次のうち、`src/app/OrderApp.java` から `OrderCalculator` を使うために必須な行を実行前に選んでください。
 1. `package app;`
@@ -356,6 +538,12 @@ Laptop 小計: 240000
   -> ファイル名・クラス名・コンパイル対象を確認
 - 実行クラスが見つからない
   -> `java OrderApp` でクラス名を正確に指定
+- パッケージ付きなのに `java OrderApp` で実行している
+  -> `java -cp out app.OrderApp` のように、`パッケージ名.クラス名` で実行する
+- `java app.OrderApp` や `java -cp . app.OrderApp` で実行している
+  -> `.class` が `out` 配下にある場合は、`java -cp out app.OrderApp` で実行する
 - パッケージ導入時にエラー
   -> `package` 宣言とフォルダ階層を一致させる
+- `import` したのにコンパイルできない
+  -> `import` はファイルを読み込まないため、必要な `.java` も `javac` に渡す
 

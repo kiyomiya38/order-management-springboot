@@ -1,6 +1,5 @@
 ﻿# Java-07 ハンズオン: 配列
 
-対応参考資料: `Java-07_配列.pptx`
 補講（任意）: [Java-07A 参照型と多次元配列](./java-07a-reference-types-and-multidimensional-arrays.md)
 
 ## 1. この資料のゴール
@@ -27,6 +26,25 @@ javac -version
 1. 配列は同じ型の値を複数保持する
 2. 先頭要素のインデックスは `0`
 3. 有効範囲は `0` 〜 `length - 1`
+
+### 全体構成図（配列とインデックス）
+```mermaid
+flowchart LR
+  ARR["配列 quantities"] --> E0["インデックス 0"]
+  ARR --> E1["インデックス 1"]
+  ARR --> E2["インデックス 2"]
+  ARR --> E3["インデックス 3"]
+
+  LEN["length は要素数"] --> RANGE["使える番号は 0 から length - 1"]
+  LOOP["for の i"] --> RANGE
+  LOOP --> ARR
+  RANGE -.-> ERR["length と同じ番号は範囲外"]
+```
+
+ポイント:
+- 配列の件数が4なら、最後のインデックスは `3`
+- `i < 配列名.length` にすると、最後の要素まで安全に処理できる
+- `i <= 配列名.length` にすると、存在しない位置を読みに行く
 
 ### 書式の基本
 
@@ -216,7 +234,7 @@ javac -encoding UTF-8 ArrayDemo.java
 java ArrayDemo
 ```
 
-期待出力:
+期待出力例:
 ```text
 Laptop 数量: 3
 Mouse 数量: 5
@@ -277,6 +295,5 @@ Monitor 数量: 1
   -> `productNames` と `quantities` の件数を揃える
 - `length()` と `length` の混同
   -> 配列は `length`（フィールド）
-
 
 

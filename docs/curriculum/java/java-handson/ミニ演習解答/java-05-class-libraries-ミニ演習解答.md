@@ -11,7 +11,6 @@ String id2 = UUID.randomUUID().toString();
 System.out.println("3日後: " + after3Days);
 System.out.println("UUID1: " + id1);
 System.out.println("UUID2: " + id2);
-System.out.println("一致するか: " + id1.equals(id2));
 ```
 
 ---

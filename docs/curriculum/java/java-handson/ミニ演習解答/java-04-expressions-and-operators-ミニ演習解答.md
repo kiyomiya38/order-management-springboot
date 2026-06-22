@@ -12,8 +12,10 @@ int discount = member ? 500 : 0;
 System.out.println("会員割引: " + discount);
 ```
 
-期待結果:
-- `会員割引: 0`
+期待出力例:
+```text
+会員割引: 0
+```
 
 ---
 
@@ -33,8 +35,10 @@ int taxed = (subtotal - discount) * 110 / 100; // 19250
 int billingAmount = taxed + shippingFee;  // 20050
 ```
 
-期待結果:
-- `請求金額: 20050`
+期待出力例:
+```text
+請求金額: 20050
+```
 
 ---
 

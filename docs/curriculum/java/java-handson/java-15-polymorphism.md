@@ -27,6 +27,27 @@ javac -version
 2. これにより呼び出し側のコードを共通化できる
 3. ダウンキャストは `instanceof` で判定してから行う
 
+### 全体構成図（親型で受けて実体に応じて動く）
+```mermaid
+flowchart TD
+  MVAR["Employee 型の変数 m"] -->|実体| MGR["Manager"]
+  PVAR["Employee 型の変数 p"] -->|実体| PT["PartTimer"]
+
+  PRINT["printRole の共通処理"] --> CALL["roleLabel を呼ぶ"]
+  MVAR --> PRINT
+  PVAR --> PRINT
+
+  CALL -->|実体が Manager| MROLE["Manager の roleLabel: 管理者"]
+  CALL -->|実体が PartTimer| PROLE["PartTimer の roleLabel: アルバイト"]
+
+  CHECK["instanceof"] -->|Managerなら| CAST["Manager にダウンキャスト"]
+```
+
+ポイント:
+- 変数の型が `Employee` でも、実体は `Manager` や `PartTimer` になれる
+- 共通処理 `printRole(Employee e)` は、子クラスごとに書き分けなくてよい
+- オーバーライドされたメソッドは、実体のクラスに応じて呼ばれる
+
 ### 書式の基本
 
 #### 親型の変数で子クラスの実体を受ける
@@ -224,7 +245,7 @@ Engineer: Tanaka
 ### レベル3（実務）
 1. 共通メソッドだけで処理できるように設計を見直す。
 
-期待結果:
+期待状態:
 - 呼び出し側の `if` / `instanceof` 分岐を減らせる
 
 ---

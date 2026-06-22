@@ -104,8 +104,12 @@ public class UserController {
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
-        userService.delete(id);
-        redirectAttributes.addFlashAttribute("message", "ユーザーを削除しました");
+        try {
+            userService.delete(id);
+            redirectAttributes.addFlashAttribute("message", "ユーザーを削除しました");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/users";
     }
 }

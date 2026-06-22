@@ -311,7 +311,7 @@ mkdir -p ~/order-management-springboot/stages/lesson01/src/main/resources/static
 
   <properties> <!-- 共通値を変数化（${...}で再利用） -->
     <java.version>17</java.version> <!-- 使用Javaバージョン -->
-    <spring-boot.version>3.2.6</spring-boot.version> <!-- Spring Boot基準バージョン -->
+    <spring-boot.version>3.5.15</spring-boot.version> <!-- 研修で固定するSpring Boot 3.xバージョン -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- 文字コード -->
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding> <!-- レポート文字コード -->
     <maven.compiler.encoding>UTF-8</maven.compiler.encoding> <!-- コンパイラ文字コード -->
@@ -347,6 +347,13 @@ mkdir -p ~/order-management-springboot/stages/lesson01/src/main/resources/static
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
+        <executions> <!-- mvn packageで実行可能Jarを作る -->
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin> <!-- Javaコンパイル設定 -->
         <groupId>org.apache.maven.plugins</groupId>
@@ -372,7 +379,8 @@ mkdir -p ~/order-management-springboot/stages/lesson01/src/main/resources/static
 - まず見る場所:
   - `<groupId>`, `<artifactId>`, `<version>`（プロジェクト識別）
   - `<dependencies>`（必要機能の宣言）
-  - `spring-boot-maven-plugin`（`mvn spring-boot:run` を実行するためのプラグイン）
+  - `spring-boot-maven-plugin`（起動と実行可能Jar作成）
+  - `repackage` を `package` に結び付け、`java -jar` で起動できるJarを作る
 - 変更メモ（12.5でまとめて実施）:
   - `<description>` を任意の文字列に変更し、起動できることを確認
 - よくあるミス:

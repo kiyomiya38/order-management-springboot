@@ -78,7 +78,7 @@ DROP TABLE sample_4_1;
 SHOW TABLES LIKE 'sample_4_1';
 ```
 
-期待結果:
+期待状態:
 - `sample_4_1` が一覧に出ない
 
 復元:

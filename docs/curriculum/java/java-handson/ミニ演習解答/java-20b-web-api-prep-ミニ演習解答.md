@@ -9,8 +9,14 @@
 curl -i -X POST http://localhost:8091/api/health
 ```
 
-期待結果:
-- `HTTP/1.1 405 Method Not Allowed`
+期待レスポンス例:
+```text
+HTTP/1.1 405 Method Not Allowed
+
+{"error":"Method Not Allowed"}
+```
+
+理由:
 - `/api/health` は存在するが、`GET` だけ許可しているため
 
 2. `static/index.html` のファイル名を一時変更:
@@ -21,8 +27,14 @@ curl -i http://localhost:8091/
 mv static/index-old.html static/index.html
 ```
 
-期待結果:
-- `HTTP/1.1 404 Not Found`
+期待レスポンス例:
+```text
+HTTP/1.1 404 Not Found
+
+{"error":"Not Found"}
+```
+
+理由:
 - `sendStatic(...)` 内の `Files.exists(file)` が `false` になるため
 
 3. `GET /api/count` の追加例:
@@ -60,6 +72,9 @@ synchronized int size() {
 curl -i http://localhost:8091/api/count
 ```
 
-期待結果:
-- `HTTP/1.1 200 OK`
-- `{"count":登録済み件数}`
+期待レスポンス例:
+```text
+HTTP/1.1 200 OK
+
+{"count":登録済み件数}
+```

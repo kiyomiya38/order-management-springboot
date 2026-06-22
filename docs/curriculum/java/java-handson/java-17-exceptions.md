@@ -27,6 +27,29 @@ javac -version
 2. `try` で実行、`catch` で捕捉、`finally` で後処理
 3. 不正入力は `throw` で呼び出し元へ通知する
 
+### 全体構成図（例外の流れ）
+```mermaid
+flowchart TD
+  TRY["try の処理"] --> CHECK{"例外が起きたか"}
+  CHECK -->|いいえ| NORMAL["通常処理を続ける"]
+  CHECK -->|はい| CATCH["対応する catch"]
+  CATCH --> MSG["原因を表示"]
+
+  NORMAL --> FIN["finally"]
+  MSG --> FIN
+  FIN --> END["処理終了"]
+
+  VALID["入力チェック"] --> BAD{"不正な値か"}
+  BAD -->|はい| THROW["throw で例外通知"]
+  BAD -->|いいえ| NORMAL
+  THROW --> CATCH
+```
+
+ポイント:
+- 例外が起きると、`try` の残り処理は飛ばされて `catch` へ進む
+- `finally` は、成功しても失敗しても最後に実行される
+- `throw` は、不正な状態を見つけた側から呼び出し元へ知らせる仕組み
+
 ### 書式の基本
 
 #### `try-catch-finally`
@@ -199,13 +222,13 @@ java ExceptionDemo
 ### レベル1（基本）
 1. `validateQuantity` を `quantity > 1000` もエラーにする。
 
-期待結果:
+期待状態:
 - `validateQuantity(1001)` で例外が発生する
 
 ### レベル2（拡張）
 1. `validatePrice(int price)` を追加して0未満を弾く。
 
-期待結果:
+期待状態:
 - `validatePrice(-1)` で例外が発生する
 
 ### レベル3（実務）

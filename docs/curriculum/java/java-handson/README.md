@@ -44,7 +44,7 @@
 - [Java-04A 補講: 型変換とキャスト](./java-04a-type-conversion-and-cast.md)
 - [Java-06A 補講: switch / do-while / ラベル付き制御](./java-06a-advanced-control-flow.md)
 - [Java-07A 補講: 参照型と多次元配列](./java-07a-reference-types-and-multidimensional-arrays.md)
-- [Java-09A 補講: CLASSPATHとパッケージ解決](./java-09a-classpath-and-package-resolution.md)
+- [Java-10A 補講: Stringの参照比較と値比較](./java-10a-string-reference-and-value-comparison.md)
 - [Java-11A 補講: コンストラクタ連鎖（this / デフォルトコンストラクタ）](./java-11a-constructor-chaining.md)
 - [Java-12A 補講: アクセス修飾子の使い分け](./java-12a-access-modifiers.md)
 - [Java-13A 補講: 継承ルールの深掘り（super / 単一継承 / final）](./java-13a-inheritance-rules.md)

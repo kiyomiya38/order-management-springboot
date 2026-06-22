@@ -1,4 +1,4 @@
-# Java-03 ミニ演習解答
+﻿# Java-03 ミニ演習解答
 
 対象資料: `docs/curriculum/java/java-handson/java-03-variables-and-types.md`
 
@@ -25,7 +25,7 @@ public class VariableTypeDemo {
 }
 ```
 
-期待出力:
+期待出力例:
 ```text
 注文番号: ORD-2026-0099
 数量: 3
@@ -54,7 +54,7 @@ public class VariableTypeDemo {
 }
 ```
 
-期待出力:
+期待出力例:
 ```text
 合計: 3600
 税率: 0.08
@@ -81,7 +81,7 @@ public class VariableTypeDemo {
 }
 ```
 
-期待出力:
+期待出力例:
 ```text
 合計: 3000000000
 ```

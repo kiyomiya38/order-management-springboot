@@ -1,4 +1,4 @@
-# Java 継承だけガイド（extends）
+﻿# Java 継承だけガイド（extends）
 
 ## 1. この資料の目的
 対象:
@@ -61,7 +61,7 @@ javac -encoding UTF-8 InheritanceStep1.java
 java InheritanceStep1
 ```
 
-期待出力:
+期待出力例:
 ```text
 名前: Shinesoft
 ```
@@ -110,7 +110,7 @@ javac -encoding UTF-8 InheritanceStep2.java
 java InheritanceStep2
 ```
 
-期待出力:
+期待出力例:
 ```text
 名前: Tanaka
 月給: 300000
@@ -176,7 +176,7 @@ javac -encoding UTF-8 InheritanceStep3.java
 java InheritanceStep3
 ```
 
-期待出力:
+期待出力例:
 ```text
 === 社員情報 ===
 名前: Yamada

@@ -820,7 +820,7 @@ cd ~/order-management-springboot/practice/pre-springboot/step2-web-api-reinforce
 java App
 ```
 
-期待出力:
+期待出力例:
 ```text
 started: http://localhost:8089
 ```

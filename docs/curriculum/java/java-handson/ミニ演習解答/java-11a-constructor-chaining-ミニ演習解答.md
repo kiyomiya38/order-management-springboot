@@ -3,7 +3,7 @@
 対象資料: `docs/curriculum/java/java-handson/java-11a-constructor-chaining.md`
 
 ## ミニ演習解答
-1. `Product(String name, int price, int quantity)` 追加と委譲:
+1. `quantity` の補正:
 
 ```java
 class Product {
@@ -26,7 +26,7 @@ class Product {
     Product(String name, int price, int quantity) {
         this.name = name;
         this.price = price;
-        this.quantity = quantity;
+        this.quantity = Math.max(quantity, 0);
     }
 }
 ```

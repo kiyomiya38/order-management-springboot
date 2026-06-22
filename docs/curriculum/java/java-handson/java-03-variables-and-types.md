@@ -1,7 +1,5 @@
 ﻿# Java-03 ハンズオン: 変数と型（宣言→代入→参照）
 
-対応参考資料: `Java-03_変数と型.pptx`
-
 ## 1. この資料のゴール
 - 変数の基本（宣言・代入・参照）を説明できる
 - 主要な型（`String`, `int`, `long`, `double`, `boolean`）を使い分けできる
@@ -138,7 +136,7 @@ javac -encoding UTF-8 VariableTypeDemo.java
 java VariableTypeDemo
 ```
 
-期待出力:
+期待出力例:
 ```text
 3
 ```
@@ -170,7 +168,7 @@ javac -encoding UTF-8 VariableTypeDemo.java
 java VariableTypeDemo
 ```
 
-期待出力:
+期待出力例:
 ```text
 注文番号: ORD-2026-0001
 数量: 3
@@ -250,7 +248,7 @@ javac -encoding UTF-8 VariableTypeDemo.java
 java VariableTypeDemo
 ```
 
-期待出力:
+期待出力例:
 ```text
 初期数量: 3
 再設定後数量: 5

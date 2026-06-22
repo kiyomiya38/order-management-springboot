@@ -1,4 +1,4 @@
-# Java-20A 補講: `record` / `enum` 入門
+﻿# Java-20A 補講: `record` / `enum` 入門
 
 対応参考資料: Lesson0前補講
 
@@ -186,7 +186,7 @@ javac -encoding UTF-8 RecordEnumDemo.java
 java RecordEnumDemo
 ```
 
-期待出力:
+期待出力例:
 ```json
 {"status":"CREATED","id":1,"name":"Taro","message":"こんにちは、Taroさん"}
 ```
@@ -219,7 +219,7 @@ ERROR
 ### レベル3（実務）
 1. `String status = "CRETAED";` のような文字列状態と、`ApiStatus.CREATED` の違いを説明する。
 
-期待結果:
+期待状態:
 - `enum` は候補外の値をコンパイル時に検出しやすい、と説明できる
 
 ---

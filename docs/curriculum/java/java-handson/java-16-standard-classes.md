@@ -30,6 +30,27 @@ javac -version
 4. `Path` はファイルパス、`Pattern` は正規表現パターンを表す型
 5. `private static final` は「クラス内で共有し、再代入しない定数」の定番宣言
 
+### 全体構成図（標準クラスの役割）
+```mermaid
+flowchart TD
+  STD["標準クラス"] --> OBJ["Object: 表示と比較の土台"]
+  STD --> WRAP["ラッパー: 文字列と数値の変換"]
+  STD --> SB["StringBuilder: 文字列の組み立て"]
+  STD --> PATH["Path: ファイルパス"]
+  STD --> PATTERN["Pattern: 正規表現"]
+
+  PRODUCT["自作クラス Product"] --> OBJ
+  INPUT["入力文字列"] --> WRAP
+  LOG["ログ文字列"] --> SB
+  WEB["Webアプリ準備"] --> PATH
+  WEB --> PATTERN
+```
+
+ポイント:
+- 標準クラスは、自作クラスだけでは面倒な処理を支える部品
+- `Object` はすべてのクラスの土台として、表示や比較の考え方につながる
+- `Path` / `Pattern` は、後続の Web アプリ準備でファイルや文字列抽出を扱う前提になる
+
 ### 書式の基本
 
 #### `toString` のオーバーライド
@@ -288,7 +309,7 @@ javac -encoding UTF-8 StandardClassDemo.java
 java StandardClassDemo
 ```
 
-期待出力:
+期待出力例:
 ```text
 static dir: static
 name: Tanaka
@@ -327,7 +348,7 @@ END
 ### レベル3（実務）
 1. `STATIC_DIR` の宣言から `final` を外し、再代入して挙動の違いを確認する（確認後は元に戻す）。
 
-期待結果:
+期待状態:
 - `final` があると再代入できず、外すと再代入できる
 
 ---

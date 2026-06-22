@@ -11,8 +11,10 @@ double orderCount = 7;
 System.out.println(orderCount);
 ```
 
-期待結果:
-- `7.0`
+期待出力例:
+```text
+7.0
+```
 
 ---
 
@@ -26,8 +28,10 @@ int taxed = (int) Math.round(basePrice * 1.10);
 System.out.println("税込: " + taxed);
 ```
 
-期待結果:
-- `税込: 1188`
+期待出力例:
+```text
+税込: 1188
+```
 
 ---
 

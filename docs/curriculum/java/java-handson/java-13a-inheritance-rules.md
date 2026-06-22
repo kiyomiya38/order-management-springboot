@@ -87,8 +87,11 @@ javac -encoding UTF-8 InheritanceRulesDemo.java
 java InheritanceRulesDemo
 ```
 
-期待結果:
-- `Parent()` の後に `Child()` が表示される
+期待出力例:
+```text
+Parent()
+Child()
+```
 
 ### Step 2: `super(...)` を明示する必要があるケース
 `InheritanceRulesDemo.java` を次の内容に更新:
@@ -123,9 +126,11 @@ javac -encoding UTF-8 InheritanceRulesDemo.java
 java InheritanceRulesDemo
 ```
 
-期待結果:
-- `Parent name=Tanaka`
-- `Child ready`
+期待出力例:
+```text
+Parent name=Tanaka
+Child ready
+```
 
 補足:
 - `super(name);` を消すと、コンパイラは暗黙 `super()` を入れようとするが、親に引数なしコンストラクタがないためコンパイルエラーになる
@@ -165,14 +170,35 @@ public class InheritanceRulesDemo { // 実行クラス
 3. `final` メソッドはオーバーライドできない旨のコンパイルエラーを確認する。
 4. 確認後は2行を再びコメントアウトして、次の通常実行へ進む。
 
+任意確認（`final` クラスの継承エラーを体験したい場合）:
+1. 次の行のコメントアウトを一時的に外す。
+
+```java
+class DerivedRole extends FixedRole {}
+```
+
+2. `javac -encoding UTF-8 InheritanceRulesDemo.java` を実行する。
+
+期待状態:
+- `cannot inherit from final FixedRole` のようなコンパイルエラーになる
+- `final` クラスは親クラスとして継承できないことが分かる
+
+3. 確認後は、次のように再びコメントアウトして元に戻す。
+
+```java
+// class DerivedRole extends FixedRole {} // final クラスを extends するとコンパイルエラー
+```
+
 実行:
 ```bash
 javac -encoding UTF-8 InheritanceRulesDemo.java
 java InheritanceRulesDemo
 ```
 
-期待結果:
-- `report submitted` が表示される
+期待出力例:
+```text
+report submitted
+```
 
 単一継承ルール（確認用）:
 
@@ -198,13 +224,13 @@ Child
 ### レベル2（拡張）
 1. `Parent` に引数なしコンストラクタを追加し、`Child` の `super(...)` 省略時の挙動を確認する。
 
-期待結果:
+期待状態:
 - `super(...)` を明示しなくても、親の引数なしコンストラクタが呼ばれる
 
 ### レベル3（実務）
 1. `final` メソッドを通常メソッドへ変更し、オーバーライドが可能になることを確認する。
 
-期待結果:
+期待状態:
 - `@Override` を付けた子クラス側メソッドがコンパイルできる
 
 ---

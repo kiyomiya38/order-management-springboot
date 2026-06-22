@@ -78,8 +78,11 @@ javac -encoding UTF-8 RegexBasicsDemo.java
 java RegexBasicsDemo
 ```
 
-期待結果:
-- `形式OK=true` が表示される
+期待出力例:
+```text
+zip=123-4567
+形式OK=true
+```
 
 ### Step 2: `Pattern` / `Matcher` で部分一致を探す
 `RegexBasicsDemo.java` を次の内容に更新:
@@ -109,8 +112,10 @@ javac -encoding UTF-8 RegexBasicsDemo.java
 java RegexBasicsDemo
 ```
 
-期待結果:
-- `見つかったID: 2026-0420` が表示される
+期待出力例:
+```text
+見つかったID: 2026-0420
+```
 
 ### Step 3: エスケープ必須パターンを試す（仕上げ）
 `RegexBasicsDemo.java` を次の内容に更新:
@@ -136,9 +141,11 @@ javac -encoding UTF-8 RegexBasicsDemo.java
 java RegexBasicsDemo
 ```
 
-期待結果:
-- `csv判定: true`
-- `金額判定: true`
+期待出力例:
+```text
+csv判定: true
+金額判定: true
+```
 
 ---
 
@@ -164,7 +171,7 @@ java RegexBasicsDemo
 ### レベル3（実務）
 1. `^` と `$` を外した場合の判定差を確認する。
 
-期待結果:
+期待状態:
 - 文字列全体一致と部分一致の違いを説明できる
 
 ---

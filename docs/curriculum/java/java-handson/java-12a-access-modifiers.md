@@ -1,10 +1,8 @@
 # Java-12A 補講: アクセス修飾子の使い分け（`public` / `private` / `protected` / 無指定）
 
-対応参考資料: `J2_03_カプセル化.pdf`, `J2_05_継承②.pdf`
-
 ## 1. この資料のゴール
 - 4種類のアクセス範囲を説明できる
-- `protected` の「継承先からアクセス可能」を実装で確認できる
+- 同一パッケージ内で `public` / `protected` / 無指定 / `private` の違いを確認できる
 - `package-private`（無指定）の意味を説明できる
 
 ---
@@ -38,25 +36,25 @@ javac -version
 | `public` | ○ | ○ | ○ | ○ | どこからでも見える公開入口 |
 
 補足:
-- この資料で使う `extends` は、`protected` のアクセス範囲を確認するための最小限の利用に限定する。
-- 継承の考え方（親子クラスの役割分担・再利用・オーバーライド）は [Java-13 ハンズオン: 継承](./java-13-inheritance.md) で学ぶ。
+- この資料では、継承を使った確認は行わない。
+- 他パッケージの子クラスから `protected` にアクセスする確認は、継承を学んだ後に扱う内容として分ける。
 
 ---
 
 ## 4. ハンズオン
 
 目的:
-- パッケージ境界と継承の組み合わせでアクセス範囲を確認する
+- 同一パッケージ内で、アクセス修飾子ごとの見え方を確認する
 
 完了条件:
-- 同一パッケージでの無指定アクセスと、他パッケージ継承先での `protected` アクセスを確認できる
+- 同一パッケージでの `public` / `protected` / 無指定アクセスと、`private` への直接アクセス不可を確認できる
+- 無指定クラス（package-private class）が同一パッケージから使えることを確認できる
 
 作業フォルダ: `~/order-management-springboot/practice/java/handson12a`
 
 ### Step 0: 作業フォルダを作る
 ```bash
 mkdir -p ~/order-management-springboot/practice/java/handson12a/src/model
-mkdir -p ~/order-management-springboot/practice/java/handson12a/src/app
 cd ~/order-management-springboot/practice/java/handson12a
 ```
 
@@ -120,58 +118,42 @@ javac -encoding UTF-8 -d out src/model/Account.java src/model/AccountInspector.j
 java -cp out model.AccountInspector
 ```
 
-期待結果:
-- `id/points/status` 等が表示される
-
-### Step 2: 他パッケージの継承先で `protected` を確認
-※ここでは `protected` のアクセス可否確認が目的。継承設計そのものの詳細は `java-13-inheritance.md` を参照。
-
-作成ファイル: `src/app/PremiumAccount.java`
-
-```java
-package app;
-
-import model.Account;
-
-public class PremiumAccount extends Account {
-    public void printInheritedFields() {
-        System.out.println(id); // public: 可
-        System.out.println(points); // protected: サブクラスなので可
-        // System.out.println(status); // package-private: 他パッケージなので不可
-    }
-}
+期待出力例:
+```text
+A-001
+100
+ACTIVE
+public
+protected
+package-private
+private:internal
 ```
 
-作成ファイル: `src/app/AccessModifierDemo.java`
+任意確認: `private` へ直接アクセスできないことを確認する
+
+1. `AccountInspector.java` の次の行のコメントアウトを一時的に外す。
 
 ```java
-package app;
-
-import model.Account;
-
-public class AccessModifierDemo {
-    public static void main(String[] args) {
-        PremiumAccount pa = new PremiumAccount();
-        pa.printInheritedFields();
-
-        Account base = new Account();
-        System.out.println(base.id); // public: 可
-        // System.out.println(base.points); // 他パッケージ + 非サブクラス文脈では不可
-        // System.out.println(base.status); // package-private なので不可
-    }
-}
+System.out.println(a.secret);
 ```
 
-実行:
+2. もう一度コンパイルする。
+
 ```bash
-javac -encoding UTF-8 -d out src/model/Account.java src/model/AccountInspector.java src/app/PremiumAccount.java src/app/AccessModifierDemo.java
-java -cp out app.AccessModifierDemo
+javac -encoding UTF-8 -d out src/model/Account.java src/model/AccountInspector.java
 ```
 
-期待結果:
-- `id` と `points`（継承経由）が表示される
+期待状態:
+- `secret has private access in model.Account` のようなコンパイルエラーになる
+- `private` フィールドは、同じパッケージでもクラス外から直接アクセスできないことが分かる
 
-### Step 3: クラスの無指定アクセスを確認（仕上げ）
+3. 確認後は、次のように再びコメントアウトして元に戻す。
+
+```java
+// System.out.println(a.secret); // private なので不可
+```
+
+### Step 2: クラスの無指定アクセスを確認（仕上げ）
 作成ファイル: `src/model/InternalRule.java`
 
 ```java
@@ -192,13 +174,25 @@ System.out.println(InternalRule.value()); // 同一パッケージなので可
 
 実行:
 ```bash
-javac -encoding UTF-8 -d out src/model/*.java src/app/*.java
+javac -encoding UTF-8 -d out src/model/*.java
 java -cp out model.AccountInspector
 ```
 
-期待結果:
-- `internal-rule` が表示される
-- `app` パッケージ側から `InternalRule` を使うとコンパイルエラーになる
+期待出力例:
+```text
+A-001
+100
+ACTIVE
+public
+protected
+package-private
+private:internal
+internal-rule
+```
+
+期待状態:
+- 無指定クラス `InternalRule` を同一パッケージ内から使えることが分かる
+- 別パッケージや継承を組み合わせた確認は、この資料では扱わない
 
 ---
 
@@ -212,24 +206,22 @@ loginFailures: 1
 ```
 
 ### レベル2（拡張）
-1. `app` 側で `Account` を継承しない通常クラスから `protected` へアクセスしてエラーを確認する。
+1. `AccountInspector` から `a.privateInfo()` を直接呼び出し、エラーを確認する。
 
-期待結果:
-- `protected` メンバへ直接アクセスできないことがコンパイルエラーで確認できる
+期待状態:
+- `private` メソッドへクラス外から直接アクセスできないことがコンパイルエラーで確認できる
 
 ### レベル3（実務）
-1. `InternalRule` を `public` に変えて `app` から参照できることを確認する。
+1. `InternalRule` の `value()` を `private` に変え、`AccountInspector` から呼べなくなることを確認する。
 
-期待出力例:
-```text
-internal-rule
-```
+期待状態:
+- 同じパッケージ内でも、`private` メソッドはクラス外から呼び出せないことを確認できる
 
 ---
 
 ## 6. つまずきポイント
 - `protected` ならどこからでも参照できると誤解
-  -> 他パッケージではサブクラス経由が前提
+  -> `public` とは違う。継承を使った詳しい確認は、この資料では扱わない
 - 無指定メンバを `public` と同じ扱いで使ってしまう
   -> パッケージ外からは見えない
 - `private` フィールドへ直接アクセスしようとしてエラー

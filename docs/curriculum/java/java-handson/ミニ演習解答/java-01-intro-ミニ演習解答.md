@@ -1,4 +1,4 @@
-# Java-01 ミニ演習解答
+﻿# Java-01 ミニ演習解答
 
 対象資料: `docs/curriculum/java/java-handson/java-01-intro.md`
 
@@ -16,7 +16,7 @@ public class IntroHello {
 }
 ```
 
-期待出力:
+期待出力例:
 ```text
 受注バッチ開始
 検証対象件数: 70
@@ -65,7 +65,7 @@ public class StartApp {
 }
 ```
 
-期待出力:
+期待出力例:
 ```text
 [INFO] 受注バッチ開始
 [INFO] 検証対象件数: 70

@@ -130,23 +130,15 @@
   - Lesson6/7の実運用寄り学習と接続する。
 
 ### 中優先
-1. テストの段階学習（JUnit -> Spring Test -> MockMvc）が本線で不足
-- 現状:
-  - テストは `lesson05` で一部実施、Maven sandboxでも実施可能だが、本編で段階化されていない。
-- 影響:
-  - 「どこを何でテストするか」の設計力が育ちにくい。
-- 追加提案:
-  - `docs/curriculum/java/java-handson/java-21-junit-basics.md`
-  - `docs/curriculum/springboot/lesson10/lesson10.md`（Service単体 + MockMvc）
-  - 追加済み: `docs/curriculum/java/java-handson/java-21-junit-basics.md`
+1. テストの段階学習（対応済み）
+- Java基礎: `docs/curriculum/java/java-handson/java-21-junit-basics.md`
+- Maven/JUnit: `docs/curriculum/springboot/lesson01/maven-sandbox/README.md`
+- Service統合テスト + MockMvc認可テスト: `lesson05/lesson5-testing.md`
+- API認証・本人性テスト: `lesson08/lesson8-testing.md`
 
-2. `@ControllerAdvice` によるエラー応答統一の本編演習が不足
-- 現状:
-  - エラーハンドリングは個別実装中心。
-- 影響:
-  - API/画面でエラー形式がばらつきやすい。
-- 追加提案:
-  - `docs/curriculum/springboot/lesson11/lesson11.md`
+2. エラー応答統一
+- API: `lesson08` の `@RestControllerAdvice` とSecurity用401/403ハンドラーで対応済み
+- 今後の候補: 画面Controllerの共通例外画面とログ相関ID
 
 3. Maven基礎の前倒し導線が弱い
 - 現状:
@@ -172,9 +164,8 @@
 3. Flyway演習（lesson09）
 
 次に着手:
-1. MockMvc演習（lesson10）
-2. `@ControllerAdvice` 応答統一演習（lesson11）
-3. CI最小演習（lesson12）
+1. CI最小演習（`mvn verify`）
+2. 画面Controller共通例外処理
 
 ---
 

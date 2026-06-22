@@ -209,7 +209,7 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
     <!-- Javaの使用バージョン -->
     <java.version>17</java.version>
     <!-- Spring Boot関連の基準バージョン -->
-    <spring-boot.version>3.2.6</spring-boot.version>
+    <spring-boot.version>3.5.15</spring-boot.version>
     <!-- 文字コード設定（文字化け防止） -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -266,6 +266,13 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <!-- Javaのコンパイル設定（バージョン/文字コード） -->
       <plugin>
@@ -319,8 +326,8 @@ spring:
     hibernate:
       # Entity定義に合わせてテーブルを自動更新（学習用設定）
       ddl-auto: update
-    # 画面描画時の関連参照で LazyInitializationException を避けるため true
-    open-in-view: true
+    # View描画中に追加のDBアクセスを発生させない
+    open-in-view: false
   thymeleaf:
     # 学習中はキャッシュ無効（HTML変更を反映しやすくする）
     cache: false
@@ -352,7 +359,7 @@ logging:
   - `spring.h2.console.enabled: true`（H2コンソール有効化）
 - まず見る場所:
   - `url: jdbc:h2:mem:attendance...`
-  - `open-in-view: true`（画面描画時の関連参照エラー回避）
+  - `open-in-view: false`（必要なDB取得はService内で完了させる）
 - よくあるミス:
   - `jdbc:h2:mem:attendance` のスペルミス
   - YAMLインデント崩れ
@@ -1208,7 +1215,12 @@ mvn spring-boot:run
 2. 初期表示で状態が「未出勤」であることを確認
 3. 「出勤」ボタンを押す
 4. 状態が「出勤中」に変わり、出勤時刻が表示されることを確認
-5. 再度「出勤」しようとして、`すでに出勤済みです` が表示されることを確認
+5. 出勤後は画面上のボタンが非表示になることを確認
+6. 別ターミナルから次を実行し、`Location` に `error=` が含まれることを確認
+
+```bash
+curl -i -X POST http://localhost:8080/clock-in
+```
 
 ---
 
@@ -1222,7 +1234,9 @@ mvn spring-boot:run
 
 ## 16. つまずきポイント
 - `Table "USERS" not found`:
-  - 起動直後にアクセスしすぎると発生することがある。起動ログの完了を待つ
+  - 起動ログに `Started AttendanceManagementApplication` があるか確認
+  - `User` の `@Entity`、パッケージ位置、datasource URLを確認
+  - 正常起動後にリクエストを早く送ったこと自体が原因になることはない
 - `研修ユーザーが存在しません`:
   - `DataSeeder` が正しく作成されているか確認
 - `mvn` が通らない:

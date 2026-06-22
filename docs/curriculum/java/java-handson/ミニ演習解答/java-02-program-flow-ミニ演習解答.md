@@ -1,4 +1,4 @@
-# Java-02 ミニ演習解答
+﻿# Java-02 ミニ演習解答
 
 対象資料: `docs/curriculum/java/java-handson/java-02-program-flow.md`
 
@@ -17,7 +17,7 @@ public class HelloFlow {
 }
 ```
 
-期待出力:
+期待出力例:
 ```text
 [INFO] バッチ起動
 [INFO] 設定ファイル読込
@@ -63,7 +63,7 @@ public class HelloFlow {
 }
 ```
 
-期待出力:
+期待出力例:
 ```text
 [INFO] 開始
 [INFO] コンパイル対象クラス名: HelloFlow

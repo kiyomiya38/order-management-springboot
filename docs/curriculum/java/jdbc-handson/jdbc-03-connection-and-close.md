@@ -88,9 +88,11 @@ javac -encoding UTF-8 -cp ".:lib/mysql-connector-j-8.x.x.jar" JdbcConnectionDemo
 java -cp ".:lib/mysql-connector-j-8.x.x.jar" JdbcConnectionDemo
 ```
 
-期待結果:
-- `接続成功`
-- `接続解除`
+期待出力例:
+```text
+接続成功
+接続解除
+```
 
 ### Step 3: try-with-resources 版へ変更（仕上げ）
 `Connection` の宣言を `try (...)` に移して `finally` を不要化する。

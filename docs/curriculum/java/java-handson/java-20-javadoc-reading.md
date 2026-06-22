@@ -102,10 +102,12 @@ javac -encoding UTF-8 DocDrivenApiDemo.java
 java DocDrivenApiDemo
 ```
 
-期待結果:
-- `prefix=ORD`
-- `List.of は変更不可`
-- `List.of は null 要素を許可しない`
+期待出力例:
+```text
+prefix=ORD
+List.of は変更不可
+List.of は null 要素を許可しない
+```
 
 ### Step 2: 中級（Stream）
 まず Javadoc を読む:
@@ -156,11 +158,13 @@ javac -encoding UTF-8 DocDrivenApiDemo.java
 java DocDrivenApiDemo
 ```
 
-期待結果:
-- `terminal前の評価回数=0`
-- `terminal後の評価回数=4`
-- `filtered=[1200, 3000, 4500]`
-- `Stream.toList の戻り値は変更不可`
+期待出力例:
+```text
+terminal前の評価回数=0
+terminal後の評価回数=4
+filtered=[1200, 3000, 4500]
+Stream.toList の戻り値は変更不可
+```
 
 ### Step 3: 応用（HttpServer）
 まず Javadoc を読む:
@@ -224,9 +228,12 @@ java HttpServerDocDemo
 curl -i http://localhost:8090/health
 ```
 
-期待結果:
-- レスポンスステータスが `200`
-- レスポンス本文が `OK`
+期待レスポンス例:
+```text
+HTTP/1.1 200 OK
+
+OK
+```
 
 終了方法:
 - サーバー起動中のターミナルで `Ctrl + C`

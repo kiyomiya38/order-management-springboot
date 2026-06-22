@@ -6,7 +6,7 @@
 ```java
 int[] a = {1, 2, 3};
 int[] b = a;          // 参照コピー
-int[] c = a.clone();  // 別配列
+int[] c = {1, 2, 3};  // 別配列
 
 b[0] = 99;
 System.out.println(a[0]); // 99
@@ -17,13 +17,17 @@ System.out.println(c[0]); // 1
 
 ## レベル2（拡張）解答
 ```java
-String s1 = "PAID";
-String s2 = "paid";
-String s3 = new String("PAID");
+int[][] seats = {
+        {101, 102, 103},
+        {201, 202},
+        {301, 302, 303, 304}
+};
 
-System.out.println(s1 == s3);                    // false
-System.out.println(s1.equals(s3));               // true
-System.out.println(s1.equalsIgnoreCase(s2));     // true
+for (int row = 0; row < seats.length; row++) {
+    for (int col = 0; col < seats[row].length; col++) {
+        System.out.println(seats[row][col]);
+    }
+}
 ```
 
 ---
@@ -47,8 +51,8 @@ System.out.println("全体合計: " + total);
 ---
 
 ## 実行前予想問題の解答
-1. `String a = "OK"; String b = "OK"; a == b` -> `true`  
-2. `String c = new String("OK"); a == c` -> `false`
+1. `values.length` は行数なので `2`
+2. `values[1].length` は2行目の列数なので `1`
 
 ---
 

@@ -5,6 +5,7 @@
 - DTO と `@Valid` で入力検証を実装できる
 - `@RestControllerAdvice` でエラー応答形式を統一できる
 - 画面系 Controller（Thymeleaf）と API 系 Controller を分けて設計できる
+- APIリクエストの正常系と例外系をコードで追跡できる
 
 ## 前提
 - Lesson5 を完了している
@@ -33,8 +34,8 @@ Lesson1〜5では、Spring MVCの基本を理解するために `@Controller + M
   - `POST /api/users`
   - `PUT /api/users/:id`
   - `DELETE /api/users/:id`
-  - `POST /api/attendances/clock-in`
-  - `POST /api/attendances/clock-out`
+  - `POST /api/attendances/clock-in`（ログイン中の本人を出勤）
+  - `POST /api/attendances/clock-out`（ログイン中の本人を退勤）
 - 追加クラス:
   - `UserApiController`
   - `AttendanceApiController`
@@ -145,9 +146,9 @@ flowchart TD
   B1 -->|はい| E409[409 Business Error]
   B1 -->|いいえ| OK1[200/201/204 JSON]
 
-  P -->|/api/attendances...| V2{入力検証OKか}
-  V2 -->|いいえ| E400
-  V2 -->|はい| B2{業務ルール違反か}
+  P -->|/api/attendances...| U1{認証ユーザーをDBで取得できるか}
+  U1 -->|いいえ| E401
+  U1 -->|はい| B2{本人の勤怠が業務ルール違反か}
   B2 -->|はい| E409
   B2 -->|いいえ| OK2[200 JSON]
 
@@ -189,7 +190,6 @@ mkdir -p ~/order-management-springboot/stages/lesson08/src/main/java/com/shineso
 - `~/order-management-springboot/stages/lesson08/src/main/java/com/shinesoft/attendance/web/api/dto/UserCreateRequest.java`
 - `~/order-management-springboot/stages/lesson08/src/main/java/com/shinesoft/attendance/web/api/dto/UserUpdateRequest.java`
 - `~/order-management-springboot/stages/lesson08/src/main/java/com/shinesoft/attendance/web/api/dto/UserResponse.java`
-- `~/order-management-springboot/stages/lesson08/src/main/java/com/shinesoft/attendance/web/api/dto/AttendanceActionRequest.java`
 - `~/order-management-springboot/stages/lesson08/src/main/java/com/shinesoft/attendance/web/api/dto/ErrorResponse.java`
 
 `UserCreateRequest.java`:
@@ -232,18 +232,6 @@ public record UserResponse(
         Long id,
         String username,
         String role
-) {
-}
-```
-
-`AttendanceActionRequest.java`:
-```java
-package com.shinesoft.attendance.web.api.dto;
-
-import jakarta.validation.constraints.NotNull;
-
-public record AttendanceActionRequest(
-        @NotNull Long userId
 ) {
 }
 ```
@@ -344,40 +332,48 @@ public class UserApiController {
 ```java
 package com.shinesoft.attendance.web.api;
 
+import java.security.Principal;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shinesoft.attendance.service.AttendanceService;
-import com.shinesoft.attendance.web.api.dto.AttendanceActionRequest;
-
-import jakarta.validation.Valid;
+import com.shinesoft.attendance.service.UserService;
 
 @RestController
 @RequestMapping("/api/attendances")
 public class AttendanceApiController {
     private final AttendanceService attendanceService;
+    private final UserService userService;
 
-    public AttendanceApiController(AttendanceService attendanceService) {
+    public AttendanceApiController(AttendanceService attendanceService,
+                                   UserService userService) {
         this.attendanceService = attendanceService;
+        this.userService = userService;
     }
 
     @PostMapping("/clock-in")
-    public Map<String, String> clockIn(@Valid @RequestBody AttendanceActionRequest request) {
-        attendanceService.clockIn(request.userId());
+    public Map<String, String> clockIn(Principal principal) {
+        var user = userService.getByUsername(principal.getName());
+        attendanceService.clockIn(user.getId());
         return Map.of("message", "出勤しました");
     }
 
     @PostMapping("/clock-out")
-    public Map<String, String> clockOut(@Valid @RequestBody AttendanceActionRequest request) {
-        attendanceService.clockOut(request.userId());
+    public Map<String, String> clockOut(Principal principal) {
+        var user = userService.getByUsername(principal.getName());
+        attendanceService.clockOut(user.getId());
         return Map.of("message", "退勤しました");
     }
 }
 ```
+
+重要:
+- 一般ユーザー向け勤怠APIは、リクエストから `userId` を受け取らない。
+- 操作対象は `Principal` のログイン名から決める。これにより、利用者が別ユーザーIDを指定して他人の勤怠を操作することを防ぐ。
+- 管理者による代理操作が必要な場合は、`/api/admin/...` のような管理者専用APIとして別に設計する。
 
 ---
 
@@ -388,17 +384,21 @@ public class AttendanceApiController {
 ```java
 package com.shinesoft.attendance.web.api.advice;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.shinesoft.attendance.exception.BusinessException;
 import com.shinesoft.attendance.web.api.dto.ErrorResponse;
 
 @RestControllerAdvice(basePackages = "com.shinesoft.attendance.web.api")
 public class ApiExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -416,9 +416,16 @@ public class ApiExceptionHandler {
         return new ErrorResponse("VALIDATION_ERROR", message);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return new ErrorResponse("VALIDATION_ERROR", ex.getName() + ": 入力値が不正です");
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleUnknown(Exception ex) {
+        log.error("Unexpected API error", ex);
         return new ErrorResponse("INTERNAL_SERVER_ERROR", "予期しないエラーが発生しました");
     }
 }
@@ -426,30 +433,129 @@ public class ApiExceptionHandler {
 
 ---
 
-## 7. `SecurityConfig` を編集（API検証しやすくする）
+## 7. `SecurityConfig` を編集（API認証とJSONエラー応答）
 編集ファイル:
 - `~/order-management-springboot/stages/lesson08/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
 
 変更ポイント:
-1. `import org.springframework.security.config.Customizer;` を追加
-2. API権限を追加
-3. `/api/**` はCSRF対象外にする
-4. `httpBasic` を有効化（curl検証用）
+1. API権限を追加
+2. `/api/**` はCSRF対象外にする
+3. `httpBasic` を有効化（curl検証用）
+4. APIの401/403を `ErrorResponse` と同じJSON形式で返す
 
 ```java
-// 追加したい設定部分だけ抜粋
-.authorizeHttpRequests(auth -> auth
-    .requestMatchers("/login", "/styles.css").permitAll()
-    .requestMatchers("/h2-console/**").permitAll()
-    .requestMatchers("/api/users/**").hasRole("ADMIN")
-    .requestMatchers("/api/attendances/**").authenticated()
-    .requestMatchers("/users/**").hasRole("ADMIN")
-    .requestMatchers("/admin/**").hasRole("ADMIN")
-    .anyRequest().authenticated()
-)
-.httpBasic(Customizer.withDefaults())
-.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**", "/api/**"))
+package com.shinesoft.attendance.config;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shinesoft.attendance.repository.UserRepository;
+import com.shinesoft.attendance.web.api.dto.ErrorResponse;
+
+import jakarta.servlet.http.HttpServletResponse;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   ObjectMapper objectMapper) throws Exception {
+        RequestMatcher apiMatcher = request -> {
+            String apiPrefix = request.getContextPath() + "/api";
+            String requestUri = request.getRequestURI();
+            return apiPrefix.equals(requestUri) || requestUri.startsWith(apiPrefix + "/");
+        };
+
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/login", "/styles.css").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/api/users/**").hasRole("ADMIN")
+                .requestMatchers("/api/attendances/**").authenticated()
+                .requestMatchers("/users/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/", true)
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+            )
+            .httpBasic(Customizer.withDefaults())
+            .exceptionHandling(exceptions -> exceptions
+                .defaultAuthenticationEntryPointFor(
+                    (request, response, exception) -> writeApiError(
+                        response, objectMapper, HttpStatus.UNAUTHORIZED,
+                        "UNAUTHORIZED", "認証が必要です"),
+                    apiMatcher)
+                .defaultAuthenticationEntryPointFor(
+                    new LoginUrlAuthenticationEntryPoint("/login"),
+                    new NegatedRequestMatcher(apiMatcher))
+                .defaultAccessDeniedHandlerFor(
+                    (request, response, exception) -> writeApiError(
+                        response, objectMapper, HttpStatus.FORBIDDEN,
+                        "FORBIDDEN", "この操作を行う権限がありません"),
+                    apiMatcher)
+            )
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**", "/api/**"))
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+        return http.build();
+    }
+
+    private static void writeApiError(HttpServletResponse response,
+                                      ObjectMapper objectMapper,
+                                      HttpStatus status,
+                                      String code,
+                                      String message) throws IOException {
+        response.setStatus(status.value());
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getWriter(), new ErrorResponse(code, message));
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(UserRepository userRepository) {
+        return username -> {
+            var user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                    "User not found: " + username));
+            return org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPassword())
+                .roles(user.getRole().replace("ROLE_", ""))
+                .build();
+        };
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
 ```
+
+`@RestControllerAdvice` はControllerで発生した例外を処理します。認証前の401と認可失敗の403はSecurityフィルター内で発生するため、`AuthenticationEntryPoint` / `AccessDeniedHandler` 相当の設定が別途必要です。非APIの未認証アクセスは、従来どおり `/login` へリダイレクトします。
 
 ---
 
@@ -465,6 +571,9 @@ mvn clean spring-boot:run
 別ターミナルで実行:
 
 ```bash
+# 未認証でAPIへアクセス（失敗: 401 + JSON）
+curl -i http://localhost:8080/api/users
+
 # 管理者でユーザー一覧を取得（成功: 200）
 curl -i -u admin:admin123 http://localhost:8080/api/users
 
@@ -480,36 +589,114 @@ curl -i -u admin:admin123 -H "Content-Type: application/json" \
 curl -i -u admin:admin123 -H "Content-Type: application/json" \
   -d "{\"username\":\"user1\",\"password\":\"password123\",\"role\":\"ROLE_USER\"}" \
   http://localhost:8080/api/users
+
+# 一般ユーザー本人として出勤（成功: 200）
+# userIdは送らず、Basic認証のuser1が操作対象になる
+curl -i -u user1:password -X POST \
+  http://localhost:8080/api/attendances/clock-in
 ```
 
-期待結果:
+期待状態:
+- 未認証は `401` と `{"code":"UNAUTHORIZED",...}`
 - 権限不足は `403`
 - 入力不正は `400`
 - 業務ルール違反は `409`
-- すべてJSON形式でエラー応答が返る
+- APIのエラーはすべて `code` / `message` を持つJSON形式で返る
+- 勤怠APIの操作対象は、リクエスト値ではなく認証済みユーザー本人になる
 
 ---
 
-## 10. コード確認ポイント
+## 10. API認可の自動テスト（必須）
+
+[lesson8-testing.md](./lesson8-testing.md) の `ApiSecurityTest` を作成し、次を実行します。
+
+```bash
+mvn test
+```
+
+合格条件:
+- Lesson5から引き継いだ12件とAPIテスト5件の合計17件が成功する
+- 401/403のJSON形式と、勤怠操作がログイン本人へ記録されることを自動確認できる
+
+---
+
+## 11. APIコード解読演習（必須）
+
+### 11-1. コード確認ポイント
+
 1. `@Controller` と `@RestController` の戻り値の違い
 2. `@Valid` と DTO の責務（Controllerで検証）
 3. `BusinessException` を `409` に変換する流れ
 4. 画面系ルートとAPI系ルートのセキュリティ差分
+5. 勤怠APIが `userId` を受け取らず、認証ユーザーから本人性を確定する理由
+
+### 11-2. 正常系を追跡する
+
+「9. 動作確認」ですでに`user1`の出勤データを作成しています。起動中のアプリを`Ctrl + C`で停止し、再起動してインメモリH2を初期状態へ戻してください。
+
+```bash
+mvn spring-boot:run
+```
+
+次のリクエストを実行する前に、HTTPステータスとJSONを予想します。
+
+```bash
+curl -i -u user1:password -X POST \
+  http://localhost:8080/api/attendances/clock-in
+```
+
+次の表を、実際のソースコードを開きながら完成させてください。
+
+| 順番 | ファイル / メソッド | 確認する値・処理 | 次の呼び出しまたは結果 |
+| ---: | --- | --- | --- |
+| 1 | `SecurityConfig` | Basic認証と`/api/attendances/**`の認可 | 認証済みリクエスト |
+| 2 | `AttendanceApiController#clockIn` | `Principal#getName()` | ログインユーザー名 |
+| 3 | `UserService#getByUsername` | ユーザー名からDB検索 | `User`とそのID |
+| 4 | `AttendanceService#clockIn` | 同日データの有無と業務ルール | 保存対象`Attendance` |
+| 5 | `AttendanceRepository` | 同日検索と`save(...)` | 保存済み勤怠 |
+| 6 | `AttendanceService#clockIn` | `INFO`ログ | Controllerへ正常復帰 |
+| 7 | `AttendanceApiController#clockIn` | 戻り値の`Map` | `200`とJSON |
+
+実行後、予想と次の実測値を比較します。
+
+- HTTPステータス
+- レスポンスJSON
+- 起動ターミナルの`Clock in`ログ
+- H2コンソールの`attendances`レコード
+
+### 11-3. 例外系を追跡する
+
+同じcurlをもう一度実行し、二重出勤を発生させます。
+
+1. `AttendanceService#clockIn`のどの条件で`BusinessException`になるか特定する
+2. 例外が`AttendanceApiController`の通常の戻り値まで進まないことを確認する
+3. `ApiExceptionHandler#handleBusiness`が例外を`409`へ変換する箇所を探す
+4. `ErrorResponse`が`code` / `message`のJSONになる流れを説明する
+
+合格条件:
+- 正常系7段階を、入力値と戻り値を含めて順番に説明できる
+- `Controller -> Service -> Repository -> DB`の境界をソースコード上で示せる
+- 二重出勤時に`409`になるまでの例外伝播を説明できる
+- 認証エラーの`401`はControllerへ到達する前にSecurityフィルターで発生すると説明できる
 
 ---
 
-## 11. つまずきポイント
+## 12. つまずきポイント
 - `@RequestBody` を付け忘れて `400` になる
   -> APIのJSON受け取りには `@RequestBody` が必須
 - CSRF で `403` になる
   -> `/api/**` をCSRF除外しているか確認
 - `ROLE_` 接頭辞の不一致で認可失敗する
   -> DB値は `ROLE_ADMIN` / `ROLE_USER` で統一
+- 401/403だけHTMLまたは空本文になる
+  -> Securityフィルター用のJSONハンドラー設定を確認する
 
 ---
 
-## 12. 時間割目安
+## 13. 時間割目安
 - 0〜2: 15分
 - 3〜7: 70分
 - 8〜9: 20分
-- 10〜11: 15分
+- 10: 20分
+- 11: 30分
+- 12: 10分

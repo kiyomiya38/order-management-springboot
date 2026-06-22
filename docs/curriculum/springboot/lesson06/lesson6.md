@@ -1,7 +1,7 @@
 # Spring Boot 実サーバー移行演習（VirtualBox 2VM / NAT + Host-Only / MariaDB）
 
 ## 目的
-- ローカル開発中の `~/order-management-springboot/src` アプリを、実サーバー構成に近い形でデプロイする
+- Lesson9まで完了した `~/order-management-springboot/stages/lesson09` を、実サーバー構成に近い形でデプロイする
 - Appサーバー1台 + DBサーバー1台（計2台）で疎通し、画面利用できる状態を作る
 - 実行方式を `java -jar + systemd` に統一し、常駐運用の基本を体験する
 
@@ -62,7 +62,7 @@ flowchart LR
   SPRING_PROFILES_ACTIVE=prod
   DB_URL=jdbc:mariadb://10.0.2.12:3306/attendance
   DB_USER=attendance_app
-  DB_PASSWORD=ChangeMe_Strong_123!
+  DB_PASSWORD=<研修ごとに設定したDBパスワード>
   ```
 
 ### デプロイから画面表示まで（正常系の時系列）
@@ -80,7 +80,7 @@ sequenceDiagram
   DbVM->>DB: MariaDB導入 + DB/ユーザー作成
   AppVM->>AppVM: Java/Nginx/systemd導入
   AppVM->>AppVM: pom.xmlへMariaDBドライバ追加
-  AppVM->>AppVM: mvn clean package spring-boot:repackage
+  AppVM->>AppVM: mvn clean verify
   AppVM->>App: /opt/attendance/app.jar を配置
   AppVM->>AppVM: attendance.service + attendance.env 設定
   AppVM->>App: systemctl enable --now attendance
@@ -139,6 +139,73 @@ app-vm:
 db-vm:
 - アダプター1: NATネットワーク（`10.0.2.0/24`）
 
+### 1-4. Ubuntu側の固定IP設定
+
+最初に各VMのコンソールでインターフェース名を確認します。
+
+```bash
+ip -br link
+ip -br addr
+ip route
+ls /etc/netplan
+```
+
+以下の `enp0s3` / `enp0s8` は例です。実際に表示された名前へ置き換えてください。
+
+app-vmの `/etc/netplan/99-attendance.yaml`:
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp0s3:
+      dhcp4: false
+      addresses: [10.0.2.11/24]
+      routes:
+        - to: default
+          via: 10.0.2.1
+      nameservers:
+        addresses: [1.1.1.1, 8.8.8.8]
+    enp0s8:
+      dhcp4: false
+      addresses: [192.168.56.11/24]
+```
+
+db-vmの `/etc/netplan/99-attendance.yaml`:
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp0s3:
+      dhcp4: false
+      addresses: [10.0.2.12/24]
+      routes:
+        - to: default
+          via: 10.0.2.1
+      nameservers:
+        addresses: [1.1.1.1, 8.8.8.8]
+```
+
+各VMのコンソールで適用します。SSH接続中ではなく、VirtualBoxコンソールから実行してください。
+
+```bash
+sudo netplan generate
+sudo netplan try
+sudo netplan apply
+ip -br addr
+```
+
+相互疎通を確認します。
+
+```bash
+# app-vmから
+ping -c 3 10.0.2.12
+
+# ホストPCから
+ping 192.168.56.11
+```
+
 ---
 
 ## 2. 事前準備（ローカルPC側 / コード変更なし）
@@ -147,8 +214,8 @@ db-vm:
 ローカルのリポジトリは変更せず、そのまま app-vm へ転送します。
 
 ```bash
-cd ~/order-management-springboot
-tar --exclude='.git' --exclude='target' -czf /tmp/attendance-src.tar.gz .
+cd ~/order-management-springboot/stages/lesson09
+tar --exclude='.git' --exclude='target' --exclude='data' -czf /tmp/attendance-src.tar.gz .
 ls -lh /tmp/attendance-src.tar.gz
 ```
 
@@ -217,22 +284,23 @@ CREATE DATABASE attendance
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-CREATE USER 'attendance_app'@'10.0.2.%' IDENTIFIED BY 'ChangeMe_Strong_123!';
-GRANT ALL PRIVILEGES ON attendance.* TO 'attendance_app'@'10.0.2.%';
+CREATE USER 'attendance_app'@'10.0.2.11' IDENTIFIED BY '<研修ごとに設定したDBパスワード>';
+GRANT ALL PRIVILEGES ON attendance.* TO 'attendance_app'@'10.0.2.11';
 FLUSH PRIVILEGES;
 SQL
 ```
 
 ### 3-4. リモート接続許可（app-vmから）
-`/etc/mysql/mariadb.conf.d/50-server.cnf` の `bind-address` を変更:
+`/etc/mysql/mariadb.conf.d/50-server.cnf` の `bind-address` をDB用IPだけに変更:
 
 ```cnf
-bind-address = 0.0.0.0
+bind-address = 10.0.2.12
 ```
 
 反映:
 ```bash
 sudo systemctl restart mariadb
+sudo ufw allow from 10.0.2.11 to any port 3306 proto tcp
 ```
 
 ---
@@ -261,14 +329,14 @@ sudo tar -xzf /tmp/attendance-src.tar.gz -C /opt/attendance/src
 sudo chown -R attendance:attendance /opt/attendance/src
 ```
 
-### 4-4. app-vm上の `pom.xml` を編集（MariaDBドライバ追加）
-コピー済みソース内の `pom.xml` に MariaDB ドライバを追加します。
+### 4-4. app-vm上の `pom.xml` を確認（MariaDBドライバ）
+コピー済みソース内の `pom.xml` に MariaDB ドライバがあるか確認します。
 
 ```bash
 sudo -u attendance nano /opt/attendance/src/pom.xml
 ```
 
-`/opt/attendance/src/pom.xml` の `<dependencies>` に次を追加:
+次が無い場合だけ、`<dependencies>` に追加します。同じ依存を重複記載しません。
 
 ```xml
 <dependency>
@@ -282,7 +350,7 @@ sudo -u attendance nano /opt/attendance/src/pom.xml
 ```bash
 sudo -u attendance -H bash -lc '
 cd /opt/attendance/src
-mvn clean package spring-boot:repackage -DskipTests
+mvn clean verify
 cp target/attendance-management-0.0.1-SNAPSHOT.jar /opt/attendance/app.jar
 '
 ```
@@ -295,14 +363,20 @@ sudo tee /etc/attendance/attendance.env > /dev/null <<'ENV'
 SPRING_PROFILES_ACTIVE=prod
 APP_NAME=attendance-management
 SERVER_PORT=8080
+SERVER_ADDRESS=127.0.0.1
 
 DB_URL=jdbc:mariadb://10.0.2.12:3306/attendance?useUnicode=true&characterEncoding=utf8
 DB_USER=attendance_app
-DB_PASSWORD=ChangeMe_Strong_123!
+DB_PASSWORD=<3-3で設定したDBパスワード>
 DB_DRIVER=org.mariadb.jdbc.Driver
 
 SHOW_SQL=false
 LOG_LEVEL=INFO
+
+# 研修環境で初回ログイン用ユーザーを作る。実運用ではfalseにし、別の管理手順を使う。
+APP_SEED_ENABLED=true
+APP_SEED_ADMIN_PASSWORD=admin123
+APP_SEED_USER_PASSWORD=password
 ENV
 ```
 
@@ -361,7 +435,8 @@ tail -n 100 /var/log/attendance/app.log
 
 ```nginx
 server {
-    listen 80 default_server;
+    listen 127.0.0.1:80;
+    listen 192.168.56.11:80 default_server;
     server_name _;
 
     location / {
@@ -413,7 +488,7 @@ mysql -h 10.0.2.12 -u attendance_app -p attendance -e "SHOW TABLES;"
 journalctl -u attendance -n 200 --no-pager
 ```
 よくある原因:
-- `/opt/attendance/src/pom.xml` への MariaDBドライバ追加漏れ（`org.mariadb.jdbc.Driver`）
+- `/opt/attendance/src/pom.xml` の MariaDBドライバ不足（`org.mariadb.jdbc.Driver`）
 - `DB_URL` / `DB_USER` / `DB_PASSWORD` の誤り
 - DBサーバー側で 3306 未開放
 
@@ -429,14 +504,14 @@ sudo systemctl status nginx --no-pager
 
 ### 症状: `/opt/attendance/app.jarにメイン・マニフェスト属性がありません`
 原因:
-- 実行可能JARではなく通常JARを配置している（`spring-boot:repackage` 未実行）
+- 実行可能JARではなく通常JARを配置している（POMの `repackage` 実行設定漏れ）
 - `target/*.jar.original` を誤って `app.jar` に配置している
 
 対処:
 ```bash
 sudo -u attendance -H bash -lc '
 cd /opt/attendance/src
-mvn clean package spring-boot:repackage -DskipTests
+mvn clean verify
 cp target/attendance-management-0.0.1-SNAPSHOT.jar /opt/attendance/app.jar
 '
 ```

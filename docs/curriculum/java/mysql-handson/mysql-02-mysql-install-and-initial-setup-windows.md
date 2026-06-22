@@ -46,7 +46,7 @@ CREATE USER test_user@localhost IDENTIFIED BY 'test_pass';
 SELECT Host, User FROM mysql.user;
 ```
 
-期待結果:
+期待状態:
 - `test_user` が一覧に表示される
 
 ### Step 2: 学習用DBを作成
@@ -55,7 +55,7 @@ CREATE DATABASE test_db DEFAULT CHARACTER SET utf8;
 SHOW DATABASES;
 ```
 
-期待結果:
+期待状態:
 - `test_db` が一覧に表示される
 
 ### Step 3: 権限を付与して確認
@@ -64,7 +64,7 @@ GRANT ALL PRIVILEGES ON test_db.* TO test_user@localhost;
 SHOW GRANTS FOR test_user@localhost;
 ```
 
-期待結果:
+期待状態:
 - `test_db` への権限付与が確認できる
 
 ### Step 4: 認証プラグインを確認・必要なら変更

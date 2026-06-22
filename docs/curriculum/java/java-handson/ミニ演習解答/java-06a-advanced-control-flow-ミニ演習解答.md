@@ -33,10 +33,16 @@ do {
 
 ## レベル3（実務）解答
 ```java
+int[][] rows = {
+        {10, 20, 30},
+        {40, -1, 50},
+        {60, 70, 80}
+};
+
 outer:
 for (int row = 0; row < rows.length; row++) {
     for (int col = 0; col < rows[row].length; col++) {
-        if ("NG".equals(rows[row][col])) {
+        if (rows[row][col] < 0) {
             System.out.println("不正データ検出: row=" + row + ", col=" + col);
             break outer;
         }

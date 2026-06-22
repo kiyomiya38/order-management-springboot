@@ -1,7 +1,5 @@
 # Java-11A 補講: コンストラクタ連鎖（`this()` / デフォルトコンストラクタ）
 
-対応参考資料: `J2_02_コンストラクタ.pdf`
-
 ## 1. この資料のゴール
 - コンストラクタのオーバーロードを実装できる
 - `this()` で初期化処理を集約できる
@@ -27,6 +25,28 @@ javac -version
 2. `this(...)` は同一クラス内の別コンストラクタ呼び出し
 3. `this(...)` はコンストラクタの先頭に1回だけ書ける
 4. コンストラクタを1つも定義しないときだけ、引数なしコンストラクタが自動補完される
+
+### 全体構成図（コンストラクタ連鎖）
+```mermaid
+flowchart TD
+  A["引数なしで new"] --> B["引数なしコンストラクタ"]
+  B -->|初期値 UNKNOWN / 0 / 0 で委譲| D["引数3つのコンストラクタ"]
+
+  E["商品名だけで new"] --> F["引数1つのコンストラクタ"]
+  F -->|name と 0 / 0 で委譲| D
+
+  G["商品名と価格で new"] --> H["引数2つのコンストラクタ"]
+  H -->|name / price と 0 で委譲| D
+
+  I["商品名と価格と数量で new"] --> D
+
+  D --> SET["フィールドに代入"]
+```
+
+ポイント:
+- 複数の作り方を用意しても、最終的なフィールド代入は1か所に集約できる
+- 足りない値は `0` や `"UNKNOWN"` などの初期値で補って委譲する
+- `this(...)` は、同じクラスの別コンストラクタへ処理を渡す書き方
 
 ### 書式の基本
 
@@ -164,32 +184,58 @@ Mouse / 0
 Keyboard / 5000
 ```
 
-### Step 2: `this()` で初期化処理を集約する
+### Step 1.5: 重複代入のまま quantity を追加する
+Step 1 のコードをベースに、`quantity`（数量）を追加します。
+この時点では、まだ `this(...)` を使いません。
+
+確認したいこと:
+- フィールドが増えると、各コンストラクタに同じような代入が増える
+- `this.name = ...` / `this.price = ...` / `this.quantity = ...` が複数箇所に散らばる
+
 `ConstructorChainingDemo.java` を次の内容に更新:
 
 ```java
 class Product {
     String name;
     int price;
+    int quantity;
 
-    Product() {
-        this("UNKNOWN", 0); // もっとも詳細なコンストラクタへ委譲
+    Product() { // 引数なし
+        this.name = "UNKNOWN";
+        this.price = 0;
+        this.quantity = 0;
     }
 
-    Product(String name) {
-        this(name, 0); // 重複代入を避ける
+    Product(String name) { // 引数1つ
+        this.name = name;
+        this.price = 0;
+        this.quantity = 0;
     }
 
-    Product(String name, int price) {
+    Product(String name, int price) { // 引数2つ
         this.name = name;
         this.price = price;
+        this.quantity = 0;
+    }
+
+    Product(String name, int price, int quantity) { // 引数3つ
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
     }
 }
 
 public class ConstructorChainingDemo {
     public static void main(String[] args) {
-        Product p = new Product("Display");
-        System.out.println(p.name + " / " + p.price);
+        Product p1 = new Product();
+        Product p2 = new Product("Mouse");
+        Product p3 = new Product("Keyboard", 5000);
+        Product p4 = new Product("Display", 12000, 2);
+
+        System.out.println(p1.name + " / " + p1.price + " / " + p1.quantity);
+        System.out.println(p2.name + " / " + p2.price + " / " + p2.quantity);
+        System.out.println(p3.name + " / " + p3.price + " / " + p3.quantity);
+        System.out.println(p4.name + " / " + p4.price + " / " + p4.quantity);
     }
 }
 ```
@@ -202,8 +248,157 @@ java ConstructorChainingDemo
 
 期待出力例:
 ```text
-Display / 0
+UNKNOWN / 0 / 0
+Mouse / 0 / 0
+Keyboard / 5000 / 0
+Display / 12000 / 2
 ```
+
+確認:
+- `this.name = ...` は4か所にある
+- `this.price = ...` は4か所にある
+- `this.quantity = ...` は4か所にある
+- 今後、入力チェックや補正ルールを追加すると、修正箇所が散らばりやすい
+
+### Step 2: `this()` で初期化処理を集約する
+`ConstructorChainingDemo.java` を次の内容に更新:
+
+```java
+class Product {
+    String name;
+    int price;
+
+    Product() {
+        this("UNKNOWN", 0); // name と price の初期値を補い、引数2つのコンストラクタへ委譲
+    }
+
+    Product(String name) {
+        this(name, 0); // name は受け取り、price は 0 として引数2つのコンストラクタへ委譲
+    }
+
+    Product(String name, int price) {
+        this.name = name; // 最終的なフィールド代入はここに集約
+        this.price = price;
+    }
+}
+
+public class ConstructorChainingDemo {
+    public static void main(String[] args) {
+        Product p1 = new Product();
+        Product p2 = new Product("Mouse");
+        Product p3 = new Product("Keyboard", 5000);
+
+        System.out.println(p1.name + " / " + p1.price);
+        System.out.println(p2.name + " / " + p2.price);
+        System.out.println(p3.name + " / " + p3.price);
+    }
+}
+```
+
+実行:
+```bash
+javac -encoding UTF-8 ConstructorChainingDemo.java
+java ConstructorChainingDemo
+```
+
+期待出力例:
+```text
+UNKNOWN / 0
+Mouse / 0
+Keyboard / 5000
+```
+
+Step 1との違い:
+- Step 1 は、各コンストラクタがそれぞれ `this.name` / `this.price` に代入していた
+- Step 2 は、実際の代入を `Product(String name, int price)` に集約している
+- `Product()` と `Product(String name)` は、`this(...)` で `Product(String name, int price)` へ処理を渡している
+
+呼び出しの流れ:
+
+| 生成コード | 最初に呼ばれるコンストラクタ | `this(...)` の委譲先 | 最終的に代入する場所 |
+| --- | --- | --- | --- |
+| `new Product()` | `Product()` | `this("UNKNOWN", 0)` | `Product(String name, int price)` |
+| `new Product("Mouse")` | `Product(String name)` | `this(name, 0)` | `Product(String name, int price)` |
+| `new Product("Keyboard", 5000)` | `Product(String name, int price)` | なし | `Product(String name, int price)` |
+
+この形にしておくと、価格の補正や入力チェックを追加したい場合に、`Product(String name, int price)` だけを修正すればよくなります。
+
+### Step 2.5: `this()` 連鎖のまま quantity を追加する
+Step 2 のコードをベースに、同じく `quantity` を追加します。
+今度は、実際の代入処理を1つのコンストラクタに集約します。
+
+`ConstructorChainingDemo.java` を次の内容に更新:
+
+```java
+class Product {
+    String name;
+    int price;
+    int quantity;
+
+    Product() {
+        this("UNKNOWN", 0, 0); // name / price / quantity の初期値を補い、引数3つのコンストラクタへ委譲
+    }
+
+    Product(String name) {
+        this(name, 0, 0); // name は受け取り、price / quantity は 0 として委譲
+    }
+
+    Product(String name, int price) {
+        this(name, price, 0); // name / price は受け取り、quantity は 0 として委譲
+    }
+
+    Product(String name, int price, int quantity) {
+        this.name = name; // 最終的なフィールド代入はここに集約
+        this.price = price;
+        this.quantity = quantity;
+    }
+}
+
+public class ConstructorChainingDemo {
+    public static void main(String[] args) {
+        Product p1 = new Product();
+        Product p2 = new Product("Mouse");
+        Product p3 = new Product("Keyboard", 5000);
+        Product p4 = new Product("Display", 12000, 2);
+
+        System.out.println(p1.name + " / " + p1.price + " / " + p1.quantity);
+        System.out.println(p2.name + " / " + p2.price + " / " + p2.quantity);
+        System.out.println(p3.name + " / " + p3.price + " / " + p3.quantity);
+        System.out.println(p4.name + " / " + p4.price + " / " + p4.quantity);
+    }
+}
+```
+
+実行:
+```bash
+javac -encoding UTF-8 ConstructorChainingDemo.java
+java ConstructorChainingDemo
+```
+
+期待出力例:
+```text
+UNKNOWN / 0 / 0
+Mouse / 0 / 0
+Keyboard / 5000 / 0
+Display / 12000 / 2
+```
+
+Step 1.5との違い:
+- Step 1.5 は、各コンストラクタがそれぞれフィールドへ代入していた
+- Step 2.5 は、`Product(String name, int price, int quantity)` だけがフィールドへ代入している
+- 他のコンストラクタは、足りない値に初期値を入れて `this(...)` で委譲している
+
+比較:
+
+| 観点 | Step 1.5 | Step 2.5 |
+| --- | --- | --- |
+| `this.name = ...` を書く場所 | 4か所 | 1か所 |
+| `this.price = ...` を書く場所 | 4か所 | 1か所 |
+| `this.quantity = ...` を書く場所 | 4か所 | 1か所 |
+| 入力チェックを入れる場所 | 散らばりやすい | 1か所に集めやすい |
+
+`this(...)` を使う目的は、コンストラクタの数を減らすことではありません。
+複数の作り方を用意しつつ、実際の初期化処理を1か所に集めることです。
 
 ### Step 3: デフォルトコンストラクタの補完ルールを確認する（仕上げ）
 `ConstructorChainingDemo.java` を次の内容に更新:
@@ -255,11 +450,12 @@ constructor User in class User cannot be applied to given types
 
 ## 5. ミニ演習（10分）
 ### レベル1（基本）
-1. `Product(String name, int price, int quantity)` を追加し、他のコンストラクタから `this(...)` で委譲する。
+1. Step 2.5 の `Product(String name, int price, int quantity)` で、`quantity` が `0` 未満なら `0` に補正する。
+2. `new Product("Display", 12000, -3)` を追加して確認する。
 
 期待出力例:
 ```text
-Keyboard / 5000 / 2
+Display / 12000 / 0
 ```
 
 ### レベル2（拡張）
@@ -273,7 +469,7 @@ guest
 ### レベル3（実務）
 1. `this(...)` の前に代入文を書いてコンパイルエラーを確認する。
 
-期待結果:
+期待状態:
 - `call to this must be first statement in constructor` のようなエラーが表示される
 
 ---

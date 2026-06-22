@@ -16,8 +16,7 @@
     <java.version>17</java.version> <!-- Javaバージョン -->
     <maven.compiler.release>${java.version}</maven.compiler.release> <!-- Javaコンパイル対象バージョン -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- ソース文字コード -->
-    <spring.boot.version>3.2.6</spring.boot.version> <!-- Spring Boot基準バージョン -->
-    <junit.jupiter.version>5.10.2</junit.jupiter.version> <!-- JUnitバージョン -->
+    <spring.boot.version>3.5.15</spring.boot.version> <!-- Spring Boot基準バージョン -->
   </properties> <!-- propertiesセクション終了 -->
 
   <dependencyManagement> <!-- 依存バージョンの一括管理 -->
@@ -46,7 +45,7 @@
     <dependency> <!-- テスト依存 -->
       <groupId>org.junit.jupiter</groupId> <!-- JUnit 5 -->
       <artifactId>junit-jupiter</artifactId> <!-- テスト実行ライブラリ -->
-      <version>${junit.jupiter.version}</version> <!-- JUnitバージョン -->
+      <!-- versionはSpring Boot BOMに任せ、JUnit関連ライブラリの組み合わせを揃える -->
       <scope>test</scope> <!-- テスト時のみ利用 -->
     </dependency> <!-- テスト依存終了 -->
   </dependencies> <!-- dependenciesセクション終了 -->
@@ -72,6 +71,13 @@
         <groupId>org.springframework.boot</groupId> <!-- Spring Bootプラグイン -->
         <artifactId>spring-boot-maven-plugin</artifactId> <!-- spring-boot:run を提供 -->
         <version>${spring.boot.version}</version> <!-- Spring Bootバージョン -->
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin> <!-- spring-boot-maven-plugin終了 -->
     </plugins> <!-- pluginsセクション終了 -->
   </build> <!-- buildセクション終了 -->

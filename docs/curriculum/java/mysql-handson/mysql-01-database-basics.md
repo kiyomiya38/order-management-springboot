@@ -66,7 +66,7 @@ VALUES (1, 'Tanaka', 25);
 SELECT * FROM basics_users;
 ```
 
-期待結果:
+期待状態:
 - 1件表示される
 
 ### Step 3: 制約違反を確認（仕上げ）

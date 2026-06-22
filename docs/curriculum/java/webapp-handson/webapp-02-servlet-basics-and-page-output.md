@@ -113,8 +113,10 @@ Tomcat起動後にアクセス:
 http://localhost:8080/webapp_handson02/hello
 ```
 
-期待結果:
-- `doGetが実行されました。` が表示される
+期待表示例:
+```text
+doGetが実行されました。
+```
 
 ### Step 4: POSTの起動確認（仕上げ）
 `WebContent/hello-form.html` を作成:
@@ -156,4 +158,3 @@ http://localhost:8080/webapp_handson02/hello-form.html
   -> `servlet-class` のパッケージ名を含めて正しく記述する
 - `javax` / `jakarta` の不一致エラー
   -> Tomcatのバージョンに合わせてimportを揃える
-

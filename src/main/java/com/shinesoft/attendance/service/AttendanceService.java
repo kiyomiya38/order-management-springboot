@@ -34,7 +34,7 @@ public class AttendanceService {
     }
 
     public Attendance getAttendance(Long id) {
-        return attendanceRepository.findById(id)
+        return attendanceRepository.findWithUserById(id)
             .orElseThrow(() -> new BusinessException("勤怠が存在しません"));
     }
 
@@ -93,6 +93,10 @@ public class AttendanceService {
                                        LocalDateTime startTime,
                                        LocalDateTime endTime,
                                        AttendanceStatus status) {
+        if (userId == null || workDate == null || status == null) {
+            throw new BusinessException("ユーザー、勤務日、状態は必須です");
+        }
+
         Attendance attendance = attendanceRepository.findById(attendanceId)
             .orElseThrow(() -> new BusinessException("勤怠が存在しません"));
 
@@ -103,7 +107,7 @@ public class AttendanceService {
             throw new BusinessException("同じ日付の勤怠が既に存在します");
         }
 
-        validateStatusAndTimes(status, startTime, endTime);
+        validateStatusAndTimes(workDate, status, startTime, endTime);
 
         attendance.setUser(user);
         attendance.setWorkDate(workDate);
@@ -118,7 +122,8 @@ public class AttendanceService {
                 .orElseThrow(() -> new BusinessException("ユーザーが存在しません"));
     }
 
-    private void validateStatusAndTimes(AttendanceStatus status,
+    private void validateStatusAndTimes(LocalDate workDate,
+                                        AttendanceStatus status,
                                         LocalDateTime startTime,
                                         LocalDateTime endTime) {
         switch (status) {
@@ -131,10 +136,19 @@ public class AttendanceService {
                 if (startTime == null || endTime != null) {
                     throw new BusinessException("出勤中は開始時刻のみ必要です");
                 }
+                if (!startTime.toLocalDate().equals(workDate)) {
+                    throw new BusinessException("開始時刻の日付は勤務日と一致させてください");
+                }
             }
             case FINISHED -> {
                 if (startTime == null || endTime == null) {
                     throw new BusinessException("退勤済みは開始・終了時刻が必要です");
+                }
+                if (!startTime.toLocalDate().equals(workDate)) {
+                    throw new BusinessException("開始時刻の日付は勤務日と一致させてください");
+                }
+                if (endTime.isBefore(startTime)) {
+                    throw new BusinessException("終了時刻は開始時刻以降にしてください");
                 }
             }
             default -> {

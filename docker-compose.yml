@@ -3,10 +3,10 @@ services:
     image: mariadb:11.4
     container_name: db
     environment:
-      MARIADB_DATABASE: attendance
-      MARIADB_USER: attendance_app
-      MARIADB_PASSWORD: ChangeMe_Strong_123!
-      MARIADB_ROOT_PASSWORD: ChangeMe_Root_123!
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-attendance}
+      MARIADB_USER: ${MARIADB_USER:-attendance_app}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -32,11 +32,20 @@ services:
       LOG_LEVEL: INFO
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
-      DB_URL: jdbc:mariadb://db:3306/attendance?useUnicode=true&characterEncoding=utf8
-      DB_USER: attendance_app
-      DB_PASSWORD: ChangeMe_Strong_123!
+      SERVER_ADDRESS: 0.0.0.0
+      DB_URL: jdbc:mariadb://db:3306/${MARIADB_DATABASE:-attendance}?useUnicode=true&characterEncoding=utf8
+      DB_USER: ${MARIADB_USER:-attendance_app}
+      DB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
       DB_DRIVER: org.mariadb.jdbc.Driver
       SHOW_SQL: "false"
+      APP_SEED_ENABLED: "true"
+      APP_SEED_ADMIN_PASSWORD: ${APP_SEED_ADMIN_PASSWORD:?Set APP_SEED_ADMIN_PASSWORD in .env}
+      APP_SEED_USER_PASSWORD: ${APP_SEED_USER_PASSWORD:?Set APP_SEED_USER_PASSWORD in .env}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
 
 volumes:

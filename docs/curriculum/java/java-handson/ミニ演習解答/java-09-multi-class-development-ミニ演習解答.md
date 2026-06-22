@@ -40,6 +40,16 @@ System.out.println("2件合計: " + total);
 
 ---
 
+## レベル4（実務）解答
+- `java app.OrderApp` は失敗
+- `java -cp . app.OrderApp` も失敗
+- `java -cp out app.OrderApp` は成功
+
+`-cp out` は `out` フォルダをクラス探索の起点にする指定。
+今回の `.class` は `out/app/OrderApp.class` にあるため、`-cp out` が必要。
+
+---
+
 ## 実行前予想問題の解答
 必須行は `1` と `2`。  
 `import java.util.List;` はこの課題では不要。

@@ -4,7 +4,7 @@ WORKDIR /workspace
 COPY pom.xml ./
 COPY src ./src
 
-RUN mvn -B -DskipTests clean package spring-boot:repackage
+RUN mvn -B clean verify
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
@@ -12,5 +12,5 @@ WORKDIR /app
 COPY --from=build /workspace/target/attendance-management-0.0.1-SNAPSHOT.jar ./app.jar
 
 EXPOSE 8080
-ENV JAVA_OPTS=""
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+USER 10001
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

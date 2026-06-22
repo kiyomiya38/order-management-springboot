@@ -1,6 +1,5 @@
 ﻿# Java-06 ハンズオン: 条件分岐と繰り返し
 
-対応参考資料: `Java-06_条件分岐と繰り返し.pptx`
 補講（任意）: [Java-06A switch / do-while / ラベル付き制御](./java-06a-advanced-control-flow.md)
 
 ## 1. この資料のゴール
@@ -27,6 +26,27 @@ javac -version
 1. 条件分岐は「どの処理を実行するか」を決める
 2. ループは「同じ処理を繰り返す」
 3. `break` はループ終了、`continue` は次の周回へ進む
+
+### 全体構成図（条件分岐と繰り返し）
+```mermaid
+flowchart TD
+  START["処理開始"] --> COND{"if: 条件を判定"}
+  COND -->|true| TRUE["条件に合う処理"]
+  COND -->|false / else| ELSE["それ以外の処理"]
+
+  TRUE --> LOOP{"for / while: 繰り返す条件"}
+  ELSE --> LOOP
+  LOOP -->|true| BODY["繰り返し処理"]
+  BODY --> LOOP
+  BODY -.->|continue| LOOP
+  BODY -.->|break| END["処理終了"]
+  LOOP -->|false| END
+```
+
+ポイント:
+- `if` は条件によって進む処理を選ぶ
+- `for` / `while` は条件が成り立つ間、同じ処理へ戻る
+- `continue` は次の周回へ戻り、`break` はループの外へ出る
 
 ### 書式の基本
 
@@ -350,6 +370,5 @@ java ControlFlowDemo
   -> `while` の更新処理（`i++` など）を確認
 - `break` と `continue` を混同
   -> `break` は終了、`continue` はスキップ
-
 
 

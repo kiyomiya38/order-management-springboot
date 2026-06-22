@@ -112,9 +112,13 @@ public class TransactionDemo {
 ### Step 2: 実行して commit を確認
 JDBC-06 と同様に classpath 指定で実行する。
 
-期待結果:
+期待状態:
 - member1 は -20、member2 は +20
-- `commit完了` が表示される
+
+期待出力例:
+```text
+commit完了
+```
 
 ### Step 3: rollback を確認（仕上げ）
 `transferPoint` 内で意図的に例外を投げ、ポイントが元に戻ることを確認する。

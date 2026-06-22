@@ -1,4 +1,4 @@
-# Java-20B 補講: Web API前準備（HttpServer + POST + MessageStore）
+﻿# Java-20B 補講: Web API前準備（HttpServer + POST + MessageStore）
 
 対応参考資料: Lesson0前補講
 
@@ -265,7 +265,7 @@ javac -encoding UTF-8 WebApiPrepDemo.java
 java WebApiPrepDemo
 ```
 
-期待出力:
+期待出力例:
 ```text
 started: http://localhost:8091
 ```
@@ -281,9 +281,12 @@ started: http://localhost:8091
 curl -i http://localhost:8091/api/health
 ```
 
-期待結果:
-- `HTTP/1.1 200 OK`
-- `{"status":"OK","message":"ready"}`
+期待レスポンス例:
+```text
+HTTP/1.1 200 OK
+
+{"status":"OK","message":"ready"}
+```
 
 #### `201 Created`: メッセージ登録
 ```bash
@@ -292,18 +295,24 @@ curl -i -X POST http://localhost:8091/api/messages \
   -d '{"name":"Taro"}'
 ```
 
-期待結果:
-- `HTTP/1.1 201 Created`
-- `Hello, Taro` を含むJSONが返る
+期待レスポンス例:
+```text
+HTTP/1.1 201 Created
+
+{"id":1,"name":"Taro","message":"Hello, Taro"}
+```
 
 #### `200 OK`: 一覧取得
 ```bash
 curl -i http://localhost:8091/api/messages
 ```
 
-期待結果:
-- `HTTP/1.1 200 OK`
-- 登録済みメッセージの配列JSONが返る
+期待レスポンス例:
+```text
+HTTP/1.1 200 OK
+
+[{"id":1,"name":"Taro","text":"Hello, Taro"}]
+```
 
 #### `400 Bad Request`: 入力不正
 ```bash
@@ -312,27 +321,36 @@ curl -i -X POST http://localhost:8091/api/messages \
   -d '{"name":""}'
 ```
 
-期待結果:
-- `HTTP/1.1 400 Bad Request`
-- `{"error":"name is required"}`
+期待レスポンス例:
+```text
+HTTP/1.1 400 Bad Request
+
+{"error":"name is required"}
+```
 
 #### `404 Not Found`: 存在しないURL
 ```bash
 curl -i http://localhost:8091/api/unknown
 ```
 
-期待結果:
-- `HTTP/1.1 404 Not Found`
-- `{"error":"Not Found"}`
+期待レスポンス例:
+```text
+HTTP/1.1 404 Not Found
+
+{"error":"Not Found"}
+```
 
 #### `405 Method Not Allowed`: 許可されていないメソッド
 ```bash
 curl -i -X PUT http://localhost:8091/api/messages
 ```
 
-期待結果:
-- `HTTP/1.1 405 Method Not Allowed`
-- `{"error":"Method Not Allowed"}`
+期待レスポンス例:
+```text
+HTTP/1.1 405 Method Not Allowed
+
+{"error":"Method Not Allowed"}
+```
 
 ---
 
@@ -340,14 +358,14 @@ curl -i -X PUT http://localhost:8091/api/messages
 ### レベル1（基本）
 1. `/api/health` に `POST` でアクセスし、`405 Method Not Allowed` になることを確認する。
 
-期待結果:
+期待状態:
 - URLは存在するが、`POST` は許可されていないと説明できる
 
 ### レベル2（拡張）
 1. `static/index.html` のファイル名を一時的に変更し、トップページ `/` が `404 Not Found` になることを確認する。
 2. 確認後はファイル名を元に戻す。
 
-期待結果:
+期待状態:
 - `Files.exists(...)` が `false` になると `404` を返す、と説明できる
 
 ### レベル3（実務）

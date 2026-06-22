@@ -1,7 +1,5 @@
 ﻿# Java-08 ハンズオン: メソッド
 
-対応参考資料: `Java-08_メソッド.pptx`
-
 ## 1. この資料のゴール
 - メソッドの定義と呼び出しを理解する
 - 引数と戻り値を使って再利用可能な処理を作れる
@@ -26,6 +24,19 @@ javac -version
 1. メソッドは「処理の部品」
 2. 引数は入力、戻り値は出力
 3. 同名メソッドでも引数が違えば共存できる（オーバーロード）
+
+### 全体構成図（メソッド呼び出し）
+```mermaid
+flowchart TB
+  MAIN["main メソッド"] -->|引数を渡す| METHOD["計算メソッド"]
+  METHOD -->|return で戻り値を返す| RESULT["main で戻り値を受け取る"]
+  RESULT --> PRINT["戻り値を表示"]
+```
+
+ポイント:
+- 呼び出し側は、必要な値を引数として渡す
+- メソッド側は、処理結果を `return` で呼び出し元へ返す
+- オーバーロードでは、呼び出し時の引数に合うメソッドが選ばれる
 
 ### 書式の基本
 
@@ -62,6 +73,18 @@ int total = calcTotal(3, 1200);
 - 呼び出し側では戻り値を変数に代入できる
 
 #### オーバーロード
+
+```mermaid
+flowchart TB
+  CALL2["calcTotal(3, 1200)"]
+  CALL3["calcTotal(3, 1200, 800)"]
+
+  CALL2 -->|引数2つに一致| METHOD2["calcTotal(int quantity,<br/>int unitPrice)"]
+  CALL3 -->|引数3つに一致| METHOD3["calcTotal(int quantity,<br/>int unitPrice,<br/>int shippingFee)"]
+
+  METHOD2 --> RESULT2["送料なしの計算結果"]
+  METHOD3 --> RESULT3["送料込みの計算結果"]
+```
 
 ```java
 static int calcTotal(int quantity, int unitPrice) {
@@ -282,6 +305,5 @@ quantity=-2 -> 0
   -> 宣言型を見直す
 - 引数順序のミス
   -> 呼び出し側の順番をコメントで明示
-
 
 

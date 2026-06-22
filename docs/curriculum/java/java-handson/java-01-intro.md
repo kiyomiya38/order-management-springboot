@@ -1,6 +1,5 @@
 ﻿# Java-01 ハンズオン: Javaをはじめよう（実務視点）
 
-対応参考資料: `Java-01_Javaをはじめよう.pptx`
 前提バージョン: JDK 17（17.x）
 
 ## 1. この資料のゴール
@@ -38,15 +37,48 @@ javac -version
 - この研修では、Javaで業務ロジック（出勤/退勤ルール）を実装する
 
 #### JDK / JRE / JVM の違い（初心者向け）
+
+```mermaid
+flowchart LR
+  SOURCE["ソースコード<br/>Hello.java"]
+  CLASS["バイトコード<br/>Hello.class"]
+  RESULT["プログラムの実行結果"]
+
+  subgraph JDK["JDK：Javaを開発・実行するための一式"]
+    JAVAC["javac<br/>.javaを.classへ変換"]
+
+    subgraph JRE["JRE相当：Javaを実行するための部分"]
+      JAVA["javaコマンド<br/>JVMを起動"]
+      API["標準ライブラリ<br/>String・Listなど"]
+      JVM["JVM<br/>.classを読み込んで実行"]
+    end
+  end
+
+  SOURCE -->|1. コンパイル| JAVAC
+  JAVAC --> CLASS
+  CLASS -->|2. java Hello| JAVA
+  JAVA --> JVM
+  API -.->|実行を支える| JVM
+  JVM -->|3. 実行| RESULT
+```
+
+図の読み方:
+
+1. **JDK**に含まれる`javac`が、`.java`を`.class`へコンパイルする
+2. 実行時は、**JVM**が`.class`を読み込み、標準ライブラリを利用しながら動かす
+3. **JRE**は「JVMと標準ライブラリをまとめた実行環境」を表す名前
+4. この研修ではJDK 17を導入するため、コンパイルと実行の両方ができる
+
 | 用語 | 役割 | 含まれるもの | この研修での見え方 |
 |---|---|---|---|
 | JVM | Javaプログラムを実行する本体（仮想マシン） | `.class` を実行する実行エンジン | `java Hello` 実行時に裏で動く |
-| JRE | Javaを「実行するため」の一式 | JVM + 標準ライブラリ | 実行だけならこれで可能（開発には不足） |
-| JDK | Javaを「開発するため」の一式 | JRE + `javac` などの開発ツール | この研修で必須。`javac` と `java` を使う |
+| JRE | Javaを「実行するため」の一式 | JVM + 標準ライブラリ | 実行環境を表す概念として理解する |
+| JDK | Javaを「開発・実行するため」の一式 | JRE相当の実行環境 + `javac` などの開発ツール | この研修で必須。`javac` と `java` を使う |
 
 補足:
 - `javac` が使えるのは JDK を入れているから
-- 研修では「JDKを導入すれば、実行（JRE/JVM）もコンパイルもできる」と覚えればOK
+- JDK 17では、JREを別にインストールせず、JDKだけで開発と実行を行うのが基本
+- 研修では「JDKを導入すれば、JVMでの実行もコンパイルもできる」と覚えればOK
 
 #### Javaの基本構文
 ```java

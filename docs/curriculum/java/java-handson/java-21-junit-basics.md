@@ -216,9 +216,11 @@ cd ~/order-management-springboot/practice/java/handson21
 mvn test
 ```
 
-期待結果:
-- `BUILD SUCCESS`
-- `Tests run: 3, Failures: 0, Errors: 0`
+期待出力例:
+```text
+BUILD SUCCESS
+Tests run: 3, Failures: 0, Errors: 0
+```
 
 ### Step 5: 1本追加して確認（仕上げ）
 `TaxCalculatorTest.java` に以下を追加:
@@ -235,8 +237,10 @@ void calcWithTax_negativeRate_throwsException() { // 異常系: 負数税率
 mvn test
 ```
 
-期待結果:
-- `Tests run: 4, Failures: 0, Errors: 0`
+期待出力例:
+```text
+Tests run: 4, Failures: 0, Errors: 0
+```
 
 ---
 

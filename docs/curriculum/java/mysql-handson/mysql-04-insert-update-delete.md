@@ -74,7 +74,7 @@ FROM sample_4_1
 WHERE id = 6;
 ```
 
-期待結果:
+期待状態:
 - 最後の `SELECT` は 0 件
 
 ---

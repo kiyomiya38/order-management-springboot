@@ -28,6 +28,27 @@ javac -version
 3. 同名メソッドを子で再定義するのがオーバーライド
 4. `@Override` は「親メソッドを上書きしている」ことを明示するアノテーション（推奨）
 
+### 全体構成図（親クラスと子クラス）
+```mermaid
+flowchart TD
+  EMP["Employee: 親クラス"] -->|extends| MGR["Manager: 子クラス"]
+  EMP --> NAME["name フィールド"]
+  EMP --> PRINT["printName メソッド"]
+  EMP --> ROLE1["roleLabel: 社員"]
+
+  MGR --> TEAM["teamName フィールド"]
+  MGR --> ROLE2["roleLabel: 管理者"]
+  ROLE2 -.->|オーバーライド| ROLE1
+
+  OBJ["Manager のインスタンス"] --> MGR
+  OBJ -->|親の機能も使える| PRINT
+```
+
+ポイント:
+- 共通のフィールドやメソッドは親クラスに置く
+- 子クラスは親クラスの機能を使える
+- 子クラス側で同名メソッドを定義すると、親の動作を上書きできる
+
 ### 書式の基本
 
 #### `extends` による継承
@@ -251,7 +272,7 @@ java InheritanceDemo
 
 3. 次に、同じ `roleLable` のまま `@Override` を付け直して再コンパイルする。
 
-期待結果:
+期待状態:
 - 環境に応じて次のいずれかのコンパイルエラーになる
 - 英語環境: `method does not override or implement a method from a supertype`
 - 日本語環境: `メソッドはスーパータイプのメソッドをオーバーライドまたは実装しません`

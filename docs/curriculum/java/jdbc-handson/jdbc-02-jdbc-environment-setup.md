@@ -78,8 +78,10 @@ mac/linux:
 java -cp ".:lib/mysql-connector-j-8.x.x.jar" DriverLoadCheck
 ```
 
-期待結果:
-- `Driver loaded`
+期待出力例:
+```text
+Driver loaded
+```
 
 ---
 

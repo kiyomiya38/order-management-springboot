@@ -800,7 +800,7 @@ public class ManualLibDemo {
 javac -encoding UTF-8 ManualLibDemo.java
 ```
 
-期待結果:
+期待状態:
 - `package com.shinesoft.util does not exist` などのエラーが出る
 
 #### Step 3: クラスパスを指定して成功させる

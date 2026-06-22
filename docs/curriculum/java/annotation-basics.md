@@ -1,4 +1,4 @@
-# Java アノテーション基礎ガイド
+﻿# Java アノテーション基礎ガイド
 
 ## 1. この資料の目的
 対象:
@@ -90,7 +90,7 @@ javac -encoding UTF-8 OverrideDemo.java
 java OverrideDemo
 ```
 
-期待出力:
+期待出力例:
 ```text
 Hello, Shinesoft
 ```
@@ -236,7 +236,7 @@ javac -encoding UTF-8 AnnotationBasicsMiniDemo.java
 java AnnotationBasicsMiniDemo
 ```
 
-期待出力:
+期待出力例:
 ```text
 Audit value: create-order
 ```

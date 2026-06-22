@@ -51,7 +51,7 @@ SELECT b.home_id, b.home_name, a.name
  ORDER BY b.home_id;
 ```
 
-期待結果:
+期待状態:
 - `pet_id` が `NULL` の家庭は出力されない
 
 ### Step 2: 外部結合（RIGHT OUTER JOIN）

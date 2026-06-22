@@ -1,5 +1,49 @@
 # Lesson0 ミニ制作: 家計簿Lite（コンソール）
 
+## 0. 環境セットアップ
+この研修では、Windows上の Git Bash でコマンドを実行し、VS Codeでファイルを編集します。開始前に次のコマンドがすべて成功することを確認してください。
+
+```bash
+java -version
+javac -version
+mvn -version
+git --version
+```
+
+必須条件:
+- Java / `javac`: 17
+- Maven: 3.9以上
+- Git Bashから `java`, `javac`, `mvn`, `git` を実行できる
+- VS Codeでこのリポジトリを開ける
+
+確認ポイント:
+- `mvn -version` に表示されるJavaが17である
+- 作業場所がこのリポジトリである
+
+```bash
+cd ~/order-management-springboot
+pwd
+ls
+```
+
+コマンドが見つからない場合は、推測でインストールをやり直す前に配置を確認します。
+
+```bash
+echo "$JAVA_HOME"
+which java
+which javac
+which mvn
+which git
+```
+
+- Javaのバージョンが違う場合: `JAVA_HOME` と `PATH` がJava 17を指しているか確認する
+- Mavenだけ見つからない場合: Mavenの `bin` が `PATH` に含まれているか確認する
+- `~/order-management-springboot` が存在しない場合: 講師から指定された配置先を確認する
+
+解消できない場合は、上記コマンドの出力を講師へ提示します。環境確認が通るまではLesson1へ進みません。
+
+---
+
 ## 1. 目的
 `lesson0.md` で学んだ範囲だけで、動くコンソールアプリを作る。
 
@@ -7,13 +51,14 @@
 - `if/else`
 - `for`
 - `List` / `Map`
+- カプセル化 / `enum`
 
 画面（GUI）やDBは使わない。
 
 ## 1.5 Lesson0で作るもの（コンソール）
 - アプリ入口: `LedgerApp`（`main`）
 - 処理: `LedgerService`（登録 / 一覧 / 集計 / 予算チェック）
-- データ: `LedgerEntry`（`type` / `category` / `amount` / `memo`）
+- データ: `LedgerEntry`（`type` / `category` / `amount` / `memo`）と `LedgerType`
 - 動作: サンプル登録 -> バリデーション確認 -> 一覧表示 -> 集計表示 -> 予算チェック
 
 ### 全体構成図（ファイルと役割）
@@ -24,7 +69,7 @@ flowchart LR
   subgraph APP[Lesson0の主な構成]
     MAIN[LedgerApp main]
     SERVICE[LedgerService]
-    ENTRY[LedgerEntry]
+    ENTRY[LedgerEntry / LedgerType]
     LIST[entries List]
     MAP[categoryTotals Map]
   end
@@ -102,28 +147,57 @@ cd practice/lesson00/java/lesson0-console-ledger
 
 ---
 
-## 3. ファイル1: `LedgerEntry.java`
+## 3. ファイル1: `LedgerType.java`
+
+```java
+public enum LedgerType {
+    INCOME,
+    EXPENSE
+}
+```
+
+文字列のまま種別を保持せず、取り得る値を `enum` で制限します。
+
+---
+
+## 4. ファイル2: `LedgerEntry.java`
 `LedgerEntry.java` を作成:
 
 ```java
 public class LedgerEntry {
-    String type;      // INCOME or EXPENSE
-    String category;  // 例: 給料, 食費
-    int amount;       // 金額
-    String memo;      // メモ
+    private final LedgerType type;
+    private final String category;
+    private final int amount;
+    private final String memo;
 
-    LedgerEntry(String type, String category, int amount, String memo) {
+    LedgerEntry(LedgerType type, String category, int amount, String memo) {
         this.type = type;
         this.category = category;
         this.amount = amount;
         this.memo = memo;
+    }
+
+    LedgerType getType() {
+        return type;
+    }
+
+    String getCategory() {
+        return category;
+    }
+
+    int getAmount() {
+        return amount;
+    }
+
+    String getMemo() {
+        return memo;
     }
 }
 ```
 
 ---
 
-## 4. ファイル2: `LedgerService.java`
+## 5. ファイル3: `LedgerService.java`
 `LedgerService.java` を作成:
 
 ```java
@@ -133,10 +207,13 @@ import java.util.List;
 import java.util.Map;
 
 public class LedgerService {
-    List<LedgerEntry> entries = new ArrayList<>();
+    private final List<LedgerEntry> entries = new ArrayList<>();
 
-    void addEntry(String type, String category, int amount, String memo) {
-        if (!"INCOME".equals(type) && !"EXPENSE".equals(type)) {
+    void addEntry(String typeText, String category, int amount, String memo) {
+        LedgerType type;
+        try {
+            type = LedgerType.valueOf(typeText);
+        } catch (IllegalArgumentException | NullPointerException e) {
             System.out.println("[ERROR] 種別は INCOME または EXPENSE を指定してください");
             return;
         }
@@ -166,13 +243,13 @@ public class LedgerService {
         int index = 1;
         for (LedgerEntry entry : entries) {
             System.out.println(index + ". "
-                    + entry.type
+                    + entry.getType()
                     + " | "
-                    + entry.category
+                    + entry.getCategory()
                     + " | "
-                    + entry.amount
+                    + entry.getAmount()
                     + "円 | "
-                    + entry.memo);
+                    + entry.getMemo());
             index++;
         }
     }
@@ -183,15 +260,15 @@ public class LedgerService {
         Map<String, Integer> categoryTotals = new HashMap<>();
 
         for (LedgerEntry entry : entries) {
-            if ("INCOME".equals(entry.type)) {
-                incomeTotal += entry.amount;
+            if (entry.getType() == LedgerType.INCOME) {
+                incomeTotal += entry.getAmount();
             } else {
-                expenseTotal += entry.amount;
+                expenseTotal += entry.getAmount();
             }
 
-            String key = entry.type + ":" + entry.category;
+            String key = entry.getType() + ":" + entry.getCategory();
             int current = categoryTotals.getOrDefault(key, 0);
-            categoryTotals.put(key, current + entry.amount);
+            categoryTotals.put(key, current + entry.getAmount());
         }
 
         int balance = incomeTotal - expenseTotal;
@@ -210,8 +287,8 @@ public class LedgerService {
     void printBudgetAdvice(int budgetLimit) {
         int expenseTotal = 0;
         for (LedgerEntry entry : entries) {
-            if ("EXPENSE".equals(entry.type)) {
-                expenseTotal += entry.amount;
+            if (entry.getType() == LedgerType.EXPENSE) {
+                expenseTotal += entry.getAmount();
             }
         }
 
@@ -239,7 +316,7 @@ public class LedgerService {
 
 ---
 
-## 5. ファイル3: `LedgerApp.java`
+## 6. ファイル4: `LedgerApp.java`
 `LedgerApp.java` を作成:
 
 ```java
@@ -271,25 +348,26 @@ public class LedgerApp {
 
 ---
 
-## 6. コンパイルと実行
+## 7. コンパイルと実行
 ```bash
 cd ~/order-management-springboot/practice/lesson00/java/lesson0-console-ledger
-javac -encoding UTF-8 LedgerEntry.java LedgerService.java LedgerApp.java
+javac -encoding UTF-8 LedgerType.java LedgerEntry.java LedgerService.java LedgerApp.java
 java LedgerApp
 ```
 
 ---
 
-## 7. 完了条件
+## 8. 完了条件
 - 登録メッセージ `[OK]` が表示される
 - 不正データで `[ERROR]` が表示される
 - 取引一覧が表示される
 - `収入合計` `支出合計` `収支` が表示される
 - 予算チェックが表示される
+- `LedgerEntry` のフィールドが `private final` で、種別が `LedgerType` になっている
 
 ---
 
-## 8. 1分拡張（任意）
+## 9. 1分拡張（任意）
 1. `service.printBudgetAdvice(30000);` に変えて警告表示を確認  
 2. `service.addEntry("EXPENSE", "通信費", 7000, "スマホ");` を追加  
 3. `カテゴリ別` の出力が増えることを確認

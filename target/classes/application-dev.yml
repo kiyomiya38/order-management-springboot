@@ -9,3 +9,9 @@ spring:
 logging:
   level:
     root: ${LOG_LEVEL:INFO}
+
+app:
+  seed:
+    enabled: true
+    admin-password: ${APP_SEED_ADMIN_PASSWORD:admin123}
+    user-password: ${APP_SEED_USER_PASSWORD:password}

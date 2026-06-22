@@ -64,8 +64,7 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
     <java.version>17</java.version> <!-- Javaバージョン -->
     <maven.compiler.release>${java.version}</maven.compiler.release> <!-- Java 17でコンパイル -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- ソース文字コード -->
-    <spring.boot.version>3.2.6</spring.boot.version> <!-- Spring Boot基準バージョン -->
-    <junit.jupiter.version>5.10.2</junit.jupiter.version> <!-- JUnitバージョン -->
+    <spring.boot.version>3.5.15</spring.boot.version> <!-- Spring Boot基準バージョン -->
   </properties> <!-- propertiesセクション終了 -->
 
   <dependencyManagement> <!-- 依存バージョンを一括管理する領域 -->
@@ -89,7 +88,7 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
     <dependency> <!-- テスト実行用の依存 -->
       <groupId>org.junit.jupiter</groupId> <!-- JUnit 5系ライブラリのグループ -->
       <artifactId>junit-jupiter</artifactId> <!-- 単体テスト用 -->
-      <version>${junit.jupiter.version}</version> <!-- JUnitバージョン -->
+      <!-- versionはSpring Boot BOMに任せ、JUnit関連ライブラリの組み合わせを揃える -->
       <scope>test</scope> <!-- テスト実行時のみ有効 -->
     </dependency> <!-- テスト依存の終了 -->
   </dependencies> <!-- dependenciesセクション終了 -->
@@ -115,6 +114,13 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
         <groupId>org.springframework.boot</groupId> <!-- Spring Boot系プラグイングループ -->
         <artifactId>spring-boot-maven-plugin</artifactId> <!-- spring-boot:run などを提供 -->
         <version>${spring.boot.version}</version> <!-- mvn spring-boot:run を使うために必要 -->
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal> <!-- mvn packageで実行可能Jarを作る -->
+            </goals>
+          </execution>
+        </executions>
       </plugin> <!-- spring-boot-maven-pluginの終了 -->
     </plugins> <!-- pluginsセクション終了 -->
   </build> <!-- buildセクション終了 -->

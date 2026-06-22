@@ -1,7 +1,5 @@
 ﻿# Java-11 ハンズオン: さまざまなクラス機構（constructor / this / static）
 
-対応参考資料: `Java-11_さまざまなクラス機構.pptx`
-
 ## 1. この資料のゴール
 - コンストラクタの役割を説明できる
 - `this` と `static` の違いを理解できる
@@ -26,6 +24,25 @@ javac -version
 1. コンストラクタは `new` 時に呼ばれる初期化処理
 2. `this` はインスタンス自身、`static` はクラス全体共有
 3. `static` メソッドはインスタンスなしで呼べる
+
+### 全体構成図（constructor / this / static）
+```mermaid
+flowchart TD
+  NEW["new Product"] --> CTOR["コンストラクタ"]
+  CTOR --> OBJ["Product インスタンス"]
+  OBJ --> FIELD["name や price はインスタンスごと"]
+  CTOR --> COUNT["生成数を増やす"]
+  COUNT --> STATIC["createdCount はクラスで共有"]
+
+  THIS["this"] --> FIELD
+  UTIL["PriceUtil クラス"] --> SMETHOD["static メソッド"]
+  SMETHOD -->|インスタンスなしで呼べる| MAIN["main から利用"]
+```
+
+ポイント:
+- `new` するとコンストラクタが呼ばれ、インスタンスの初期値を設定する
+- `this` は「いま作っている、または操作しているインスタンス」を指す
+- `static` は個別インスタンスではなく、クラス側に1つある共有領域として考える
 
 ### 書式の基本
 
@@ -154,8 +171,8 @@ class Product { // 商品クラス
 
 public class ClassMechanismDemo { // 実行クラス
     public static void main(String[] args) {
-        new Product("Laptop", 120000); // 1件目生成
-        new Product("Mouse", 2500); // 2件目生成
+        new Product("Laptop", 120000); // 1件目生成。変数に入れていないが、new によりコンストラクタが呼ばれ createdCount が増える
+        new Product("Mouse", 2500); // 2件目生成。この例では生成数だけ確認したいため、Product p のような変数には代入しない
 
         System.out.println("生成数: " + Product.createdCount); // クラス名経由で static フィールドを参照
     } // main メソッドの終わり

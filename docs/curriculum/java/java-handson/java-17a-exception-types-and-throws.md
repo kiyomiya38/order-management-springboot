@@ -70,8 +70,10 @@ javac -encoding UTF-8 ExceptionTypesDemo.java
 java ExceptionTypesDemo
 ```
 
-期待結果:
-- `checked例外を捕捉: ClassNotFoundException` が表示される
+期待出力例:
+```text
+checked例外を捕捉: ClassNotFoundException
+```
 
 ### Step 2: unchecked例外（`NumberFormatException`）を扱う
 `ExceptionTypesDemo.java` を次の内容に更新:
@@ -99,8 +101,10 @@ javac -encoding UTF-8 ExceptionTypesDemo.java
 java ExceptionTypesDemo
 ```
 
-期待結果:
-- `unchecked例外を捕捉: NumberFormatException` が表示される
+期待出力例:
+```text
+unchecked例外を捕捉: NumberFormatException
+```
 
 ### Step 3: `throws` で上位へ伝播する設計を確認（仕上げ）
 `ExceptionTypesDemo.java` を次の内容に更新:
@@ -144,9 +148,11 @@ javac -encoding UTF-8 ExceptionTypesDemo.java
 java ExceptionTypesDemo
 ```
 
-期待結果:
-- `mode=PROD`
-- `n=3`
+期待出力例:
+```text
+mode=PROD
+n=3
+```
 
 ---
 
@@ -154,19 +160,19 @@ java ExceptionTypesDemo
 ### レベル1（基本）
 1. `loadMode("")` を呼び、`ConfigException` の発生を確認する。
 
-期待結果:
+期待状態:
 - checked例外を `catch` できる
 
 ### レベル2（拡張）
 1. `requirePositive(0)` を呼び、`IllegalArgumentException` を確認する。
 
-期待結果:
+期待状態:
 - unchecked例外を `catch` できる
 
 ### レベル3（実務）
 1. `main` に `throws ConfigException` を付け、`catch` しない構成も試す。
 
-期待結果:
+期待状態:
 - `catch` ではなく `throws` で上位へ委譲できる
 
 ---

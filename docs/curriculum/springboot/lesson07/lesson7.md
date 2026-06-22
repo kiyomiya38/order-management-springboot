@@ -1,7 +1,7 @@
 # Spring Boot コンテナ化演習（App + MariaDB / Docker Compose）
 
 ## 目的
-- `~/order-management-springboot/src` のアプリを、受講生自身でコンテナ化できるようになる
+- `~/order-management-springboot/stages/lesson09` のアプリを、受講生自身でコンテナ化できるようになる
 - `app` コンテナ + `db`（MariaDB）コンテナの2コンテナ構成を作成する
 - `Dockerfile` / `docker-compose.yml` / `.dockerignore` を自分で作成し、`docker compose up -d` で起動できるようにする
 - DBデータを Docker Volume で永続化する
@@ -55,7 +55,7 @@ flowchart LR
   ```yaml
   DB_URL: jdbc:mariadb://db:3306/attendance?useUnicode=true&characterEncoding=utf8
   DB_USER: attendance_app
-  DB_PASSWORD: ChangeMe_Strong_123!
+  DB_PASSWORD: ${MARIADB_PASSWORD}
   DB_DRIVER: org.mariadb.jdbc.Driver
   ```
 
@@ -93,7 +93,7 @@ sequenceDiagram
 flowchart TD
   A[docker compose up -d --build] --> B{app は Up か}
   B -->|いいえ| C{ログに manifest エラーか}
-  C -->|はい| E1[spring-boot:repackage漏れ]
+  C -->|はい| E1[POMのrepackage実行設定漏れ]
   C -->|いいえ| D{DB接続エラーか}
   D -->|はい| E2[MariaDBドライバ or DB環境変数不一致]
   D -->|いいえ| E3[その他起動エラーをlogsで調査]
@@ -135,22 +135,23 @@ docker compose version
 
 ### 2-2. 作業フォルダへ移動
 ```bash
-cd ~/order-management-springboot
+cd ~/order-management-springboot/stages/lesson09
 pwd
 ls
 ```
 
 期待:
-- `Dockerfile`, `docker-compose.yml`, `pom.xml`, `src` が見える
+- `pom.xml`, `src` が見える
+- `Dockerfile`, `docker-compose.yml`, `.dockerignore` はこのLessonで新規作成する
 
 ---
 
 ## 3. ファイル作成・編集（受講生作業）
 
 ### 3-1. `pom.xml` に MariaDB JDBC ドライバを追加
-対象: `~/order-management-springboot/pom.xml`
+対象: `~/order-management-springboot/stages/lesson09/pom.xml`
 
-`<dependencies>` に次を追加:
+次の依存が無い場合だけ `<dependencies>` に追加します。重複追加はしません。
 
 ```xml
 <dependency>
@@ -164,7 +165,7 @@ ls
 - H2依存は残して問題ありません（ローカル学習用）
 
 ### 3-2. `Dockerfile` を作成（マルチステージ）
-対象: `~/order-management-springboot/Dockerfile`
+対象: `~/order-management-springboot/stages/lesson09/Dockerfile`
 
 ```dockerfile
 FROM maven:3.9.9-eclipse-temurin-17 AS build
@@ -173,7 +174,7 @@ WORKDIR /workspace
 COPY pom.xml ./
 COPY src ./src
 
-RUN mvn -B -DskipTests clean package spring-boot:repackage
+RUN mvn -B clean verify
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
@@ -181,12 +182,14 @@ WORKDIR /app
 COPY --from=build /workspace/target/attendance-management-0.0.1-SNAPSHOT.jar ./app.jar
 
 EXPOSE 8080
-ENV JAVA_OPTS=""
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+USER 10001
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 ```
 
+`ENTRYPOINT` はシェルを介さずJVMを直接起動します。ヒープサイズなどを追加する場合は、Composeの環境変数 `JAVA_TOOL_OPTIONS` を使用します。
+
 ### 3-3. `docker-compose.yml` を作成
-対象: `~/order-management-springboot/docker-compose.yml`
+対象: `~/order-management-springboot/stages/lesson09/docker-compose.yml`
 
 ```yaml
 services:
@@ -194,10 +197,10 @@ services:
     image: mariadb:11.4
     container_name: db
     environment:
-      MARIADB_DATABASE: attendance
-      MARIADB_USER: attendance_app
-      MARIADB_PASSWORD: ChangeMe_Strong_123!
-      MARIADB_ROOT_PASSWORD: ChangeMe_Root_123!
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-attendance}
+      MARIADB_USER: ${MARIADB_USER:-attendance_app}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -223,15 +226,51 @@ services:
       LOG_LEVEL: INFO
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
-      DB_URL: jdbc:mariadb://db:3306/attendance?useUnicode=true&characterEncoding=utf8
-      DB_USER: attendance_app
-      DB_PASSWORD: ChangeMe_Strong_123!
+      SERVER_ADDRESS: 0.0.0.0
+      DB_URL: jdbc:mariadb://db:3306/${MARIADB_DATABASE:-attendance}?useUnicode=true&characterEncoding=utf8
+      DB_USER: ${MARIADB_USER:-attendance_app}
+      DB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
       DB_DRIVER: org.mariadb.jdbc.Driver
       SHOW_SQL: "false"
+      # 研修環境だけ初期ユーザーを投入する
+      APP_SEED_ENABLED: "true"
+      APP_SEED_ADMIN_PASSWORD: ${APP_SEED_ADMIN_PASSWORD:?Set APP_SEED_ADMIN_PASSWORD in .env}
+      APP_SEED_USER_PASSWORD: ${APP_SEED_USER_PASSWORD:?Set APP_SEED_USER_PASSWORD in .env}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
 
 volumes:
   db_data:
+```
+
+### 3-4. `.dockerignore` を作成
+
+対象: `~/order-management-springboot/stages/lesson09/.dockerignore`
+
+```dockerignore
+.git
+target
+data
+.env
+```
+
+Lesson9で使用したH2ファイルDBをイメージへ含めず、コンテナではMariaDBだけを使用します。
+
+### 3-5. `.env` を作成
+
+`docker-compose.yml` と同じフォルダに `.env` を作成します。実際の値へ置き換え、Gitへコミットしません。
+
+```dotenv
+MARIADB_DATABASE=attendance
+MARIADB_USER=attendance_app
+MARIADB_PASSWORD=replace-with-training-db-password
+MARIADB_ROOT_PASSWORD=replace-with-training-root-password
+APP_SEED_ADMIN_PASSWORD=replace-with-training-admin-password
+APP_SEED_USER_PASSWORD=replace-with-training-user-password
 ```
 
 ---
@@ -295,7 +334,7 @@ docker compose up -d
 ### 症状: `app` が `no main manifest attribute` で落ちる
 原因:
 - 実行可能JARではなく通常JARが作成されている
-- `spring-boot:repackage` がビルドに含まれていない
+- POMの `repackage` 実行設定が不足している
 
 確認:
 ```bash
@@ -303,8 +342,8 @@ docker compose logs app
 ```
 
 対処:
-- `Dockerfile` のビルドコマンドを次にする  
-  `mvn -B -DskipTests clean package spring-boot:repackage`
+- `pom.xml` の `spring-boot-maven-plugin` に `repackage` execution があることを確認する
+- `Dockerfile` のビルドコマンドを `mvn -B clean verify` にする
 - `docker compose build --no-cache app` で再ビルド
 
 ### 症状: `app` が DB接続エラーで落ちる

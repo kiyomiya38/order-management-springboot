@@ -1,7 +1,5 @@
 # Java-06A 補講: switch / do-while / ラベル付き制御
 
-対応参考資料: `J1-11_繰り返し～while～.pdf`, `J1-13_その他の制御構文.pdf`
-
 ## 1. この資料のゴール
 - `switch` を使って多分岐を実装できる
 - `do-while` の前判定/後判定の違いを説明できる
@@ -30,6 +28,18 @@ javac -version
 ### 書式の基本
 
 #### switch
+
+```mermaid
+flowchart TB
+  START["判定する値"] --> SWITCH{"switch"}
+  SWITCH -->|case A| CASE_A["処理A"]
+  SWITCH -->|case B| CASE_B["処理B"]
+  SWITCH -->|一致なし| DEFAULT["default の処理"]
+  CASE_A --> BREAK["break：switch を抜ける"]
+  CASE_B --> BREAK
+  DEFAULT --> BREAK
+  BREAK --> END["switch の後"]
+```
 
 ```java
 switch (判定する値) {
@@ -71,6 +81,14 @@ switch (status) {
 
 #### do-while
 
+```mermaid
+flowchart TB
+  START["処理開始"] --> BODY["do：処理<br/>必ず1回実行"]
+  BODY --> CONDITION{"while：継続条件"}
+  CONDITION -->|true| BODY
+  CONDITION -->|false| END["ループの後"]
+```
+
 ```java
 do {
     繰り返したい処理
@@ -95,6 +113,16 @@ do {
 - 「まず1回実行してから継続判定したい」処理に向いている
 
 #### ラベル付き break
+
+```mermaid
+flowchart TB
+  OUTER["outer：外側ループ"] --> INNER["内側ループ"]
+  INNER --> SELECT{"終了方法"}
+  SELECT -->|break| INNER_END["内側ループだけ終了"]
+  INNER_END --> OUTER
+  SELECT -->|break outer| OUTER_END["内側・外側の両方を終了"]
+  OUTER_END --> END["外側ループの後"]
+```
 
 ```java
 ラベル名:
@@ -177,8 +205,10 @@ javac -encoding UTF-8 AdvancedControlFlowDemo.java
 java AdvancedControlFlowDemo
 ```
 
-期待結果:
-- `評価: A` が表示される
+期待出力例:
+```text
+評価: A
+```
 
 ### Step 2: `do-while` で後判定ループ
 `AdvancedControlFlowDemo.java` を次の内容に更新:
@@ -204,8 +234,12 @@ javac -encoding UTF-8 AdvancedControlFlowDemo.java
 java AdvancedControlFlowDemo
 ```
 
-期待結果:
-- `再試行: 1` から `再試行: 3` まで表示される
+期待出力例:
+```text
+再試行: 1
+再試行: 2
+再試行: 3
+```
 
 ### Step 3: ラベル付き `break` を使う
 `AdvancedControlFlowDemo.java` を次の内容に更新:
@@ -234,8 +268,13 @@ javac -encoding UTF-8 AdvancedControlFlowDemo.java
 java AdvancedControlFlowDemo
 ```
 
-期待結果:
-- `row=2, col=2` の手前で出力が止まる
+期待出力例:
+```text
+row=1, col=1
+row=1, col=2
+row=1, col=3
+row=2, col=1
+```
 
 ---
 
@@ -243,19 +282,19 @@ java AdvancedControlFlowDemo
 ### レベル1（基本）
 1. `switch` の判定対象を `String status = "PAID";` に変更し、状態別メッセージを出す。
 
-期待結果:
+期待状態:
 - `status` に応じたメッセージが1つ表示される。
 
 ### レベル2（拡張）
 1. `do-while` で `countdown`（3,2,1）を表示する。
 
-期待結果:
+期待状態:
 - 1回以上実行される後判定ループでカウントダウンできる。
 
 ### レベル3（実務）
 1. 2重ループで「不正データ検出時に処理全体を終了する」挙動をラベル付き `break` で実装する。
 
-期待結果:
+期待状態:
 - 不正条件で外側ループまで即時終了する。
 
 ### 実行前予想問題（1分）

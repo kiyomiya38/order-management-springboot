@@ -5,6 +5,7 @@
 - 一般ユーザー / 管理者でアクセス権が分かれることを確認できる
 - 管理者のアカウント管理・勤怠編集ができる
 - `mvn test` でServiceテストを実行できる
+- 画面操作をControllerからRepositoryまでコードで追跡できる
 
 ## 前提
 - Lesson4 を完了している
@@ -22,7 +23,7 @@
   - 認可（一般ユーザーと管理者のアクセス制御）
   - 管理者によるユーザー作成/更新/削除
   - 管理者による勤怠編集（整合性チェック）
-  - `mvn test` による最低限の業務ルール回帰確認
+  - `mvn test` による業務ルール・削除制約・認可の回帰確認
 
 ### 全体構成図（ファイルと役割）
 ```mermaid
@@ -210,7 +211,7 @@ mkdir -p ~/order-management-springboot/stages/lesson05/src/test/java/com/shineso
 この章でやること（具体手順）:
 1. `~/order-management-springboot/stages/lesson05/pom.xml` を開く
 2. 実利用側の `<dependencies>`（`spring-boot-starter-web` などが並んでいるブロック）を探す
-3. その `</dependencies>` の直前に、以下3つを追記する
+3. その `</dependencies>` の直前に、以下4つを追記する
 
 ```xml
 <dependency>
@@ -228,12 +229,19 @@ mkdir -p ~/order-management-springboot/stages/lesson05/src/test/java/com/shineso
   <artifactId>spring-boot-starter-test</artifactId>
   <scope>test</scope>
 </dependency>
+
+<dependency>
+  <groupId>org.springframework.security</groupId>
+  <artifactId>spring-security-test</artifactId>
+  <scope>test</scope>
+</dependency>
 ```
 
 Lesson4からの追加依存:
 - `spring-boot-starter-security`
 - `spring-boot-starter-validation`
 - `spring-boot-starter-test`（testスコープ）
+- `spring-security-test`（認証・認可のテスト用）
 
 確認コマンド:
 ```bash
@@ -471,6 +479,8 @@ public class AuthController {
 package com.shinesoft.attendance.config; // 設定クラス群のパッケージ
 
 import org.springframework.boot.CommandLineRunner; // 起動直後に処理を実行するためのIF
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty; // 設定で投入可否を切り替える
+import org.springframework.beans.factory.annotation.Value; // 設定値を受け取る
 import org.springframework.stereotype.Component; // Spring管理対象として登録
 
 import com.shinesoft.attendance.domain.User; // Userエンティティ
@@ -478,27 +488,41 @@ import com.shinesoft.attendance.repository.UserRepository; // User保存/検索�
 import org.springframework.security.crypto.password.PasswordEncoder; // パスワードをハッシュ化するために使う
 
 @Component // アプリ起動時に読み込まれるBean
+@ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true")
 public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository; // ユーザー永続化用
     private final PasswordEncoder passwordEncoder; // 平文パスワードをそのまま保存しないための依存
+    private final String adminPassword;
+    private final String userPassword;
 
-    public DataSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public DataSeeder(UserRepository userRepository,
+                      PasswordEncoder passwordEncoder,
+                      @Value("${app.seed.admin-password:}") String adminPassword,
+                      @Value("${app.seed.user-password:}") String userPassword) {
         this.userRepository = userRepository; // 依存注入
         this.passwordEncoder = passwordEncoder; // 依存注入
+        this.adminPassword = adminPassword;
+        this.userPassword = userPassword;
     }
 
     @Override
     public void run(String... args) { // アプリ起動後に1回実行される
-        if (userRepository.count() == 0) { // usersテーブルが空の時だけ初期投入
+        if (adminPassword.isBlank() || userPassword.isBlank()) {
+            throw new IllegalStateException("初期ユーザー投入を有効にする場合は初期パスワードが必要です");
+        }
+
+        if (userRepository.findByUsername("admin").isEmpty()) { // adminがいない時だけ作成
             User admin = new User(); // 管理者アカウント作成
             admin.setUsername("admin"); // ログインID
-            admin.setPassword(passwordEncoder.encode("admin123")); // ハッシュ化して保存
+            admin.setPassword(passwordEncoder.encode(adminPassword)); // 設定値をハッシュ化して保存
             admin.setRole("ROLE_ADMIN"); // 管理者ロール
             userRepository.save(admin); // DBへ保存
+        }
 
+        if (userRepository.findByUsername("user1").isEmpty()) { // user1がいない時だけ作成
             User user = new User(); // 一般ユーザー作成
             user.setUsername("user1"); // ログインID
-            user.setPassword(passwordEncoder.encode("password")); // ハッシュ化して保存
+            user.setPassword(passwordEncoder.encode(userPassword)); // 設定値をハッシュ化して保存
             user.setRole("ROLE_USER"); // 一般ユーザーロール
             userRepository.save(user); // DBへ保存
         }
@@ -509,7 +533,8 @@ public class DataSeeder implements CommandLineRunner {
 理解ポイント:
 - 目的は「起動直後にログイン用ユーザーを必ず作る」こと
 - `passwordEncoder.encode(...)` で平文保存を回避する
-- `count() == 0` で再起動時の重複投入を防ぐ
+- ユーザー名ごとに存在確認し、片方だけ削除された場合も必要な初期ユーザーを復元する
+- 初期投入は `app.seed.enabled=true` の環境だけで動かし、パスワードは設定値から受け取る
 
 #### Phase 1-5: `User.java` を編集（認証に必要な項目を持つ）
 編集ファイル:
@@ -627,15 +652,20 @@ import org.springframework.transaction.annotation.Transactional; // 更新処理
 
 import com.shinesoft.attendance.domain.User; // Userエンティティ
 import com.shinesoft.attendance.exception.BusinessException; // 業務例外
+import com.shinesoft.attendance.repository.AttendanceRepository; // 勤怠参照チェック
 import com.shinesoft.attendance.repository.UserRepository; // UserのDBアクセス
 
 @Service // Spring管理対象（業務ロジック層）
 public class UserService {
     private final UserRepository userRepository; // User保存/検索に使う
+    private final AttendanceRepository attendanceRepository; // 削除前の勤怠参照確認
     private final PasswordEncoder passwordEncoder; // パスワード暗号化に使う
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       AttendanceRepository attendanceRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository; // 依存注入
+        this.attendanceRepository = attendanceRepository; // 依存注入
         this.passwordEncoder = passwordEncoder; // 依存注入
     }
 
@@ -655,6 +685,9 @@ public class UserService {
 
     @Transactional // 作成処理を1トランザクションで実行
     public User create(String username, String rawPassword, String role) {
+        username = validateUsername(username);
+        validatePassword(rawPassword);
+        validateRole(role);
         if (userRepository.findByUsername(username).isPresent()) { // ユーザー名重複チェック
             throw new BusinessException("ユーザー名が既に存在します");
         }
@@ -667,6 +700,11 @@ public class UserService {
 
     @Transactional // 更新処理を1トランザクションで実行
     public User update(Long id, String username, String rawPassword, String role) {
+        username = validateUsername(username);
+        if (rawPassword != null && !rawPassword.isBlank()) {
+            validatePassword(rawPassword);
+        }
+        validateRole(role);
         User user = get(id); // 更新対象を取得
         if (!user.getUsername().equals(username) && userRepository.findByUsername(username).isPresent()) { // 他人と重複しないか確認
             throw new BusinessException("ユーザー名が既に存在します");
@@ -681,7 +719,36 @@ public class UserService {
 
     @Transactional // 削除処理を1トランザクションで実行
     public void delete(Long id) {
-        userRepository.deleteById(id); // 指定IDを削除
+        if (!userRepository.existsById(id)) {
+            throw new BusinessException("ユーザーが存在しません");
+        }
+        if (attendanceRepository.existsByUser_Id(id)) {
+            throw new BusinessException("勤怠履歴があるユーザーは削除できません");
+        }
+        userRepository.deleteById(id); // 参照が無い場合だけ削除
+    }
+
+    private String validateUsername(String username) {
+        if (username == null || username.isBlank()) {
+            throw new BusinessException("ユーザー名は必須です");
+        }
+        String normalized = username.trim();
+        if (normalized.length() > 30) {
+            throw new BusinessException("ユーザー名は30文字以内にしてください");
+        }
+        return normalized;
+    }
+
+    private void validatePassword(String rawPassword) {
+        if (rawPassword == null || rawPassword.length() < 8 || rawPassword.length() > 64) {
+            throw new BusinessException("パスワードは8〜64文字にしてください");
+        }
+    }
+
+    private void validateRole(String role) {
+        if (!"ROLE_USER".equals(role) && !"ROLE_ADMIN".equals(role)) {
+            throw new BusinessException("ロールが不正です");
+        }
     }
 }
 ```
@@ -804,8 +871,12 @@ public class UserController {
 
     @PostMapping("/{id}/delete") // POST /users/{id}/delete（削除実行）
     public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
-        userService.delete(id); // 削除実行
-        redirectAttributes.addFlashAttribute("message", "ユーザーを削除しました");
+        try {
+            userService.delete(id); // 削除実行
+            redirectAttributes.addFlashAttribute("message", "ユーザーを削除しました");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/users";
     }
 }
@@ -826,14 +897,19 @@ public class UserController {
 package com.shinesoft.attendance.web.form; // フォームクラス用パッケージ
 
 import jakarta.validation.constraints.NotBlank; // 必須チェックに使う
+import jakarta.validation.constraints.Pattern; // 許可する値を制限する
+import jakarta.validation.constraints.Size; // 文字数を制限する
 
 public class UserForm {
     @NotBlank // 空文字・空白のみを禁止
+    @Size(max = 30)
     private String username;
 
+    @Size(max = 64)
     private String password; // 更新時は空欄許可にするためNotBlankを付けない
 
     @NotBlank // ロールは必須
+    @Pattern(regexp = "ROLE_ADMIN|ROLE_USER")
     private String role;
 
     public String getUsername() { // username取得
@@ -1733,7 +1809,7 @@ public class AttendanceService {
     }
 
     public Attendance getAttendance(Long id) { // ID指定取得（管理者編集で使用）
-        return attendanceRepository.findById(id)
+        return attendanceRepository.findWithUserById(id)
             .orElseThrow(() -> new BusinessException("勤怠が存在しません"));
     }
 
@@ -1792,6 +1868,10 @@ public class AttendanceService {
                                        LocalDateTime startTime,
                                        LocalDateTime endTime,
                                        AttendanceStatus status) {
+        if (userId == null || workDate == null || status == null) {
+            throw new BusinessException("ユーザー、勤務日、状態は必須です");
+        }
+
         Attendance attendance = attendanceRepository.findById(attendanceId)
             .orElseThrow(() -> new BusinessException("勤怠が存在しません"));
 
@@ -1802,7 +1882,7 @@ public class AttendanceService {
             throw new BusinessException("同じ日付の勤怠が既に存在します");
         }
 
-        validateStatusAndTimes(status, startTime, endTime); // 状態と時刻の整合チェック
+        validateStatusAndTimes(workDate, status, startTime, endTime); // 状態と時刻の整合チェック
 
         attendance.setUser(user);
         attendance.setWorkDate(workDate);
@@ -1817,7 +1897,8 @@ public class AttendanceService {
                 .orElseThrow(() -> new BusinessException("ユーザーが存在しません"));
     }
 
-    private void validateStatusAndTimes(AttendanceStatus status, // 整合性ルール
+    private void validateStatusAndTimes(LocalDate workDate,
+                                        AttendanceStatus status, // 整合性ルール
                                         LocalDateTime startTime,
                                         LocalDateTime endTime) {
         switch (status) {
@@ -1830,10 +1911,19 @@ public class AttendanceService {
                 if (startTime == null || endTime != null) {
                     throw new BusinessException("出勤中は開始時刻のみ必要です");
                 }
+                if (!startTime.toLocalDate().equals(workDate)) {
+                    throw new BusinessException("開始時刻の日付は勤務日と一致させてください");
+                }
             }
             case FINISHED -> {
                 if (startTime == null || endTime == null) {
                     throw new BusinessException("退勤済みは開始・終了時刻が必要です");
+                }
+                if (!startTime.toLocalDate().equals(workDate)) {
+                    throw new BusinessException("開始時刻の日付は勤務日と一致させてください");
+                }
+                if (endTime.isBefore(startTime)) {
+                    throw new BusinessException("終了時刻は開始時刻以降にしてください");
                 }
             }
             default -> {
@@ -1845,7 +1935,7 @@ public class AttendanceService {
 
 補足（重要）:
 - `AttendanceRepository.java` は、下記の完成形に「全文置き換え」してください。
-- `findById(...)` は `JpaRepository` 標準メソッドをそのまま利用します（`AttendanceRepository` への追加定義は不要）。
+- 更新対象の取得は標準 `findById(...)`、画面表示でユーザーも必要な取得は `@EntityGraph` 付き `findWithUserById(...)` を使い分けます。
 
 編集ファイル:
 - `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
@@ -1863,6 +1953,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.shinesoft.attendance.domain.Attendance;
@@ -1877,13 +1968,22 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     List<Attendance> findByUser_IdOrderByWorkDateDesc(Long userId);
 
     // 管理者向けに全ユーザー分の履歴を勤務日降順で取得
+    @EntityGraph(attributePaths = "user")
     List<Attendance> findAllByOrderByWorkDateDesc();
+
+    // 管理者編集でユーザー情報も同時取得
+    @EntityGraph(attributePaths = "user")
+    Optional<Attendance> findWithUserById(Long id);
+
+    // ユーザー削除前の参照整合チェック
+    boolean existsByUser_Id(Long userId);
 }
 ```
 
 理解ポイント:
 - Lesson5追加の核は `updateAttendance(...)` と `validateStatusAndTimes(...)`
-- 管理者編集でも「同日重複」「状態と時刻の整合」を強制する
+- 管理者編集でも「同日重複」「状態と時刻の整合」「開始・終了の前後関係」を強制する
+- `@EntityGraph` で画面に必要なユーザー情報をServiceのトランザクション外でも参照できる状態にする
 - 既存の出勤/退勤ロジックを壊さずに拡張している
 
 #### Phase 3-6: `AttendanceController.java` を編集（ログインユーザー基準で一覧表示）
@@ -1985,7 +2085,7 @@ public class AttendanceController {
 - 一覧ヘッダでログインユーザー名を表示し、閲覧対象を明確化
 - 表示ロジックは `attendances` モデル属性に集約
 
-#### Phase 3-8: `AttendanceServiceTest.java` を作る（最低限の回帰テスト）
+#### Phase 3-8: `AttendanceServiceTest.java` を作る（状態遷移と時刻整合の回帰テスト）
 作成ファイル:
 - `~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
 
@@ -2009,6 +2109,9 @@ public class AttendanceController {
 
 ```java
 package com.shinesoft.attendance.service; // テスト対象Serviceのパッケージ
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals; // 値一致検証
 import static org.junit.jupiter.api.Assertions.assertNotNull; // nullでないことの検証
@@ -2072,12 +2175,51 @@ class AttendanceServiceTest {
         BusinessException ex = assertThrows(BusinessException.class, () -> service.clockIn(userId));
         assertEquals("すでに出勤済みです", ex.getMessage());
     }
+
+    @Test
+    void clockOut_beforeClockIn_shouldFail() {
+        BusinessException ex = assertThrows(BusinessException.class, () -> service.clockOut(userId));
+        assertEquals("退勤するには先に出勤してください", ex.getMessage());
+    }
+
+    @Test
+    void clockOut_twice_shouldFail() {
+        service.clockIn(userId);
+        service.clockOut(userId);
+        BusinessException ex = assertThrows(BusinessException.class, () -> service.clockOut(userId));
+        assertEquals("すでに退勤済みです", ex.getMessage());
+    }
+
+    @Test
+    void updateAttendance_endBeforeStart_shouldFail() {
+        Attendance attendance = service.clockIn(userId);
+        LocalDate workDate = LocalDate.now();
+        LocalDateTime start = workDate.atTime(9, 0);
+        LocalDateTime end = workDate.atTime(8, 59);
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+            service.updateAttendance(
+                attendance.getId(), userId, workDate, start, end, AttendanceStatus.FINISHED));
+        assertEquals("終了時刻は開始時刻以降にしてください", ex.getMessage());
+    }
+
+    @Test
+    void updateAttendance_startDateMustMatchWorkDate() {
+        Attendance attendance = service.clockIn(userId);
+        LocalDate workDate = LocalDate.now().minusDays(1);
+        LocalDateTime start = LocalDate.now().atTime(9, 0);
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+            service.updateAttendance(
+                attendance.getId(), userId, workDate, start, null, AttendanceStatus.WORKING));
+        assertEquals("開始時刻の日付は勤務日と一致させてください", ex.getMessage());
+    }
 }
 ```
 
 理解ポイント:
 - 「壊れてはいけない業務ルール」をテストで固定する
-- Lesson5ではまず2本（正常系/異常系）の最小セットを確実に通す
+- 出勤、退勤、管理者更新の6本を通し、主要な状態遷移と時刻整合を回帰確認する
 
 完了チェック:
 ```bash
@@ -2158,12 +2300,14 @@ mvn spring-boot:run
 ---
 
 ## 8. テスト
+先に [lesson5-testing.md](./lesson5-testing.md) の追加テスト2ファイルを作成してください。
+
 ```bash
 mvn test
 ```
 
 確認:
-- `AttendanceServiceTest` の2テストが成功する
+- `AttendanceServiceTest` 6件、`UserServiceTest` 3件、`SecurityAccessTest` 3件の合計12件が成功する
 
 理解ポイント（10分）:
 - この確認の目的:
@@ -2171,12 +2315,16 @@ mvn test
 - 最低限見ること:
   - 出勤成功テスト
   - 二重出勤失敗テスト
+  - 未出勤/再退勤の失敗テスト
+  - 管理者更新時の勤務日・時刻前後関係テスト
 - よくあるミス:
   - テスト依存漏れ、またはパッケージパス不一致でテストが検出されない
 
 ---
 
 ## 9. コード読解ポイント（必須）
+
+### 9-1. ファイルごとの責務を確認する
 
 1. `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
 - `requestMatchers` でURL別権限制御
@@ -2196,6 +2344,30 @@ mvn test
 5. `~/order-management-springboot/stages/lesson05/src/main/resources/static/users.js`
 - 削除確認ダイアログと一覧絞り込み（クライアント側UI改善）
 
+### 9-2. ユーザー作成をコードから追跡する
+
+コードを変更せず、管理者がユーザー作成画面を送信したときの処理を追います。次の表をノートまたは研修記録へ記入してください。
+
+| 順番 | ファイル / メソッド | 受け取る値 | 判定・依頼する処理 | 次へ渡す値 |
+| ---: | --- | --- | --- | --- |
+| 1 | `SecurityConfig` | `POST /users`とログイン情報 | 管理者権限を確認 | 許可されたリクエスト |
+| 2 | `UserController#create` | `UserForm` | `@Valid`の結果を確認 | username / password / role |
+| 3 | `UserService#create` | 3つの入力値 | 業務バリデーション、重複確認、ハッシュ化 | `User` |
+| 4 | `UserRepository` | username / `User` | 存在確認、DB保存 | 保存済み`User` |
+| 5 | `UserController#create` | Serviceの処理結果 | 成功メッセージを設定 | `redirect:/users` |
+
+正常系を追跡した後、既存ユーザー名を入力した場合も追跡します。
+
+1. `@Valid`を通過できる入力でも、どこで重複を検出するか探す
+2. `BusinessException`がどのメソッドへ戻るか探す
+3. `binding.reject(...)`から画面のエラー表示までを探す
+4. ControllerがRepositoryを直接呼ばない理由を説明する
+
+合格条件:
+- 上の表を、実際のメソッド名と値をソースコード上で指しながら説明できる
+- 入力形式の検証と、ユーザー名重複という業務ルールの違いを説明できる
+- 正常系と例外系で、最後に返す画面またはリダイレクト先がどう変わるか説明できる
+
 ---
 
 ## 10. つまずきポイント
@@ -2206,8 +2378,8 @@ mvn test
   - `admin` でログインしているか
   - `ROLE_ADMIN` が設定されているか
 - `http://localhost:8080/admin/attendances` で500（Whitelabel Error Page）:
-  - `application.yml` の `spring.jpa.open-in-view: false` が有効だと、一覧描画時（`att.user.username`）に `LazyInitializationException` が発生する場合がある
-  - `~/order-management-springboot/stages/lesson05/src/main/resources/application.yml` の `open-in-view` を `true` に変更する（またはこの設定行を削除してデフォルト値を使う）
+  - `AttendanceRepository` の `findAllByOrderByWorkDateDesc()` / `findWithUserById()` に `@EntityGraph(attributePaths = "user")` があるか確認する
+  - `open-in-view` を有効にして回避せず、画面で必要な関連をRepositoryで明示的に取得する
 - テストが失敗:
   - `pom.xml` に `spring-boot-starter-test` があるか
 - `org.springframework.security...` や `jakarta.validation...` が「存在しません」と出る:
@@ -2222,8 +2394,10 @@ mvn test
 ---
 
 ## 11. 時間割目安
-- 午前: Security + ログイン + 役割分離（120分）
-- 午後: 管理者機能 + テスト + まとめ（150分）
+- 新人研修では2日構成とする
+- 1日目: Security + ログイン（150分）/ ユーザー管理（150分）
+- 2日目: 管理者勤怠（150分）/ Service・Securityテスト（120分）/ コード追跡（30分）/ プロファイル・振り返り（60分）
+- 経験者が1日で実施する場合も、テストと参照整合の章は省略しない
 
 ---
 
@@ -2237,7 +2411,7 @@ mvn test
 - `AttendanceRepository#findByUser_IdAndWorkDate(...)`
 - `AttendanceRepository#findByUser_IdOrderByWorkDateDesc(...)`
 - `AttendanceRepository#findAllByOrderByWorkDateDesc()`
-- `AttendanceService#getAttendance(...)` / `updateAttendance(...)` では `AttendanceRepository#findById(...)` を利用
+- `getAttendance(...)` は `findWithUserById(...)`、`updateAttendance(...)` は標準 `findById(...)` を利用
 
 補足（重要）:
 - Lesson5本文は、上記の完成版命名・構成に合わせて記載済み
@@ -2281,6 +2455,8 @@ spring:
       ddl-auto: update
     # 必要時のみSQLログを有効化
     show-sql: ${SHOW_SQL:false}
+    # View描画中の追加DBアクセスを禁止し、必要データはService内で取得する
+    open-in-view: false
   thymeleaf:
     # 画面キャッシュ設定はdev/prodで上書き
     cache: false
@@ -2288,6 +2464,8 @@ spring:
 server:
   # ポートは環境変数で切替可能
   port: ${SERVER_PORT:8080}
+  # VMでは127.0.0.1、コンテナでは0.0.0.0など環境に合わせて指定
+  address: ${SERVER_ADDRESS:0.0.0.0}
 
 logging:
   level:
@@ -2313,6 +2491,12 @@ spring:
 logging:
   level:
     root: ${LOG_LEVEL:INFO}
+
+app:
+  seed:
+    enabled: true
+    admin-password: ${APP_SEED_ADMIN_PASSWORD:admin123}
+    user-password: ${APP_SEED_USER_PASSWORD:password}
 ```
 
 3. `application-prod.yml` を新規作成する（本番想定）
@@ -2330,6 +2514,12 @@ spring:
 logging:
   level:
     root: ${LOG_LEVEL:INFO}
+
+app:
+  seed:
+    enabled: ${APP_SEED_ENABLED:false}
+    admin-password: ${APP_SEED_ADMIN_PASSWORD:}
+    user-password: ${APP_SEED_USER_PASSWORD:}
 ```
 
 4. プロファイル切替を実行確認する（Git Bash）
@@ -2350,38 +2540,20 @@ SPRING_PROFILES_ACTIVE=prod mvn spring-boot:run
 ---
 
 ## 14. テスト追加演習（任意）
-この章を追加する理由（先に読む）:
-- Lesson5本文の最小2テストは重要だが、完成版で追加された業務ルール（退勤と管理者更新）も自動検証すると理解が深まるため
+必修の6テストを通した後、境界条件を追加します。
 
 編集ファイル:
 - `~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
+- `~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance/service/UserServiceTest.java`
+- `~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance/web/SecurityAccessTest.java`
 - （完成版読解のみの場合）`~/order-management-springboot/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
 
 追加候補:
-1. 退勤前に出勤していない場合は失敗する
-2. 退勤を2回実行すると失敗する
-3. `NOT_STARTED` に時刻を入れて更新すると失敗する
-4. 同一ユーザー・同一日付へ更新すると失敗する
+1. `NOT_STARTED` に時刻を入れて更新すると失敗する
+2. 同一ユーザー・同一日付へ更新すると失敗する
+3. 勤怠履歴があるユーザーを削除すると失敗する
 
-サンプル（1と2）:
-```java
-@Test
-void clockOut_beforeClockIn_shouldFail() {
-    BusinessException ex = assertThrows(BusinessException.class, () -> service.clockOut(userId));
-    assertEquals("退勤するには先に出勤してください", ex.getMessage());
-}
-
-@Test
-void clockOut_twice_shouldFail() {
-    service.clockIn(userId);
-    service.clockOut(userId);
-
-    BusinessException ex = assertThrows(BusinessException.class, () -> service.clockOut(userId));
-    assertEquals("すでに退勤済みです", ex.getMessage());
-}
-```
-
-サンプル（3）:
+サンプル（1）:
 ```java
 @Test
 void updateAttendance_notStartedWithTimes_shouldFail() {
@@ -2408,26 +2580,19 @@ void updateAttendance_notStartedWithTimes_shouldFail() {
 ---
 
 ## 15. 参照整合とユーザー削除（必須）
-この章を追加する理由（先に読む）:
-- 完成版では `UserService#delete` が `deleteById` 直実行のため、勤怠があるユーザー削除時の挙動を学習項目として明示する必要があるため
+勤怠履歴があるユーザーは、意図しない履歴消失を防ぐため削除禁止とします。
 
 背景:
 - `Attendance` は `user_id` の必須参照（`@ManyToOne(optional = false)`）を持つ
-- そのため、勤怠が存在するユーザーを削除するとDBの参照整合エラーになる場合がある
+- `AttendanceRepository#existsByUser_Id(...)` で削除前に関連データを確認する
+- 関連がある場合は `BusinessException` として画面へ返す
 
-確認手順（動作観察）:
+確認手順:
 1. `user1` でログインして出勤（必要なら退勤）を実行
 2. `admin` でログインして `users` 画面から `user1` を削除
-3. エラーの有無と内容を確認
+3. `勤怠履歴があるユーザーは削除できません` と表示され、ユーザーと勤怠が残ることを確認
 
 学習ポイント:
 - 削除APIは「対象データがあるか」だけでなく「関連データが残っていないか」も確認が必要
 - 業務要件によって方針は変わる（削除禁止 / 論理削除 / 連鎖削除）
-
-発展（任意）:
-1. `AttendanceRepository` に件数確認メソッドを追加する
-2. `UserService#delete` で勤怠件数を先にチェックして `BusinessException` を返す
-3. `UserController#delete` で例外メッセージを画面表示する
-
-発展時のゴール:
-- 参照整合エラーを「想定外のDB例外」ではなく「想定内の業務エラー」として扱えるようにする
+- このLessonでは、DB例外が発生する前にServiceで判定し、想定内の業務エラーとして扱う
