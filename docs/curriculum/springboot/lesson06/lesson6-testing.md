@@ -1,4 +1,4 @@
-# Lesson8 必修APIテスト（認証 / 認可 / 本人性）
+# Lesson6 必修APIテスト（認証 / 認可 / 本人性）
 
 ## 目的
 
@@ -9,7 +9,7 @@
 ## `ApiSecurityTest`を作成
 
 作成ファイル:
-- `~/order-management-springboot/stages/lesson08/src/test/java/com/shinesoft/attendance/web/api/ApiSecurityTest.java`
+- `~/order-management-springboot/stages/lesson06/src/test/java/com/shinesoft/attendance/web/api/ApiSecurityTest.java`
 
 ```java
 package com.shinesoft.attendance.web.api;
@@ -99,7 +99,7 @@ class ApiSecurityTest {
 ## 実行
 
 ```bash
-cd ~/order-management-springboot/stages/lesson08
+cd ~/order-management-springboot/stages/lesson06
 mvn test
 ```
 

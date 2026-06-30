@@ -4,11 +4,18 @@
 - 出勤ボタン押下で DB に勤怠レコードを登録できる
 - `Controller -> Service -> Repository -> DB` の流れを追える
 - 同日の二重出勤を業務ルールとして弾ける
+- Mockitoを使い、二重出勤禁止の業務ルールをService単体で確認できる
 
 ## 前提
 - Lesson1 を完了している
 - `java -version` と `mvn -version` が通る
 - このリポジトリのルートで作業する
+
+バックエンド短縮コースでは、次も完了していることを前提にします。
+
+- `docs/curriculum/springboot/lesson02/sql-rdb-basics.md`
+- `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md`
+- HTML/CSSは講師提供コードを指定位置へ配置し、フォームとControllerの対応だけを追跡する
 
 ## Lesson2で作るもの
 - 画面: `/`（トップ画面）
@@ -178,6 +185,7 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shineso
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/repository
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/exception
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/config
+mkdir -p ~/order-management-springboot/stages/lesson02/src/test/java/com/shinesoft/attendance/service
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/templates
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
 ```
@@ -256,6 +264,13 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
       <!-- 実行時のみ必要。コンパイル時には不要 -->
       <scope>runtime</scope>
     </dependency>
+    <!-- JUnitとMockito（Serviceの業務ルールを自動確認するため） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <!-- テスト時のみ使用する -->
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <!-- Mavenのビルド処理を拡張するプラグイン -->
@@ -297,8 +312,9 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
 - Lesson1からの追加点:
   - `spring-boot-starter-data-jpa`（DBアクセス）
   - `h2`（研修用のローカルDB）
+  - `spring-boot-starter-test`（JUnitとMockitoによる自動テスト）
 - まず見る場所:
-  - `<dependencies>` の4つの依存関係
+  - `<dependencies>` の5つの依存関係
   - `<description>`（Lesson2用に識別）
 - よくあるミス:
   - `data-jpa` や `h2` の追加漏れでDB関連クラスが動かない
@@ -629,6 +645,48 @@ public class Attendance {
 
 ---
 
+## 6.5 Java補足: `Optional` の最小理解
+
+Repositoryの検索結果は「対象が存在しない」場合があります。
+Lesson2では、値がある場合とない場合を型で表す `Optional<T>` を使用します。
+
+```java
+Optional<User> user = userRepository.findByUsername("user1");
+```
+
+最低限使用する操作:
+
+| 操作 | 意味 |
+| --- | --- |
+| `Optional.of(value)` | 値があるOptionalを作る |
+| `Optional.empty()` | 値がないOptionalを作る |
+| `isPresent()` | 値があるか確認する |
+| `isEmpty()` | 値がないか確認する |
+| `get()` | 値を取り出す。値なしでは例外になるため単独利用を避ける |
+| `orElse(defaultValue)` | 値がなければ既定値を返す |
+| `orElseThrow(...)` | 値がなければ例外を投げる |
+
+Lesson2での例:
+
+```java
+Optional<Attendance> existing = attendanceRepository.findByUser_IdAndWorkDate(userId, today);
+if (existing.isPresent()) {
+    throw new BusinessException("すでに出勤済みです");
+}
+
+User user = userRepository.findById(userId)
+        .orElseThrow(() -> new IllegalStateException("研修ユーザーが存在しません"));
+```
+
+確認ポイント:
+
+- `Optional.empty()` は検索処理の失敗ではなく「該当データなし」を表す
+- `null` を直接返す代わりに、値の有無を呼び出し側へ明示できる
+- 二重出勤確認では「値があること」が業務エラーになる
+- ユーザー検索では「値がないこと」を `orElseThrow` でシステム上の異常として扱う
+
+---
+
 ## 7. Repositoryを作成
 
 ### 7-0. Repositoryとは何か（最初に読む）
@@ -830,6 +888,84 @@ public class AttendanceService {
 
 ---
 
+## 8.5 最小Serviceテストを作成
+
+Lesson5で複数のテストを扱う前に、Lesson2では「同じ日に2回出勤できない」という業務ルールを1件だけ自動確認します。
+
+作成ファイル: `~/order-management-springboot/stages/lesson02/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
+
+```java
+package com.shinesoft.attendance.service; // Serviceテスト用パッケージ
+
+import static org.junit.jupiter.api.Assertions.assertEquals; // 期待値との一致確認
+import static org.junit.jupiter.api.Assertions.assertThrows; // 例外発生の確認
+import static org.mockito.ArgumentMatchers.any; // 任意の日付をテスト条件に使う
+import static org.mockito.ArgumentMatchers.eq; // userIdの一致条件に使う
+import static org.mockito.Mockito.when; // Repositoryの戻り値を決める
+
+import java.time.LocalDate; // Repository検索条件の日付型
+import java.util.Optional; // 既存勤怠ありを表現する
+
+import org.junit.jupiter.api.BeforeEach; // 各テスト前の準備
+import org.junit.jupiter.api.Test; // テストメソッドを示す
+import org.junit.jupiter.api.extension.ExtendWith; // MockitoをJUnitで使う
+import org.mockito.Mock; // Repositoryの代用品を作る
+import org.mockito.junit.jupiter.MockitoExtension; // Mockito初期化を自動化する
+
+import com.shinesoft.attendance.domain.Attendance; // 既存勤怠として返すEntity
+import com.shinesoft.attendance.exception.BusinessException; // 確認対象の業務例外
+import com.shinesoft.attendance.repository.AttendanceRepository; // テスト用の代用品
+import com.shinesoft.attendance.repository.UserRepository; // Service生成に必要な代用品
+
+@ExtendWith(MockitoExtension.class) // Spring Boot全体を起動せずServiceだけ確認する
+class AttendanceServiceTest {
+
+    @Mock
+    private AttendanceRepository attendanceRepository; // DBへ接続しない代用品
+
+    @Mock
+    private UserRepository userRepository; // DBへ接続しない代用品
+
+    private AttendanceService attendanceService; // テスト対象
+
+    @BeforeEach
+    void setUp() {
+        // 本番コードと同じコンストラクタ注入でServiceを作る
+        attendanceService = new AttendanceService(attendanceRepository, userRepository);
+    }
+
+    @Test
+    void clockIn_rejectsSecondClockInOnSameDay() {
+        // userId=1の当日勤怠が既に存在する状態を作る
+        when(attendanceRepository.findByUser_IdAndWorkDate(eq(1L), any(LocalDate.class)))
+            .thenReturn(Optional.of(new Attendance()));
+
+        // 2回目の出勤でBusinessExceptionが発生することを確認する
+        BusinessException exception = assertThrows(
+            BusinessException.class,
+            () -> attendanceService.clockIn(1L));
+
+        // 利用者へ返すエラーメッセージも業務仕様として確認する
+        assertEquals("すでに出勤済みです", exception.getMessage());
+    }
+}
+```
+
+実行:
+
+```bash
+mvn -Dtest=AttendanceServiceTest test
+```
+
+確認ポイント:
+
+- `@Mock`はRepositoryの代用品であり、H2へ接続しない
+- `when(...).thenReturn(...)`で「既に当日勤怠がある」状態を作る
+- `assertThrows`で業務ルール違反を確認する
+- Spring全体ではなくServiceだけを対象にするため、失敗原因を絞り込みやすい
+
+---
+
 ## 9. 初期データ投入（固定ユーザー）
 ### 9-0. 何をしているか（最初に読む）
 この章では、アプリ起動時に「研修用の固定ユーザー `user1`」をDBへ自動登録します。
@@ -1009,6 +1145,12 @@ public class HomeController {
 ## 11. テンプレートを作成
 作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/resources/templates/index.html`
 
+バックエンド短縮コース:
+
+- 以下のコードブロック全体を講師提供コードとして使用する
+- `templates/index.html` を作成し、内容と説明コメントを削除せず配置する
+- HTML実装は評価せず、`POST /clock-in`、`Model` のキー、ボタン表示条件を確認する
+
 ```html
 <!-- HTML5の文書宣言 -->
 <!doctype html>
@@ -1076,6 +1218,12 @@ public class HomeController {
 
 ## 12. CSSを作成
 作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/resources/static/styles.css`
+
+バックエンド短縮コース:
+
+- 以下のコードブロック全体を講師提供コードとして使用する
+- `static/styles.css` を作成し、内容と説明コメントを削除せず配置する
+- CSS実装は評価せず、画面へスタイルが適用されることだけ確認する
 
 ```css
 /* 画面全体で使う色変数 */
@@ -1247,3 +1395,5 @@ curl -i -X POST http://localhost:8080/clock-in
 ## 17. 時間割目安
 - 午前: JPA/H2導入（60分）+ Entity/Repository作成（90分）
 - 午後: Service/Controller/画面実装（90分）+ 動作確認/振り返り（30分）
+
+バックエンド短縮コースでは画面コードの実装時間を削減し、事前のSQL・RDB基礎、`Optional`、Entityとテーブルの対応確認へ時間を配分します。

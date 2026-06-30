@@ -4,7 +4,7 @@
 UIはThymeleaf、DBはH2、ログインありです。
 
 Spring Boot研修の正規入口は [`docs/curriculum/springboot/README.md`](./docs/curriculum/springboot/README.md) です。
-このルート直下の `src` はLesson8終了時点の完成例です。Lesson9（Flyway）はDB設定が異なるため含みません。
+このルート直下の `src` はLesson6終了時点の完成例です。Lesson7（Flyway）はDB設定が異なるため含みません。
 
 ## 前提
 - Java 17
@@ -30,8 +30,10 @@ stages/lesson02
 stages/lesson03
 stages/lesson04
 stages/lesson05
-stages/lesson08
-stages/lesson09
+stages/lesson06
+stages/lesson07
+stages/deployment-vm
+stages/deployment-docker
 ```
 各Lessonは、作成後に次のように起動します（`lessonXX` を対象番号へ置き換えます）。
 ```bash
@@ -45,10 +47,13 @@ Lesson別の目的:
 - Lesson2: 出勤 + DB保存（JPA/H2）
 - Lesson3: 退勤 + 業務ルール
 - Lesson4: 一覧画面 + H2確認
-- Lesson5: ログイン/権限/管理者機能 + テスト
-- Lesson8: REST API + DTO + JSONエラー応答
-- Lesson9: FlywayによるDB変更管理
-- Lesson6/7: VMデプロイ / Docker Compose環境演習
+- Lesson5A: ログイン/認証/認可
+- Lesson5B: ユーザー管理/勤怠管理
+- Lesson5C: テスト/プロファイル/参照整合性
+- Lesson6: REST API + DTO + JSONエラー応答
+- Lesson7: FlywayによるDB変更管理
+- 環境演習A: VirtualBoxによるVMデプロイ
+- 環境演習B: Docker Composeによるコンテナ化
 
 研修資料（カリキュラム）:
 - 学習順と合格基準: `docs/curriculum/springboot/README.md`
@@ -61,7 +66,7 @@ Lesson別の目的:
 - アカウント管理（管理者のみ）: `http://localhost:8080/users`
 - 勤怠管理（管理者のみ）: `http://localhost:8080/admin/attendances`
 
-## REST API（Lesson8完成例）
+## REST API（Lesson6完成例）
 
 - 管理者ユーザーAPI: `/api/users`
 - 本人の出勤: `POST /api/attendances/clock-in`

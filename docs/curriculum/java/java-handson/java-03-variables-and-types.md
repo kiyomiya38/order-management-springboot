@@ -25,6 +25,30 @@ javac -version
 2. 変数名は lowerCamelCase（例: `orderCount`, `unitPrice`）
 3. 型に合わない値は代入できない
 
+### 変数のイメージ
+
+```mermaid
+flowchart TB
+  subgraph NUMBER["数値のパターン"]
+    direction LR
+    VALUE["数値<br/>1200"] -->|代入する| VARIABLE["int 型の変数 unitPrice<br/>保存中の値：1200"]
+    VARIABLE -->|参照する| USE["保存した数値を<br/>取り出して使う"]
+  end
+
+  subgraph TEXT["文字列のパターン"]
+    direction LR
+    TEXT_VALUE["文字列<br/>Laptop"] -->|代入する| TEXT_VARIABLE["String 型の変数 productName<br/>保存中の値：Laptop"]
+    TEXT_VARIABLE -->|参照する| TEXT_USE["保存した文字列を<br/>取り出して使う"]
+  end
+```
+
+ポイント:
+- 変数は、後で使う値を一時的に保管する箱として考える
+- `int` は整数を保管する型、`String` は文字列を保管する型
+- `unitPrice` や `productName` は変数の名前
+- 値を箱へ入れることが「代入」、箱の値を取り出して使うことが「参照」
+- Javaコードで文字列を代入するときは、`"Laptop"` のように `"` で囲む
+
 ### 書式の基本
 
 #### 変数の宣言
@@ -330,4 +354,3 @@ public class CharEscapeDemo {
   -> 型と代入値が一致しているか確認
 - `integer number too large`
   -> 大きな整数は `long` + `L` を使う
-

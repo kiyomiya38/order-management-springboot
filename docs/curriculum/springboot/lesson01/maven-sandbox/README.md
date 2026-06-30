@@ -1,5 +1,10 @@
 # Maven Sandbox (Lesson1)
 
+> バックエンド短縮コースでの扱い
+>
+> このSandboxは短縮コースでも必修です。Maven操作を確認した後、特に「5. Spring化ハンズオン（DI/MVC理解）」で、ServiceをControllerへコンストラクタ注入する流れを確認します。
+> HTMLテンプレートは提供コードとして指定位置へ配置し、HTML自体の実装は評価対象にしません。既存コード内の説明コメントは削除せず使用します。
+
 この教材は、`pom.xml` と `mvn` コマンドを「なぜ必要か」から理解し、最後にSpringの最小MVCまで動かすためのものです。
 対象は **Java初学者** を想定しています。
 
@@ -297,6 +302,13 @@ mvn clean
 ## 5. Spring化ハンズオン（DI/MVC理解）
 
 ここからは、同じSandboxを使ってSpring最小MVCを動かします。
+
+バックエンド短縮コースの重点:
+
+- `GreetingService` を `new` せず、Controllerのコンストラクタで受け取る
+- `private final` フィールドへ依存を保持する
+- `GET /hello -> Controller -> Service -> Template` の順で処理を追跡する
+- テンプレートは提供コードを配置し、`message` と `${message}` の対応を確認する
 
 ### 5-1. `pom.xml` にThymeleaf依存を追加
 `<dependencies>` に以下を追加します。

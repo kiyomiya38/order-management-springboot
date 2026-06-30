@@ -11,6 +11,12 @@
 - Java 17 / Maven 3.9+ がインストール済み
 - このリポジトリのルートで作業する
 
+バックエンド短縮コースでは、上記の `web-app(簡易版)` 2項目を次へ読み替えます。
+
+- `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` を完了している
+- Lesson1のMaven Sandboxを実行し、Maven操作とコンストラクタ注入（DI）を確認している
+- HTML/CSSは講師提供コードを使用し、指定された配置場所とControllerとの対応を確認する
+
 ## フレームワークとは（初心者向け）
 フレームワークは、アプリ開発の「土台セット」です。  
 画面表示、Web起動、設定、エラーハンドリングなどの共通処理を先に用意してくれているため、開発者は業務ロジックに集中できます。
@@ -87,12 +93,12 @@ flowchart LR
   U[受講者] --> B[ブラウザ]
 
   subgraph PJ[Lesson1の主な構成]
-    APP[AttendanceManagementApplication main + @SpringBootApplication]
-    YML[application.yml]
-    DISP[DispatcherServlet]
-    CTRL[HomeController + @GetMapping(/)]
-    MODEL[Model]
-    VIEW[templates/index.html (Thymeleaf)]
+    APP["AttendanceManagementApplication main + @SpringBootApplication"]
+    YML["application.yml"]
+    DISP["DispatcherServlet"]
+    CTRL["HomeController + @GetMapping('/')"]
+    MODEL["Model"]
+    VIEW["templates/index.html (Thymeleaf)"]
     STATIC["static/styles.css"]
   end
 
@@ -116,7 +122,7 @@ flowchart LR
 - Controller から Template へは `Model`（キーと値）で渡す。
 - `web-app(簡易版)` ではブラウザのJavaScriptが `fetch` でJSON APIを呼び、DOMを更新した。
 - Spring Boot Lesson1〜5では、まずSpring MVCの基本を理解するため、サーバー側でHTMLを作る `Controller + Model + Thymeleaf` を使う。
-- JSON APIは後続の `lesson08` で `@RestController` として扱う。
+- JSON APIは後続の `lesson06` で `@RestController` として扱う。
 - 例:
   ```java
   model.addAttribute("statusLabel", "未出勤");
@@ -522,6 +528,12 @@ public class HomeController {
 ## 9. テンプレート（画面）を作成
 作成ファイル: `~/order-management-springboot/stages/lesson01/src/main/resources/templates/index.html`
 
+バックエンド短縮コース:
+
+- 以下のコードブロック全体を講師提供コードとして使用する
+- `templates/index.html` を受講者自身で作成し、内容と説明コメントを削除せず配置する
+- HTML文法の実装は評価せず、`${workDate}` / `${statusLabel}` / `${startTime}` とControllerの `Model` を対応づける
+
 ```html
 <!doctype html> <!-- HTML5の文書宣言 -->
 <html lang="ja" xmlns:th="http://www.thymeleaf.org"> <!-- lang: 日本語 / xmlns:th: Thymeleaf有効化 -->
@@ -580,6 +592,12 @@ public class HomeController {
 
 ## 10. CSSを作成
 作成ファイル: `~/order-management-springboot/stages/lesson01/src/main/resources/static/styles.css`
+
+バックエンド短縮コース:
+
+- 以下のコードブロック全体を講師提供コードとして使用する
+- `static/styles.css` を受講者自身で作成し、内容と説明コメントを削除せず配置する
+- CSS設計は評価せず、`static` 配下のファイルが `/styles.css` として配信されることを確認する
 
 ```css
 :root { /* 全体で使えるCSS変数 */
@@ -883,6 +901,12 @@ http://localhost:8080/
 1. `web-app(簡易版)` 方式で同じ画面表示を作る場合、どの作業が増えるかを3つ書く
 2. Mavenを使わない場合、依存ライブラリ管理で何がつらいかを1つ書く
 
+バックエンド短縮コースでは、設問1の代わりに次を確認します。
+
+1. `GET /` が `HomeController` へ届き、`templates/index.html` が返るまでを説明する
+2. `model.addAttribute(...)` のキーとHTMLの `${...}` を3組対応づける
+3. Mavenを使わない場合、依存ライブラリ管理で何がつらいかを1つ書く
+
 ---
 
 ## 14. つまずきポイント
@@ -897,3 +921,5 @@ http://localhost:8080/
 ## 15. 時間割目安
 - 午前: Java/Maven導入(60分) / 作成(90分)
 - 午後: 起動・画面確認(60分) / まとめ(30分)
+
+バックエンド短縮コースではHTML/CSSの実装時間を削減し、Maven SandboxのDI確認とControllerからTemplateまでのコード追跡へ時間を配分します。

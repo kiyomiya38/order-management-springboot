@@ -2,6 +2,7 @@
 
 ## 1. この資料のゴール
 - コンストラクタの役割を説明できる
+- `this` が現在のインスタンスを指すことを説明できる
 - `this` と `static` の違いを理解できる
 - クラス変数とインスタンス変数を使い分けできる
 
@@ -22,19 +23,20 @@ javac -version
 
 ## 3. 先に覚えるポイント
 1. コンストラクタは `new` 時に呼ばれる初期化処理
-2. `this` はインスタンス自身、`static` はクラス全体共有
-3. `static` メソッドはインスタンスなしで呼べる
+2. コンストラクタ内の `this` は、いま作っているインスタンス自身を指す
+3. フィールド名と引数名が同じ場合は、`this.name` のように書いてフィールドを区別する
+4. `static` はクラス全体で共有され、`static` メソッドはインスタンスなしで呼べる
 
 ### 全体構成図（constructor / this / static）
 ```mermaid
 flowchart TD
   NEW["new Product"] --> CTOR["コンストラクタ"]
-  CTOR --> OBJ["Product インスタンス"]
+  CTOR --> THIS["this で作成中のインスタンスを指す"]
+  THIS --> OBJ["Product インスタンス"]
   OBJ --> FIELD["name や price はインスタンスごと"]
   CTOR --> COUNT["生成数を増やす"]
   COUNT --> STATIC["createdCount はクラスで共有"]
 
-  THIS["this"] --> FIELD
   UTIL["PriceUtil クラス"] --> SMETHOD["static メソッド"]
   SMETHOD -->|インスタンスなしで呼べる| MAIN["main から利用"]
 ```
@@ -46,7 +48,7 @@ flowchart TD
 
 ### 書式の基本
 
-#### コンストラクタ
+#### コンストラクタと `this`
 
 ```java
 class Product {
@@ -67,6 +69,100 @@ Product p = new Product("Laptop", 120000);
 - コンストラクタには戻り値の型を書かない
 - `new Product(...)` のときにコンストラクタが呼ばれる
 - `this.name` はフィールド、右辺の `name` は引数
+
+コンストラクタと `this` の関係:
+
+```mermaid
+flowchart TD
+  NEW["Product p = new Product(...) を実行"] --> CREATE["新しい Product インスタンスを作る"]
+  CREATE --> CTOR["コンストラクタを実行"]
+  CTOR --> THIS["コンストラクタ内の this<br/>新しく作ったインスタンスを指す"]
+  THIS --> NAME["this.name に Laptop を保存"]
+  THIS --> PRICE["this.price に 120000 を保存"]
+```
+
+ポイント:
+- `this` は「いま作っている、または操作しているインスタンス自身」を表す
+- `new Product(...)` で作成中のインスタンスが、コンストラクタ内では `this` になる
+- `p` は `main` メソッド側の変数名なので、`Product` クラスの中では `p.name` と書かない
+- `this` を使えるのはコンストラクタとインスタンスメソッドであり、`static` メソッドでは使えない
+
+フィールド・引数・ローカル変数の違い:
+
+```java
+class Product {
+    String name; // フィールド
+    int stock; // フィールド
+
+    Product(String name) { // name は引数
+        this.name = name;
+    }
+
+    void addStock(int value) { // value は引数
+        int bonus = 1; // bonus はローカル変数
+        stock += value + bonus;
+    }
+}
+```
+
+| 種類 | 宣言する場所 | 使える範囲 | 例 |
+| --- | --- | --- | --- |
+| フィールド | クラスの中、メソッドやコンストラクタの外 | 各インスタンスが持つ値として使える | `String name;` |
+| 引数 | メソッド名やコンストラクタ名の後ろの `()` の中 | そのメソッドやコンストラクタの中 | `String name` |
+| ローカル変数 | メソッドやコンストラクタ、ブロックの中 | 宣言したブロックの中 | `int bonus = 1;` |
+
+フィールド名と引数名が同じ場合:
+
+```java
+Product(String name, int price) {
+    this.name = name;
+    this.price = price;
+}
+```
+
+- 左辺の `this.name` はフィールド
+- 右辺の `name` はコンストラクタの引数
+- `this` を付けることで、同じ名前を区別できる
+
+`this` を付けない失敗例:
+
+```java
+Product(String name, int price) {
+    name = name;
+    price = price;
+}
+```
+
+この書き方では、左右ともコンストラクタの引数として扱われます。引数へ同じ値を代入するだけなので、インスタンスのフィールドは初期化されません。
+
+`this` が必要な場合・省略できる場合:
+
+| 書き方 | 判定 | 理由 |
+| --- | --- | --- |
+| `this.name = name;` | 必要 | フィールド `name` と引数 `name` を区別する |
+| `price += value;` | 省略できる | 同じ名前の引数やローカル変数がなければ、`price` はフィールドとして扱われる |
+| `this.price += value;` | 書いてもよい | フィールドであることを明示している |
+| `int price = 0; price += value;` | 不適切 | ローカル変数 `price` が更新される |
+| `int price = 0; this.price += value;` | 必要 | フィールド `price` を明示して更新する |
+
+基本ルール:
+- フィールド名と引数名・ローカル変数名が重ならない場合、`this` は省略できる
+- 名前が重なる場合、フィールド側に `this.` を付ける
+- 初学者のうちは、フィールド側に `this.` を付けて読むと、値の保存先を判別しやすい
+
+インスタンスメソッド内の `this`:
+
+```java
+void addStock(int value) {
+    this.stock += value;
+}
+
+p.addStock(3);
+```
+
+- `p.addStock(3)` と呼び出したとき、メソッド内の `this` は `p` が参照するインスタンスを指す
+- 同じ名前の引数やローカル変数がなければ、`this.stock` は `stock` と省略できる
+- Java-09の `point += value;` も、呼び出したインスタンスのフィールドを更新している
 
 #### `static` フィールド
 
@@ -118,7 +214,7 @@ mkdir -p ~/order-management-springboot/practice/java/handson11
 cd ~/order-management-springboot/practice/java/handson11
 ```
 
-### Step 1: コンストラクタで初期化する
+### Step 1: コンストラクタと `this` で初期化する
 `ClassMechanismDemo.java` を次の内容で作成:
 
 ```java
@@ -151,6 +247,11 @@ java ClassMechanismDemo
 Laptop / 120000
 ```
 
+確認ポイント:
+- `new Product("Laptop", 120000)` によってコンストラクタが呼ばれる
+- コンストラクタ内の `this` は、新しく作られた `Product` インスタンスを指す
+- `this.name = name;` は、引数 `name` の値をフィールド `name` へ保存する
+- `this.price = price;` は、引数 `price` の値をフィールド `price` へ保存する
 
 
 ### Step 2: static フィールドを追加する
@@ -238,7 +339,7 @@ Keyboard 税込: 5500
 
 ## 5. ミニ演習（10分）
 ### レベル1（基本）
-1. `Product` に `quantity` を追加し、コンストラクタで初期化する。
+1. `Product` に `quantity` を追加し、同名の引数を使って `this.quantity = quantity;` で初期化する。
 
 期待出力例:
 ```text
@@ -270,6 +371,6 @@ Keyboard quantity: 2
   -> `static` とインスタンス変数の区別を確認
 - `this` を `static` メソッドで使ってしまう
   -> `this` はインスタンスメソッド/コンストラクタのみ
-
-
+- `name = name;` と書いたのにフィールドが初期化されない
+  -> 左辺を `this.name` にして、フィールドと引数を区別する
 

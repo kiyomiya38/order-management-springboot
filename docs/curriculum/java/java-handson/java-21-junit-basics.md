@@ -1,7 +1,5 @@
 # Java-21 ハンズオン: JUnit 5基礎（単体テスト入門）
 
-対応参考資料: `JUnit 5 User Guide`
-
 ## 1. この資料のゴール
 - JUnit 5 で単体テストを実行できる
 - `@Test` / `assertEquals` / `assertThrows` を使い分けできる
@@ -103,7 +101,8 @@ mvn test
 - Maven + JUnitで、実装コードとテストコードを分けて検証する流れを体験する
 
 完了条件:
-- `mvn test` が成功し、3つのテスト（正常2件・異常1件）が通る
+- Step 4で3つのテスト（正常2件・異常1件）が通る
+- Step 5完了後に`mvn test`が成功し、4つのテスト（正常2件・異常2件）が通る
 
 作成ファイル:
 - `~/order-management-springboot/practice/java/handson21/pom.xml`

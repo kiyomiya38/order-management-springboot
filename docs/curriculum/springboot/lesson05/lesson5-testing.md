@@ -1,5 +1,7 @@
 # Lesson5 必修追加テスト（Service削除制約 / Security認可）
 
+この資料は [Lesson5C テスト・プロファイル・参照整合性](./lesson5c-testing-operations.md) から参照する必修追加テストです。
+
 ## 目的
 
 - 勤怠履歴があるユーザーを削除できないことを自動確認する

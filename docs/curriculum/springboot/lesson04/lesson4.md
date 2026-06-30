@@ -9,6 +9,9 @@
 - Lesson3 を完了している
 - `~/order-management-springboot/stages/lesson03` が起動し、出勤/退勤の動作確認が終わっている
 
+バックエンド短縮コースでは、HTML/CSSの差分は講師提供コードを使用します。
+画面コードの実装は評価せず、一覧データの取得、`Model`、Thymeleafの繰り返し表示、DBの値を対応づけます。
+
 ## Lesson4で作るもの
 - 画面:
   - `/`（トップ）
@@ -390,6 +393,12 @@ public class AttendanceController {
 ## 6. 一覧テンプレートを新規作成
 作成ファイル: `~/order-management-springboot/stages/lesson04/src/main/resources/templates/attendances.html`
 
+バックエンド短縮コース:
+
+- 以下のコードブロック全体を講師提供コードとして使用する
+- `templates/attendances.html` を作成し、内容と説明コメントを削除せず配置する
+- `rows` と `th:each` の対応、各列とEntityのフィールドを確認する
+
 新規作成してください。
 
 ```html
@@ -468,6 +477,9 @@ public class AttendanceController {
 ## 7. `index.html` を編集（一覧リンク追加）
 作成ファイル: `~/order-management-springboot/stages/lesson04/src/main/resources/templates/index.html`
 
+バックエンド短縮コースでは、以下のリンクを講師提供差分として反映します。
+HTML文法は評価せず、`/attendances` と `@GetMapping("/attendances")` の対応を確認します。
+
 `<section class="panel">` の末尾付近に以下の1行を追加してください。
 
 ```html
@@ -488,6 +500,8 @@ public class AttendanceController {
 
 Lesson3 の CSS でそのまま表示可能です。  
 追加変更は必須ではありません。
+
+バックエンド短縮コースでもCSSは変更せず、提供済みファイルが `static/styles.css` に存在することだけ確認します。
 
 理解ポイント（3分）:
 - Lesson4でCSSを増やさない理由:
@@ -529,6 +543,38 @@ SELECT * FROM ATTENDANCES ORDER BY WORK_DATE DESC;
 
 5. 画面の一覧と DB の値が一致することを確認
 
+### 11-1. SQL読解演習（バックエンド短縮コース必須）
+
+最初に全件を確認します。
+
+```sql
+SELECT *
+FROM ATTENDANCES
+ORDER BY WORK_DATE DESC;
+```
+
+次に、ユーザー名と勤怠を同時に確認します。
+
+```sql
+SELECT
+    A.ID,
+    U.USERNAME,
+    A.WORK_DATE,
+    A.START_TIME,
+    A.END_TIME,
+    A.STATUS
+FROM ATTENDANCES A
+JOIN USERS U ON U.ID = A.USER_ID
+ORDER BY A.WORK_DATE DESC;
+```
+
+確認ポイント:
+
+1. `ATTENDANCES.USER_ID` と `USERS.ID` が外部キーで対応している
+2. `JOIN` により、勤怠とユーザー名を1つの結果で確認できる
+3. `ORDER BY ... DESC` により、新しい勤務日から並ぶ
+4. 画面の一覧、Entity、SQL結果の同じ1件を対応づける
+
 ---
 
 ## 12. コード確認ポイント
@@ -552,3 +598,5 @@ SELECT * FROM ATTENDANCES ORDER BY WORK_DATE DESC;
 ## 14. 時間割目安
 - 午前: Lesson3コード複製 + 一覧機能追加（90分）
 - 午後: H2確認 + コード読解 + まとめ（120分）
+
+バックエンド短縮コースではHTML作成時間を削減し、H2での `SELECT` / `ORDER BY` / `JOIN` とEntityの対応確認へ時間を配分します。

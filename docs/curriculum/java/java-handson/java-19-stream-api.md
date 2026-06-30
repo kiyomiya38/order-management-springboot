@@ -1,7 +1,5 @@
 ﻿# Java-19 ハンズオン: Stream API
 
-対応参考資料: `Java-19_StreamAPI.pptx`
-
 ## 1. この資料のゴール
 - Stream API の基本（`filter`, `map`, `forEach`）を使える
 - 集計（`count`, `sum`）の簡単な処理を書ける
@@ -54,19 +52,23 @@ cd ~/order-management-springboot/practice/java/handson19
 `StreamApiDemo.java` を次の内容で作成:
 
 ```java
-import java.util.List; // List 利用のための import
+import java.util.List; // List を使うために必要な準備
 
-public class StreamApiDemo { // Stream API 入門クラス
+public class StreamApiDemo { // このプログラム全体をまとめるクラス
     public static void main(String[] args) {
-        List<String> statuses = List.of("PAID", "PENDING", "PAID", "CANCELLED"); // 注文状態一覧
+        List<String> statuses = List.of("PAID", "PENDING", "PAID", "CANCELLED"); // 注文ごとの状態を文字列の一覧として用意
 
-        long paidCount = statuses.stream() // List から Stream を生成
-                .filter(s -> s.equals("PAID")) // PAID だけに絞り込む
-                .count(); // 件数を数える
+        // 次の3行は、読みやすくするために改行しているだけで、; までが1つの文
+        // 行頭の .filter や .count は、前の行の結果に続けて処理を呼び出している
+        // このように . で処理をつなげる書き方をメソッドチェーンと呼ぶ
+        // count() の結果は long 型で返るため、受け取る変数も long にする
+        long paidCount = statuses.stream() // statuses の中身を1件ずつ順番に処理する流れを作る
+                .filter(s -> s.equals("PAID")) // filter は「条件に合うものだけ残す」処理。s は1件分の注文状態
+                .count(); // filter で残ったデータの件数を数える。count() の結果は long 型
 
-        System.out.println("PAID件数: " + paidCount); // 集計結果を表示
-    } // main メソッドの終わり
-} // クラス定義の終わり
+        System.out.println("PAID件数: " + paidCount); // 数えた PAID の件数を画面に表示する
+    } // main メソッドの処理はここまで
+} // StreamApiDemo クラスの定義はここまで
 ```
 
 実行:
@@ -86,17 +88,17 @@ PAID件数: 2
 `StreamApiDemo.java` を次の内容に更新:
 
 ```java
-import java.util.List; // List 利用のための import
+import java.util.List; // List を使うために必要な準備
 
-public class StreamApiDemo { // map と forEach の利用例
+public class StreamApiDemo { // このプログラム全体をまとめるクラス
     public static void main(String[] args) {
-        List<String> orderCodes = List.of("ord-001", "ord-002", "ord-003"); // 小文字コード一覧
+        List<String> orderCodes = List.of("ord-001", "ord-002", "ord-003"); // 小文字の注文コードを文字列の一覧として用意
 
-        orderCodes.stream() // Stream を生成
-                .map(String::toUpperCase) // 各要素を大文字へ変換
-                .forEach(code -> System.out.println("注文コード: " + code)); // 変換後要素を1件ずつ表示
-    } // main メソッドの終わり
-} // クラス定義の終わり
+        orderCodes.stream() // orderCodes の中身を1件ずつ順番に処理する流れを作る
+                .map(String::toUpperCase) // map は「別の値に変換する」処理。各注文コードを大文字に変換する
+                .forEach(code -> System.out.println("注文コード: " + code)); // forEach は残った値を1件ずつ取り出して処理する。code は1件分の注文コード
+    } // main メソッドの処理はここまで
+} // StreamApiDemo クラスの定義はここまで
 ```
 
 実行:
@@ -118,20 +120,21 @@ java StreamApiDemo
 `StreamApiDemo.java` を次の内容に更新:
 
 ```java
-import java.util.List; // List 利用のための import
+import java.util.List; // List を使うために必要な準備
 
-public class StreamApiDemo { // 数値集計の利用例
+public class StreamApiDemo { // このプログラム全体をまとめるクラス
     public static void main(String[] args) {
-        List<Integer> amounts = List.of(1200, 3000, 800, 4500); // 金額一覧
+        List<Integer> amounts = List.of(1200, 3000, 800, 4500); // 注文金額を数値の一覧として用意
 
-        int total = amounts.stream() // Stream を生成
-                .filter(a -> a >= 1000) // 1000円以上に絞り込む
-                .mapToInt(Integer::intValue) // IntStream へ変換
-                .sum(); // 合計値を計算
+        // sum() の結果は int 型で返るため、受け取る変数も int にする
+        int total = amounts.stream() // amounts の中身を1件ずつ順番に処理する流れを作る
+                .filter(a -> a >= 1000) // filter は「条件に合うものだけ残す」処理。a は1件分の注文金額
+                .mapToInt(Integer::intValue) // mapToInt は合計できる数値用の流れに変換する処理
+                .sum(); // mapToInt で変換した数値をすべて足し合わせる。sum() の結果は int 型
 
-        System.out.println("1000円以上の合計: " + total); // 集計結果を表示
-    } // main メソッドの終わり
-} // クラス定義の終わり
+        System.out.println("1000円以上の合計: " + total); // 計算した合計金額を画面に表示する
+    } // main メソッドの処理はここまで
+} // StreamApiDemo クラスの定義はここまで
 ```
 
 実行:
@@ -185,6 +188,3 @@ ORD-3
   -> `map` と `mapToInt` の違いを確認
 - 処理が読みづらい
   -> 1行1処理（filter/map/sum）で改行して書く
-
-
-

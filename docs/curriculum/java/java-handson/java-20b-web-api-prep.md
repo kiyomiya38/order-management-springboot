@@ -1,12 +1,10 @@
 ﻿# Java-20B 補講: Web API前準備（HttpServer + POST + MessageStore）
 
-対応参考資料: Lesson0前補講
-
 ## 1. この資料のゴール
 - `HttpServer` で `GET` / `POST` を受け分けできる
 - HTTPステータス（`200` / `201` / `400` / `404` / `405`）を返す場面を説明できる
 - `Files.exists` / `Files.readAllBytes` で静的ファイルを返せる
-- `AtomicLong` / `synchronized` を、Lesson0の `MessageStore` を読むための最小範囲で理解する
+- `AtomicLong` / `synchronized` を、`web-app(簡易版)` Lesson2の `MessageStore` を読むための最小範囲で理解する
 
 ---
 
@@ -19,7 +17,7 @@ javac -version
 
 期待状態:
 - `java -version` と `javac -version` の両方で `17` が表示される
-- Java-18〜20の内容を実施済み
+- Java-18〜20およびJava-20Aの内容を実施済み
 - `curl` をGit Bashで実行できる
 
 ---
@@ -45,14 +43,14 @@ javac -version
 補足:
 - この補講では、JSONを正規表現で最小限だけ取り出します。
 - 実務では Jackson などのJSONライブラリを使うことが多いです。
-- `AtomicLong` / `synchronized` は詳しい並行処理ではなく、Lesson0のコードを読むための最小説明です。
+- `AtomicLong` / `synchronized` は詳しい並行処理ではなく、`web-app(簡易版)` Lesson2のコードを読むための最小説明です。
 
 ---
 
 ## 4. ハンズオン
 
 目的:
-- Lesson0の `App.java` より小さいコードで、Web APIの入口処理を確認する
+- `web-app(簡易版)` Lesson2のJavaコードより小さい構成で、Web APIの入口処理を確認する
 
 完了条件:
 - `GET /api/health`、`GET /api/messages`、`POST /api/messages` を `curl` で確認できる
@@ -103,7 +101,7 @@ import java.util.concurrent.atomic.AtomicLong; // 連番IDカウンタ
 import java.util.regex.Matcher; // 正規表現の検索結果
 import java.util.regex.Pattern; // 正規表現パターン
 
-public class WebApiPrepDemo { // Lesson0前のWeb API確認クラス
+public class WebApiPrepDemo { // WebアプリLesson2前のWeb API確認クラス
     private static final int PORT = 8091; // 待受ポート
     private static final Path STATIC_DIR = Path.of("static"); // 静的ファイル置き場
     private static final Pattern NAME_PATTERN = Pattern.compile("\"name\"\\s*:\\s*\"(.*?)\""); // JSONのname抽出

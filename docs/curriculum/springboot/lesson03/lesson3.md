@@ -10,6 +10,9 @@
 - Lesson2 を完了している
 - `~/order-management-springboot/stages/lesson02` のアプリが起動・動作確認できている
 
+バックエンド短縮コースでは、HTML/CSSの差分は講師提供コードを使用します。
+受講者は提供コードを内容や説明コメントを削らず配置し、Controllerが設定する状態と画面表示条件を対応づけます。
+
 ## Lesson3で作るもの
 - 画面: `/`
 - 機能:
@@ -296,6 +299,18 @@ public class AttendanceService {
 
 ---
 
+## 2.5 Lesson2のServiceテストを再実行
+
+退勤処理を追加した後も、Lesson2で作成した「二重出勤禁止」のテストが成功することを確認します。
+
+```bash
+mvn -Dtest=AttendanceServiceTest test
+```
+
+この時点ではテストを増やしません。既存機能を壊していないことを先に確認し、Lesson5Cで状態遷移テストを発展させます。
+
+---
+
 ## 3. `HomeController` を編集（退勤エンドポイント追加）
 作成ファイル: `~/order-management-springboot/stages/lesson03/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 
@@ -439,6 +454,12 @@ public class HomeController {
 ## 4. `index.html` を編集（退勤ボタン表示）
 作成ファイル: `~/order-management-springboot/stages/lesson03/src/main/resources/templates/index.html`
 
+バックエンド短縮コース:
+
+- 以下の完成コードを講師提供コードとして使用する
+- 既存ファイルを完成コードへ更新し、説明コメントを含めて内容を削除しない
+- `canClockIn` / `canClockOut` と `th:if` の対応、`POST /clock-out` の送信先を確認する
+
 全文を以下に置き換えてください。
 
 ```html
@@ -520,6 +541,9 @@ public class HomeController {
 
 ## 5. `styles.css` を編集（退勤ボタン用クラス）
 作成ファイル: `~/order-management-springboot/stages/lesson03/src/main/resources/static/styles.css`
+
+バックエンド短縮コースでは、以下のCSS差分を提供コードとして反映します。
+CSS文法は評価せず、`class="danger"` と表示結果の対応だけ確認します。既存の説明コメントは削除しません。
 
 `styles.css` に以下を追加。
 
@@ -720,3 +744,5 @@ mvn spring-boot:run
 ## 11. 時間割目安
 - 午前: Lesson2コードの複製と差分実装（90分）
 - 午後: 業務ルール検証（60分）+ ログ比較演習（45分）+ コード確認（15分）+ まとめ（30分）
+
+バックエンド短縮コースではHTML/CSS編集時間を削減し、状態遷移、業務例外、ログレベルの比較へ時間を配分します。

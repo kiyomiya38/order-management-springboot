@@ -1,1 +1,4 @@
+com\shinesoft\attendance\web\api\ApiSecurityTest.class
+com\shinesoft\attendance\service\UserServiceTest.class
 com\shinesoft\attendance\service\AttendanceServiceTest.class
+com\shinesoft\attendance\web\SecurityAccessTest.class

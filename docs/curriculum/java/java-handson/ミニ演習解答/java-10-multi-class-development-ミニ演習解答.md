@@ -1,6 +1,6 @@
-# Java-09 ミニ演習解答
+# Java-10 ミニ演習解答
 
-対象資料: `docs/curriculum/java/java-handson/java-09-multi-class-development.md`
+対象資料: `docs/curriculum/java/java-handson/java-10-multi-class-development.md`
 
 ## レベル1（基本）解答
 `OrderCalculator` に送料込みメソッドを追加:

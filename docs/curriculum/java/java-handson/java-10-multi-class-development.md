@@ -1,4 +1,6 @@
-﻿# Java-09 ハンズオン: 複数クラスを用いた開発
+﻿# Java-10 ハンズオン: 複数クラスを用いた開発
+
+前章とのつながり: [Java-09 インスタンスとクラス](./java-09-instances-and-classes.md) では、クラスからインスタンスを作り、フィールドとメソッドを使う方法を学んだ。この章では、クラスを役割ごとのファイルへ分けて連携させる。
 
 ## 1. この資料のゴール
 - クラスを責務ごとに分割できる
@@ -25,7 +27,37 @@ javac -version
 2. 同一パッケージなら `import` なしで相互参照できる
 3. 別パッケージを使うときは `package` と `import` を揃える
 
-### 全体構成図（クラスと役割）
+### クラスを役割ごとに分ける
+
+前章では、1つのクラスからインスタンスを作る方法を学びました。
+この章では、オブジェクト指向の考え方を使い、プログラムを役割ごとのクラスに分けて組み合わせます。
+
+注文処理を1つのクラスだけに書くと、注文データ、金額計算、画面表示など、異なる役割のコードが同じ場所に集まります。
+小さなプログラムでは動かせますが、機能が増えると「どこを変更すればよいか」が分かりにくくなります。
+
+そこで、この章では次の3つに役割を分けます。
+
+- `OrderItem`: 注文データを持つ
+- `OrderCalculator`: 注文金額を計算する
+- `OrderApp`: 必要な部品を使って、処理全体を進める
+
+```mermaid
+flowchart TB
+  APP["OrderApp<br/>処理全体を進める"]
+  ITEM["OrderItem<br/>注文データを持つ"]
+  CALC["OrderCalculator<br/>金額を計算する"]
+
+  APP -->|注文データを使う| ITEM
+  APP -->|計算を依頼する| CALC
+  CALC -->|計算に必要な値を参照する| ITEM
+```
+
+このように役割を分けると、計算ルールを変更するときは主に `OrderCalculator` を確認すればよくなります。
+すべてを細かく分ければよいわけではなく、「何を担当するクラスか」を説明できる単位で分けることが重要です。
+
+この章では、前章で学んだクラスとインスタンスを使い、複数クラスを連携させるところまでを体験します。
+
+### この章で作る構成図（クラスと役割）
 ```mermaid
 flowchart LR
   subgraph APP[app パッケージ]
@@ -182,63 +214,16 @@ java -cp out app.OrderApp
 - `OrderItem` / `OrderCalculator` / `OrderApp` の3クラスで実行できる
 
 補足（学習順）:
-- この章では複数クラス連携を体験するため、`new` によるインスタンス生成を先に使う
-- この時点では、インスタンスを「データを入れる実体」程度に理解できればよい
-- インスタンスの概念（設計図と実体、複数インスタンスの独立、`this`）は次章 [Java-10 インスタンスとクラス](./java-10-instances-and-classes.md) で詳しく扱う
+- [Java-09 インスタンスとクラス](./java-09-instances-and-classes.md) で学んだ `new`、フィールド、インスタンスメソッドを使用する
+- この章では、クラスの基本説明を繰り返さず、責務分割・複数ファイル・パッケージへ進む
 
-この章での仮理解:
-- `new OrderItem()` は、注文データを入れる実体を作る
-- `OrderItem item` は、その実体を参照する変数を用意する
-- `item.quantity` は、`item` が参照している実体の中の `quantity` を指す
-- `calculator.calcSubtotal(item)` は、注文データ1件分を計算メソッドに渡す
-- `new` の詳しい意味は、次章で「クラスは設計図 / インスタンスは実体」として整理する
-
-作成フォルダ: `~/order-management-springboot/practice/java/handson09`
+作成フォルダ: `~/order-management-springboot/practice/java/handson10`
 
 ### Step 0: 作業フォルダを作る
 ```bash
-mkdir -p ~/order-management-springboot/practice/java/handson09
-cd ~/order-management-springboot/practice/java/handson09
+mkdir -p ~/order-management-springboot/practice/java/handson10
+cd ~/order-management-springboot/practice/java/handson10
 ```
-
-### Step 0.5: new と自作クラス型の最小確認（1ファイル版）
-作成ファイル: `InstanceWarmup.java`
-
-```java
-class OrderItemLite { // 練習用の最小データクラス
-    String productName;
-    int quantity;
-    int unitPrice;
-}
-
-public class InstanceWarmup {
-    public static void main(String[] args) {
-        OrderItemLite item = new OrderItemLite(); // 左辺は「型 + 変数名」、右辺の new で実体（インスタンス）を作る
-        item.productName = "WarmupItem"; // インスタンスの中のフィールドへ値を設定
-        item.quantity = 1;
-        item.unitPrice = 500;
-
-        System.out.println(item.productName + " / " + item.quantity + " / " + item.unitPrice);
-    }
-}
-```
-
-実行:
-```bash
-javac -encoding UTF-8 InstanceWarmup.java
-java InstanceWarmup
-```
-
-期待出力例:
-```text
-WarmupItem / 1 / 500
-```
-
-ここで確認したいこと:
-- `class OrderItemLite` を作ったので、`OrderItemLite item` のように `OrderItemLite` を型として使える
-- `OrderItemLite item` は「OrderItemLite型の変数 item」
-- `new OrderItemLite()` は、`OrderItemLite` の実体を作る処理
-- `item.productName` は、`item` が参照している実体の中の `productName` フィールドを指す
 
 ### Step 1: データクラスを作る
 作成ファイル: `OrderItem.java`
@@ -332,6 +317,12 @@ java OrderApp
 ```text
 Laptop 小計: 240000
 ```
+
+### 中間チェック: 3クラスの責務
+
+- `OrderItem`がデータ、`OrderCalculator`が計算、`OrderApp`が実行を担当すると説明できる
+- `javac`へ3つのJavaファイルを渡す理由を説明できる
+- ここまでを講師へ説明してから、packageとimportへ進む
 
 ### Step 4: package と import を使って実行する（仕上げ）
 ここまでは、`OrderItem.java` / `OrderCalculator.java` / `OrderApp.java` を同じフォルダに置き、`package` 宣言なしで実行しました。
@@ -546,4 +537,3 @@ Laptop 小計: 240000
   -> `package` 宣言とフォルダ階層を一致させる
 - `import` したのにコンパイルできない
   -> `import` はファイルを読み込まないため、必要な `.java` も `javac` に渡す
-

@@ -1,392 +1,341 @@
-# Spring Boot コンテナ化演習（App + MariaDB / Docker Compose）
+# Lesson7 FlywayでDBスキーマ変更管理（Migration運用）
 
-## 目的
-- `~/order-management-springboot/stages/lesson09` のアプリを、受講生自身でコンテナ化できるようになる
-- `app` コンテナ + `db`（MariaDB）コンテナの2コンテナ構成を作成する
-- `Dockerfile` / `docker-compose.yml` / `.dockerignore` を自分で作成し、`docker compose up -d` で起動できるようにする
-- DBデータを Docker Volume で永続化する
+## 目的（Lesson7でできるようになること）
+- `ddl-auto: update` 依存をやめ、Flywayでスキーマを管理できる
+- SQLを `V1__`, `V2__` の履歴として積み上げられる
+- 起動時に `flyway_schema_history` で適用履歴を確認できる
+- 「開発者ごとの差分」ではなく「共通履歴」でDBを再現できる
 
-この演習はローカル環境で行います（HTTPSは扱いません）。
+## 前提
+- Lesson6 を完了している
+- `~/order-management-springboot/stages/lesson06` が起動できる
+- `java -version` と `mvn -version` が通る
+- `docs/curriculum/springboot/lesson02/sql-rdb-basics.md` の主キー、外部キー、制約、インデックスを説明できる
 
-## この演習で作るもの
-- 構成:
-  - `app`（Spring Boot）コンテナ
-  - `db`（MariaDB）コンテナ
-  - `db_data`（永続化Volume）
-- 接続:
-  - ブラウザ -> `http://localhost:8080/login`
-  - `app` -> `db:3306`（Compose内部ネットワーク）
-- 運用要素:
-  - `Dockerfile`（マルチステージビルド）
-  - `docker-compose.yml`（依存・環境変数・ヘルスチェック）
-  - 再起動後もDBデータが残ることの確認
+## Lesson7で作るもの
+- 追加/編集:
+  - `pom.xml`（Flyway依存追加）
+  - `application.yml`（`ddl-auto: validate` へ変更）
+  - `db/migration/V1__create_tables.sql`
+  - `db/migration/V2__add_index_to_attendance_work_date.sql`
+- 確認:
+  - Flyway履歴テーブル `flyway_schema_history`
+  - 既存画面/APIがそのまま動くこと
 
-### 全体構成図（コンテナと通信経路）
+### 全体構成図（起動時の適用順）
 ```mermaid
 flowchart LR
-  subgraph HOST[ローカルPC]
-    DEV[ブラウザ / ターミナル]
-    SRC[ソースコード]
-    DC[Docker Compose]
-  end
-
-  subgraph DOCKER[Docker Engine]
-    APP[app コンテナ\nSpring Boot :8080]
-    DB[db コンテナ\nMariaDB :3306]
-    VOL[(db_data volume)]
-  end
-
-  SRC -->|docker build| APP
-  DEV -->|HTTP localhost:8080| APP
-  APP -->|JDBC db:3306| DB
-  DB --> VOL
-  DC --> APP
-  DC --> DB
+  APP[Spring Boot起動] --> FLY[Flyway]
+  FLY --> V1[V1 create tables]
+  FLY --> V2[V2 add work_date index]
+  V1 --> DB[(H2 DB)]
+  V2 --> DB
+  DB --> JPA[JPA validate]
+  JPA --> WEB[Web/API起動]
 ```
 
-### 設定受け渡し最小メモ（JSONは未使用）
-- この演習は API の JSON ではなく、Compose設定と環境変数で接続情報を渡す。
-- 主要な受け渡し:
-  - `Dockerfile`（ビルド手順）
-  - `docker-compose.yml`（起動構成・依存関係・ポート・環境変数）
-  - `DB_URL` / `DB_USER` / `DB_PASSWORD` / `DB_DRIVER`（app -> db接続設定）
-  - `db_data` volume（DBデータ永続化）
-- 例（Compose環境変数）:
-  ```yaml
-  DB_URL: jdbc:mariadb://db:3306/attendance?useUnicode=true&characterEncoding=utf8
-  DB_USER: attendance_app
-  DB_PASSWORD: ${MARIADB_PASSWORD}
-  DB_DRIVER: org.mariadb.jdbc.Driver
-  ```
+### 設定受け渡し最小メモ（このLessonで使用）
+- `spring.jpa.hibernate.ddl-auto=validate`
+  - エンティティとDB差分を検出する
+  - テーブルを自動で作らない
+- `spring.flyway.enabled=true`
+  - 起動時に `db/migration` 配下SQLを適用する
+- `flyway_schema_history`
+  - どのバージョンが成功したかをDB内で管理する履歴テーブル
 
-### ビルドからログイン画面表示まで（正常系の時系列）
+### 起動からマイグレーション適用まで（正常系）
 ```mermaid
 sequenceDiagram
-  participant User as 受講者
-  participant CLI as docker compose
-  participant Build as Docker Build
-  participant App as appコンテナ
-  participant Db as dbコンテナ
-  participant Vol as db_data volume
-  participant Browser as ブラウザ
+  participant Dev as 開発者
+  participant App as Spring Boot
+  participant Flyway as Flyway
+  participant DB as H2
+  participant JPA as Hibernate
 
-  User->>CLI: docker compose config
-  CLI-->>User: 構文OK
-
-  User->>CLI: docker compose up -d --build
-  CLI->>Build: Dockerfileでappイメージ作成
-  Build-->>CLI: build完了
-  CLI->>Db: db起動
-  Db->>Vol: DBデータ領域をマウント
-  Db-->>CLI: healthy
-  CLI->>App: app起動（depends_on: db healthy）
-  App->>Db: JDBC接続
-  Db-->>App: 接続成功
-
-  User->>Browser: http://localhost:8080/login
-  Browser->>App: GET /login
-  App-->>Browser: 200 login画面
+  Dev->>App: mvn spring-boot:run
+  App->>Flyway: migrate 実行
+  Flyway->>DB: V1 実行（CREATE TABLE）
+  DB-->>Flyway: success
+  Flyway->>DB: V2 実行（work_date用CREATE INDEX）
+  DB-->>Flyway: success
+  Flyway->>DB: flyway_schema_history を更新
+  Flyway-->>App: migrate success
+  App->>JPA: ddl-auto validate
+  JPA-->>App: validation success
+  App-->>Dev: アプリ起動完了
 ```
 
-### 起動・疎通の異常系分岐（manifest / DB接続 / ポート競合）
+### 適用失敗時の分岐（checksum / SQL文法 / validate失敗）
 ```mermaid
 flowchart TD
-  A[docker compose up -d --build] --> B{app は Up か}
-  B -->|いいえ| C{ログに manifest エラーか}
-  C -->|はい| E1[POMのrepackage実行設定漏れ]
-  C -->|いいえ| D{DB接続エラーか}
-  D -->|はい| E2[MariaDBドライバ or DB環境変数不一致]
-  D -->|いいえ| E3[その他起動エラーをlogsで調査]
-
-  B -->|はい| F{localhost:8080/login 応答するか}
-  F -->|いいえ| G{app再起動ループ or ポート競合か}
-  G -->|はい| E4[compose ps / logs で原因切り分け]
-  G -->|いいえ| E5[ネットワーク設定確認]
-
-  F -->|はい| H{再起動後もデータ残るか}
-  H -->|いいえ| E6[down -v 実行やvolume設定ミス]
-  H -->|はい| OK[完了条件達成]
+  A[起動] --> M{Flyway migrate成功か}
+  M -->|いいえ| E1[起動失敗]
+  E1 --> P1{原因}
+  P1 -->|SQL文法エラー| C1[SQL修正]
+  P1 -->|checksum不一致| C2[履歴確認し再作成方針を決定]
+  M -->|はい| V{JPA validate成功か}
+  V -->|いいえ| E2[起動失敗: EntityとDB不整合]
+  V -->|はい| OK[起動成功]
 ```
 
 ---
 
-## 1. 構成
-
-### 1-1. コンテナ構成
-| サービス | 役割 | コンテナ名 | ポート |
-|---|---|---|---|
-| app | Spring Bootアプリ | `app` | `8080:8080` |
-| db | MariaDB | `db` | 外部公開なし（内部3306） |
-
-### 1-2. 接続イメージ
-1. ブラウザ -> `http://localhost:8080/login`
-2. `app` -> `db:3306`（Compose内部ネットワーク）
-3. DBデータは `db_data` volume に永続化
-
----
-
-## 2. 事前準備（ローカルPC側）
-
-### 2-1. 前提コマンド確認
+## 0. 事前確認
 ```bash
-docker -v
-docker compose version
+java -version
+mvn -version
+git --version
 ```
-
-### 2-2. 作業フォルダへ移動
-```bash
-cd ~/order-management-springboot/stages/lesson09
-pwd
-ls
-```
-
-期待:
-- `pom.xml`, `src` が見える
-- `Dockerfile`, `docker-compose.yml`, `.dockerignore` はこのLessonで新規作成する
 
 ---
 
-## 3. ファイル作成・編集（受講生作業）
+## 1. 作業フォルダを準備（Lesson6を複製）
+```bash
+mkdir -p ~/order-management-springboot/stages/lesson07
+cp -r ~/order-management-springboot/stages/lesson06/* ~/order-management-springboot/stages/lesson07/
+cd ~/order-management-springboot/stages/lesson07
+```
 
-### 3-1. `pom.xml` に MariaDB JDBC ドライバを追加
-対象: `~/order-management-springboot/stages/lesson09/pom.xml`
+---
 
-次の依存が無い場合だけ `<dependencies>` に追加します。重複追加はしません。
+## 2. `pom.xml` を編集（Flyway依存を追加）
+編集ファイル:
+- `~/order-management-springboot/stages/lesson07/pom.xml`
+
+`<dependencies>` に以下を追記:
 
 ```xml
 <dependency>
-  <groupId>org.mariadb.jdbc</groupId>
-  <artifactId>mariadb-java-client</artifactId>
-  <scope>runtime</scope>
+  <groupId>org.flywaydb</groupId>
+  <artifactId>flyway-core</artifactId>
+</dependency>
+<dependency>
+  <groupId>org.flywaydb</groupId>
+  <artifactId>flyway-mysql</artifactId>
 </dependency>
 ```
 
-補足:
-- H2依存は残して問題ありません（ローカル学習用）
+- H2でのLesson7実行は `flyway-core` が担当します。
+- 後続のMariaDB環境演習では `flyway-mysql` が必要です。Lesson7の成果物をVirtualBoxまたはDocker Composeの環境演習へ渡すため、この時点で追加します。
 
-### 3-2. `Dockerfile` を作成（マルチステージ）
-対象: `~/order-management-springboot/stages/lesson09/Dockerfile`
-
-```dockerfile
-FROM maven:3.9.9-eclipse-temurin-17 AS build
-WORKDIR /workspace
-
-COPY pom.xml ./
-COPY src ./src
-
-RUN mvn -B clean verify
-
-FROM eclipse-temurin:17-jre
-WORKDIR /app
-
-COPY --from=build /workspace/target/attendance-management-0.0.1-SNAPSHOT.jar ./app.jar
-
-EXPOSE 8080
-USER 10001
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+確認:
+```bash
+cd ~/order-management-springboot/stages/lesson07
+mvn -q -DskipTests compile
 ```
 
-`ENTRYPOINT` はシェルを介さずJVMを直接起動します。ヒープサイズなどを追加する場合は、Composeの環境変数 `JAVA_TOOL_OPTIONS` を使用します。
+---
 
-### 3-3. `docker-compose.yml` を作成
-対象: `~/order-management-springboot/stages/lesson09/docker-compose.yml`
+## 3. `application.yml` を編集（Flyway運用モードへ）
+編集ファイル:
+- `~/order-management-springboot/stages/lesson07/src/main/resources/application.yml`
 
+変更ポイント:
+1. `spring.jpa.hibernate.ddl-auto` を `update` -> `validate` に変更
+2. `spring.flyway` 設定を追加
+
+例:
 ```yaml
-services:
-  db:
-    image: mariadb:11.4
-    container_name: db
-    environment:
-      MARIADB_DATABASE: ${MARIADB_DATABASE:-attendance}
-      MARIADB_USER: ${MARIADB_USER:-attendance_app}
-      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$${MARIADB_ROOT_PASSWORD} --silent"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    restart: unless-stopped
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: app
-    depends_on:
-      db:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
-    environment:
-      APP_NAME: attendance-container
-      LOG_LEVEL: INFO
-      SPRING_PROFILES_ACTIVE: prod
-      SERVER_PORT: 8080
-      SERVER_ADDRESS: 0.0.0.0
-      DB_URL: jdbc:mariadb://db:3306/${MARIADB_DATABASE:-attendance}?useUnicode=true&characterEncoding=utf8
-      DB_USER: ${MARIADB_USER:-attendance_app}
-      DB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
-      DB_DRIVER: org.mariadb.jdbc.Driver
-      SHOW_SQL: "false"
-      # 研修環境だけ初期ユーザーを投入する
-      APP_SEED_ENABLED: "true"
-      APP_SEED_ADMIN_PASSWORD: ${APP_SEED_ADMIN_PASSWORD:?Set APP_SEED_ADMIN_PASSWORD in .env}
-      APP_SEED_USER_PASSWORD: ${APP_SEED_USER_PASSWORD:?Set APP_SEED_USER_PASSWORD in .env}
-    read_only: true
-    tmpfs:
-      - /tmp
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-
-volumes:
-  db_data:
+spring:
+  datasource:
+    # 履歴を再起動後も残し、後続のMariaDB演習とDDLを揃える
+    url: ${DB_URL:jdbc:h2:file:./data/attendance;MODE=MariaDB}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: ${SHOW_SQL:false}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 ```
 
-### 3-4. `.dockerignore` を作成
+`lesson07/data` は実行時DBなのでGit管理しません。`lesson07/.gitignore` に次を追加します。
 
-対象: `~/order-management-springboot/stages/lesson09/.dockerignore`
-
-```dockerignore
-.git
-target
-data
-.env
-```
-
-Lesson9で使用したH2ファイルDBをイメージへ含めず、コンテナではMariaDBだけを使用します。
-
-### 3-5. `.env` を作成
-
-`docker-compose.yml` と同じフォルダに `.env` を作成します。実際の値へ置き換え、Gitへコミットしません。
-
-```dotenv
-MARIADB_DATABASE=attendance
-MARIADB_USER=attendance_app
-MARIADB_PASSWORD=replace-with-training-db-password
-MARIADB_ROOT_PASSWORD=replace-with-training-root-password
-APP_SEED_ADMIN_PASSWORD=replace-with-training-admin-password
-APP_SEED_USER_PASSWORD=replace-with-training-user-password
+```gitignore
+data/
 ```
 
 ---
 
-## 4. ビルド・起動
+## 4. マイグレーションSQLを作成
 
-### 4-1. 構文チェック
+この章へ進む前に、`sql-rdb-basics.md` のEntityとテーブルの対応を見直します。
+ここでは既存SQLや説明コメントを削除せず、JPAが自動生成していたテーブルをFlywayのSQLとして明示的に管理します。
+
+作成ディレクトリ:
 ```bash
-docker compose config
+mkdir -p ~/order-management-springboot/stages/lesson07/src/main/resources/db/migration
 ```
 
-### 4-2. イメージビルド + 起動
-```bash
-docker compose up -d --build
-docker compose ps
+作成ファイル:
+- `~/order-management-springboot/stages/lesson07/src/main/resources/db/migration/V1__create_tables.sql`
+- `~/order-management-springboot/stages/lesson07/src/main/resources/db/migration/V2__add_index_to_attendance_work_date.sql`
+
+`V1__create_tables.sql`:
+```sql
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE attendances (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    work_date DATE NOT NULL,
+    start_time TIMESTAMP,
+    end_time TIMESTAMP,
+    status VARCHAR(32) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    CONSTRAINT fk_attendances_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT uk_attendances_user_work_date UNIQUE (user_id, work_date)
+);
 ```
 
-期待:
-- `db` が `healthy`
-- `app` が `Up`
+`V2__add_index_to_attendance_work_date.sql`:
+```sql
+CREATE INDEX idx_attendances_work_date
+    ON attendances(work_date);
+```
 
-### 4-3. ログ確認
+`(user_id, work_date)` はV1の一意制約ですでに索引化されます。V2では同じ索引を重複させず、管理者向け全件一覧の勤務日検索・並び替えを補助する `work_date` 索引を追加します。
+
+---
+
+## 5. 起動
 ```bash
-docker compose logs -f app
+cd ~/order-management-springboot/stages/lesson07
+mvn clean spring-boot:run
+```
+
+起動ログで以下のような出力が出ることを確認:
+- `Successfully applied 2 migrations`
+
+---
+
+## 6. 動作確認（必須）
+1. H2コンソールを開く
+- `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:file:./data/attendance;MODE=MariaDB`
+- User: `sa`
+
+2. SQLを実行して履歴を確認:
+```sql
+SELECT installed_rank, version, description, success
+FROM flyway_schema_history
+ORDER BY installed_rank;
+```
+
+期待出力例:
+```text
+1 / 1 / create tables / true
+2 / 2 / add index to attendance work date / true
+```
+
+3. アプリ動作確認:
+```bash
+curl -i -u admin:admin123 http://localhost:8080/api/users
+```
+- `200` でJSONが返ること
+
+---
+
+## 7. マイグレーション失敗を再現する（必須）
+
+一度成功したV1を変更するとchecksum不一致で起動できないことを確認します。
+
+1. アプリを停止する
+2. V1をバックアップする
+
+```bash
+cp src/main/resources/db/migration/V1__create_tables.sql /tmp/V1__create_tables.sql
+```
+
+3. V1の末尾にコメント `-- checksum test` を追加する
+4. 再起動し、`Validate failed` または `checksum mismatch` で失敗することを確認する
+5. V1を元に戻して再起動する
+
+```bash
+cp /tmp/V1__create_tables.sql src/main/resources/db/migration/V1__create_tables.sql
+mvn spring-boot:run
+```
+
+確認ポイント:
+- 適用済みmigrationを後から編集してはいけない
+- 変更は新しい `V3__...sql` として追加する
+- 学習中にDBを完全初期化する場合だけ、アプリ停止後に `data/` を削除してV1から再適用する
+
+---
+
+## 8. Flyway履歴の自動テスト（必須）
+
+作成ファイル:
+- `~/order-management-springboot/stages/lesson07/src/test/java/com/shinesoft/attendance/MigrationSmokeTest.java`
+
+```java
+package com.shinesoft.attendance;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+@SpringBootTest
+class MigrationSmokeTest {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Test
+    void twoMigrationsAreApplied() {
+        Integer count = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM flyway_schema_history WHERE success = TRUE",
+            Integer.class);
+        assertEquals(2, count);
+    }
+}
+```
+
+```bash
+mvn test
 ```
 
 ---
 
-## 5. 動作確認
-
-### 5-1. HTTP応答確認
-```bash
-curl -I http://localhost:8080/login
-```
-
-### 5-2. ブラウザ確認
-`http://localhost:8080/login` を開き、ログイン画面が表示されることを確認。
+## 9. 変更の反映ルール（実務での基本）
+1. 既存の `V1` / `V2` は書き換えない（履歴固定）
+2. 変更が必要なら `V3__...sql` を追加する
+3. 失敗時はログと `flyway_schema_history` を見て原因を切り分ける
 
 ---
 
-## 6. 永続化確認（重要）
-
-### 6-1. DBデータ作成
-画面操作でユーザー追加など、何らかのデータを登録。
-
-### 6-2. コンテナ再作成後も残るか確認
-```bash
-docker compose down
-docker compose up -d
-```
-
-再度画面を開き、登録データが残っていれば `db_data` 永続化は成功。
-
-補足:
-- `docker compose down -v` は volume を削除するため、データは消えます。
+## 10. コード確認ポイント
+1. `ddl-auto: validate` の役割（自動生成しない）
+2. Flywayが「アプリ起動前」にスキーマを整える意味
+3. `V1` から順番に適用されるバージョン管理の価値
 
 ---
 
-## 7. トラブルシュート
-
-### 症状: `app` が `no main manifest attribute` で落ちる
-原因:
-- 実行可能JARではなく通常JARが作成されている
-- POMの `repackage` 実行設定が不足している
-
-確認:
-```bash
-docker compose logs app
-```
-
-対処:
-- `pom.xml` の `spring-boot-maven-plugin` に `repackage` execution があることを確認する
-- `Dockerfile` のビルドコマンドを `mvn -B clean verify` にする
-- `docker compose build --no-cache app` で再ビルド
-
-### 症状: `app` が DB接続エラーで落ちる
-原因:
-- `pom.xml` に MariaDBドライバ追加漏れ
-- `DB_URL` / `DB_USER` / `DB_PASSWORD` の不一致
-- `db` が `healthy` になる前に接続している
-
-確認:
-```bash
-docker compose logs app
-docker compose logs db
-```
-
-### 症状: `localhost:8080` にアクセスできない
-確認:
-```bash
-docker compose ps
-docker compose logs app
-```
-原因:
-- `app` が再起動ループ
-- ポート競合（既に8080を別プロセスが使用）
+## 11. つまずきポイント
+- `ddl-auto: update` のままでFlywayの価値が薄れる
+  -> `validate` にして責務を分離する
+- 既存 migration を編集して checksum エラー
+  -> 既存は編集せず、新しい `Vn__` を追加する
+- SQLとEntityの不一致で起動失敗
+  -> `@Table` / `@Column` 名と migration SQL を突き合わせる
 
 ---
 
-## 8. この演習と実運用の差分
-
-この演習は「初学者が確実に動かす」ことを優先しています。  
-実運用では次を追加検討します。
-
-1. DBパスワードを平文で持たない（Secret管理）
-2. マルチステージの最終イメージをより小さく・脆弱性対策
-3. ヘルスチェック強化（アプリの `/actuator/health` など）
-4. 監視・アラート・バックアップ
-5. Kubernetes向けマニフェスト分離（ConfigMap/Secret/Deployment/Service）
-
----
-
-## 9. 完了条件
-- `docker compose up -d --build` で `app` / `db` が起動する
-- `http://localhost:8080/login` にアクセスできる
-- `db_data` により再起動後もデータが残る
-- 主要エラー（manifest/DB接続）を自力で切り分けられる
-
-ここまでできれば、次のKubernetesデプロイ演習に進む準備が整っています。
+## 12. 時間割目安
+- 0〜3: 25分
+- 4〜6: 45分
+- 7: 30分
+- 8: 30分
+- 9〜11: 20分

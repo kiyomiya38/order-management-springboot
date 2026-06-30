@@ -25,6 +25,32 @@ javac -version
 2. 演算時は、より大きい型に揃えて計算される
 3. 明示キャストは便利だが、値が欠けることがある
 
+### 型変換の方向
+
+```mermaid
+flowchart LR
+  subgraph AUTO["暗黙的な型変換（自動）：左から右"]
+    direction LR
+    INT1["int<br/>3"] -->|自動変換| LONG1["long<br/>3"]
+    LONG1 -->|自動変換| DOUBLE1["double<br/>3.0"]
+  end
+
+  subgraph CAST["明示的な型変換（キャスト）：右から左"]
+    direction RL
+    DOUBLE2["double<br/>9.8"] -->|int へキャスト| INT2["int<br/>9<br/>小数部分を切り捨て"]
+    LONG2["long<br/>3,000,000,000"] -->|int へキャスト| INT3["int<br/>値が崩れる可能性"]
+  end
+
+  AUTO ~~~ CAST
+```
+
+ポイント:
+- `int` から `long` や `double` のように、より広い範囲を扱える型へは自動変換される
+- 暗黙変換でも、非常に大きい `long` を `double` にすると精度が落ちる場合がある
+- `double` や `long` から `int` へ変換するときは、`(int)` のように変換先の型を明示する
+- 小さい型へのキャストでは、小数部分の切り捨てやオーバーフローが起こる場合がある
+- `String` と数値の変換はキャストではなく、`Integer.parseInt` や `String.valueOf` を使う
+
 ### 書式の基本
 
 #### 代入時の暗黙変換

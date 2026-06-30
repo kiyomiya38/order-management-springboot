@@ -11,6 +11,10 @@
 このフォルダの資料は、本線でつまずいた項目を短く復習するための参考資料として使います。
 1項目1ファイルで分割しています。
 
+バックエンド短縮コースでは、HTML/CSS/JavaScriptの実装演習を研修後へ回すため、このフォルダのフロントエンド項目は必修にしません。
+Spring MVCの研修中は `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` を優先し、提供された画面コードの配置とControllerとの対応を確認します。
+REST APIはSpring Boot Lesson6で `curl` を使って確認します。
+
 ## 学習順
 1. [01-javascript-basics.md](./01-javascript-basics.md)
 2. [02-dom-manipulation.md](./02-dom-manipulation.md)

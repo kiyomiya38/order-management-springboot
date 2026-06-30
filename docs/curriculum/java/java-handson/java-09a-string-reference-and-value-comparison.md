@@ -1,6 +1,6 @@
-# Java-10A 補講: Stringの参照比較と値比較
+# Java-09A 補講: Stringの参照比較と値比較
 
-前提: [Java-10 インスタンスとクラス](./java-10-instances-and-classes.md) を完了し、変数がインスタンスを参照することを理解していること。
+前提: [Java-09 インスタンスとクラス](./java-09-instances-and-classes.md) を完了し、変数がインスタンスを参照することを理解していること。
 
 ## 1. この資料のゴール
 - `String` が参照型であることを説明できる
@@ -124,12 +124,12 @@ true
 完了条件:
 - `StringComparisonDemo.java` で `==` と `equals` の結果を説明できる
 
-作成ファイル: `~/order-management-springboot/practice/java/handson10a/StringComparisonDemo.java`
+作成ファイル: `~/order-management-springboot/practice/java/handson09a/StringComparisonDemo.java`
 
 ### Step 0: 作業フォルダを作る
 ```bash
-mkdir -p ~/order-management-springboot/practice/java/handson10a
-cd ~/order-management-springboot/practice/java/handson10a
+mkdir -p ~/order-management-springboot/practice/java/handson09a
+cd ~/order-management-springboot/practice/java/handson09a
 ```
 
 ### Step 1: 別インスタンスを比較する

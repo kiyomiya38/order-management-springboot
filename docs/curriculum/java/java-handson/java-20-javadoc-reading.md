@@ -1,7 +1,5 @@
 # Java-20 ハンズオン: Oracle Javadocの読み方（実装付き）
 
-対応参考資料: `Oracle Javadoc (Java 17)`
-
 ## 1. この資料のゴール
 - Oracle Javadoc を参照して API 仕様を確認できる
 - 確認した仕様どおりに Java コードを実装できる
@@ -21,7 +19,7 @@ javac -version
 - 例: `17.0.x`
 
 参照先（Oracle公式のみ）:
-- https://docs.oracle.com/en/java/javase/17/docs/api/index.html
+- https://docs.oracle.com/javase/jp/17/docs/api/index.html
 
 ---
 
@@ -57,9 +55,9 @@ cd ~/order-management-springboot/practice/java/handson20
 ### Step 1: 初級（String / List）
 まず Javadoc を読む:
 - `String.substring(int beginIndex, int endIndex)`
-  https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
+  https://docs.oracle.com/javase/jp/17/docs/api/java.base/java/lang/String.html
 - `List.of(E... elements)`
-  https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html
+  https://docs.oracle.com/javase/jp/17/docs/api/java.base/java/util/List.html
 
 確認ポイント:
 1. `substring(beginIndex, endIndex)` は終端を含むか
@@ -113,7 +111,7 @@ List.of は null 要素を許可しない
 まず Javadoc を読む:
 - `Stream.filter(Predicate)`
 - `Stream.toList()`
-  https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html
+  https://docs.oracle.com/javase/jp/17/docs/api/java.base/java/util/stream/Stream.html
 
 確認ポイント:
 1. `filter` は中間操作か終端操作か
@@ -172,7 +170,7 @@ Stream.toList の戻り値は変更不可
 - `HttpServer.createContext(String path, HttpHandler handler)`
 - `HttpServer.setExecutor(Executor executor)`
 - `HttpServer.start()`
-  https://docs.oracle.com/en/java/javase/17/docs/api/jdk.httpserver/com/sun/net/httpserver/HttpServer.html
+  https://docs.oracle.com/javase/jp/17/docs/api/jdk.httpserver/com/sun/net/httpserver/HttpServer.html
 
 確認ポイント:
 1. `backlog` の意味
@@ -253,8 +251,8 @@ OK
 - `UnsupportedOperationException` / `NullPointerException` を捕捉できる
 
 根拠ページ:
-- `String`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
-- `List`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html
+- `String`: https://docs.oracle.com/javase/jp/17/docs/api/java.base/java/lang/String.html
+- `List`: https://docs.oracle.com/javase/jp/17/docs/api/java.base/java/util/List.html
 
 ### Step 2 解答例（中級）
 1. `filter` は中間操作
@@ -266,7 +264,7 @@ OK
 - `toList` 結果への `add` は失敗する
 
 根拠ページ:
-- `Stream`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html
+- `Stream`: https://docs.oracle.com/javase/jp/17/docs/api/java.base/java/util/stream/Stream.html
 
 ### Step 3 解答例（応用）
 1. `backlog` は受理待ち接続キューに関する値
@@ -279,7 +277,7 @@ OK
 - `start()` 前はアクセスできず、`start()` 後にアクセスできる
 
 根拠ページ:
-- `HttpServer`: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.httpserver/com/sun/net/httpserver/HttpServer.html
+- `HttpServer`: https://docs.oracle.com/javase/jp/17/docs/api/jdk.httpserver/com/sun/net/httpserver/HttpServer.html
 
 ---
 

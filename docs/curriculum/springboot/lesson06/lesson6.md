@@ -1,590 +1,713 @@
-# Spring Boot 実サーバー移行演習（VirtualBox 2VM / NAT + Host-Only / MariaDB）
+# Lesson6 REST API基礎（@RestController / DTO / 例外応答）
 
-## 目的
-- Lesson9まで完了した `~/order-management-springboot/stages/lesson09` を、実サーバー構成に近い形でデプロイする
-- Appサーバー1台 + DBサーバー1台（計2台）で疎通し、画面利用できる状態を作る
-- 実行方式を `java -jar + systemd` に統一し、常駐運用の基本を体験する
+## 目的（Lesson6でできるようになること）
+- `@RestController` で JSON API を実装できる
+- DTO と `@Valid` で入力検証を実装できる
+- `@RestControllerAdvice` でエラー応答形式を統一できる
+- 画面系 Controller（Thymeleaf）と API 系 Controller を分けて設計できる
+- APIリクエストの正常系と例外系をコードで追跡できる
 
-この演習では HTTPS は扱いません（HTTPのみ）。
+## 前提
+- Lesson5共通準備、Lesson5A、Lesson5B、Lesson5Cを完了している
+- `docs/curriculum/web-app(簡易版)/bridge-to-springboot.md` の `fetch + JSON` と `Controller + Thymeleaf` の違いを説明できる
+- `~/order-management-springboot/stages/lesson05` が起動できる
+- `java -version` と `mvn -version` が通る
 
-## この演習で作るもの
-- 構成:
-  - `app-vm`（Spring Boot + systemd + Nginx）
-  - `db-vm`（MariaDB）
-- 接続:
-  - ホストPC -> `http://192.168.56.11/login`（Nginx）
-  - Nginx -> `127.0.0.1:8080`（Spring Boot）
-  - Spring Boot -> `10.0.2.12:3306`（MariaDB）
-- 運用要素:
-  - `java -jar` 常駐化（systemd）
-  - 環境変数ファイルでDB接続設定を注入
-  - 疎通テストとトラブルシュート
+バックエンド短縮コースでは、`web-app(簡易版)` の前提を次へ読み替えます。
 
-### 全体構成図（サーバーと通信経路）
+- `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` を完了している
+- `curl` で `GET` / `POST` を実行し、HTTPステータスとレスポンス本文を確認できる
+- ブラウザの `fetch` 実装は前提にせず、`curl -> Controller -> DTO -> Service -> JSON` を追跡する
+
+## 位置づけ
+Lesson1〜5では、Spring MVCの基本を理解するために `@Controller + Model + Thymeleaf` を中心に扱いました。
+このLessonでは、`web-app(簡易版)` で使った `fetch + JSON API` の考え方に戻り、Spring Bootではどう書くかを学びます。
+
+バックエンド短縮コースでは、上記の `fetch` 経験を前提にしません。
+APIクライアントとして `curl` を使用し、JSONの入力、DTO、バリデーション、例外応答、認証・認可をサーバー側から確認します。
+
+対応関係:
+
+| web-app(簡易版) | Spring Boot Lesson6 |
+| --- | --- |
+| `server.createContext("/api/...", ...)` | `@RestController` + `@GetMapping` / `@PostMapping` |
+| 手書きJSON文字列 | DTOを返して Jackson がJSONへ変換 |
+| `sendJson(status, body)` | `ResponseEntity` / Controllerの戻り値 |
+| 個別のエラーJSON | `@RestControllerAdvice` で形式を統一 |
+| ブラウザの `fetch` | `curl` やAPIクライアントからHTTPリクエスト |
+
+## Lesson6で作るもの
+- API:
+  - `GET /api/users`
+  - `GET /api/users/:id`
+  - `POST /api/users`
+  - `PUT /api/users/:id`
+  - `DELETE /api/users/:id`
+  - `POST /api/attendances/clock-in`（ログイン中の本人を出勤）
+  - `POST /api/attendances/clock-out`（ログイン中の本人を退勤）
+- 追加クラス:
+  - `UserApiController`
+  - `AttendanceApiController`
+  - DTO（Request/Response）
+  - `ApiExceptionHandler`
+
+### 全体構成図（ファイルと役割）
 ```mermaid
 flowchart LR
-  subgraph HOST[ホストPC]
-    DEV[ブラウザ / ターミナル]
-    SRC[ソースアーカイブ]
+  U[受講者] --> B[ブラウザ / APIクライアント]
+
+  subgraph WEB[画面系]
+    HC[HomeController]
+    UC[UserController]
+    TC[Template Controller群]
   end
 
-  subgraph APP[app-vm]
-    NGINX[Nginx :80]
-    SPRING[Spring Boot app.jar :8080]
-    SD[systemd attendance.service]
-    ENV[/etc/attendance/attendance.env]
-    APPSRC[/opt/attendance/src]
+  subgraph API[API系]
+    UAPI[UserApiController]
+    AAPI[AttendanceApiController]
+    DTO[DTO Request/Response]
+    EH[ApiExceptionHandler]
   end
 
-  subgraph DBVM[db-vm]
-    MDB[(MariaDB :3306)]
+  subgraph SVC[業務ロジック]
+    US[UserService]
+    AS[AttendanceService]
   end
 
-  DEV -->|HTTP Host-Only 192.168.56.11| NGINX
-  NGINX -->|proxy_pass 127.0.0.1:8080| SPRING
-  SPRING -->|JDBC 10.0.2.12:3306| MDB
+  subgraph REPO[永続化]
+    UR[UserRepository]
+    AR[AttendanceRepository]
+    DB[(H2 DB)]
+  end
 
-  SRC -->|scp / ssh| APPSRC
-  APPSRC -->|mvn package repackage| SPRING
-  SD -->|ExecStart java -jar| SPRING
-  ENV --> SD
+  B -->|/api/users...| UAPI
+  B -->|/api/attendances...| AAPI
+
+  UAPI --> DTO
+  AAPI --> DTO
+  UAPI --> US
+  AAPI --> AS
+  UAPI --> EH
+  AAPI --> EH
+
+  US --> UR
+  AS --> AR
+  AS --> UR
+  UR --> DB
+  AR --> DB
+
+  B -->|画面アクセス| WEB
+  WEB --> SVC
 ```
 
-### 設定受け渡し最小メモ（JSONは未使用）
-- この演習では API の JSON ではなく、OS設定ファイルと環境変数で値を渡す。
-- 主要な受け渡し:
-  - `application-*.yml`（アプリ設定）
-  - `/etc/attendance/attendance.env`（実行時の上書き値）
-  - `attendance.service`（起動コマンドと環境ファイルの紐付け）
-  - Nginx 設定（外部公開とリバースプロキシ）
-- 例（`attendance.env`）:
-  ```ini
-  SPRING_PROFILES_ACTIVE=prod
-  DB_URL=jdbc:mariadb://10.0.2.12:3306/attendance
-  DB_USER=attendance_app
-  DB_PASSWORD=<研修ごとに設定したDBパスワード>
+### JSON最小メモ（このLessonで使用）
+- 一覧レスポンス例:
+  ```json
+  [
+    {"id":1,"username":"admin","role":"ROLE_ADMIN"},
+    {"id":2,"username":"user1","role":"ROLE_USER"}
+  ]
+  ```
+- 作成リクエスト例:
+  ```json
+  {"username":"user2","password":"password123","role":"ROLE_USER"}
+  ```
+- エラーレスポンス例（統一形式）:
+  ```json
+  {"code":"BUSINESS_ERROR","message":"ユーザー名が既に存在します"}
   ```
 
-### デプロイから画面表示まで（正常系の時系列）
+### API呼び出しの時系列（正常系）
 ```mermaid
 sequenceDiagram
-  participant Host as ホストPC
-  participant AppVM as app-vm
-  participant DbVM as db-vm
-  participant Nginx as Nginx
-  participant App as Spring Boot
-  participant DB as MariaDB
+  participant Client as APIクライアント
+  participant Ctrl as UserApiController
+  participant Service as UserService
+  participant Repo as UserRepository
+  participant DB as H2
 
-  Host->>Host: ソースをtar作成
-  Host->>AppVM: scpでソース転送
-  DbVM->>DB: MariaDB導入 + DB/ユーザー作成
-  AppVM->>AppVM: Java/Nginx/systemd導入
-  AppVM->>AppVM: pom.xmlへMariaDBドライバ追加
-  AppVM->>AppVM: mvn clean verify
-  AppVM->>App: /opt/attendance/app.jar を配置
-  AppVM->>AppVM: attendance.service + attendance.env 設定
-  AppVM->>App: systemctl enable --now attendance
-  AppVM->>Nginx: reverse proxy設定反映
-
-  Host->>Nginx: GET /login (192.168.56.11)
-  Nginx->>App: proxy to 127.0.0.1:8080
-  App->>DB: JDBC接続
-  DB-->>App: 応答
-  App-->>Nginx: 200
-  Nginx-->>Host: 200
+  Client->>Ctrl: POST /api/users (JSON)
+  Ctrl->>Ctrl: @Valid で入力検証
+  Ctrl->>Service: create(username,password,role)
+  Service->>Repo: findByUsername
+  Repo->>DB: SELECT
+  DB-->>Repo: not found
+  Service->>Repo: save(user)
+  Repo->>DB: INSERT
+  DB-->>Repo: saved user
+  Repo-->>Service: User
+  Service-->>Ctrl: User
+  Ctrl-->>Client: 201 Created (JSON)
 ```
 
-### デプロイと疎通の異常系分岐（Connection refused / 502 / DB timeout）
+### ルーティングと異常系の分岐（401/403/400/409）
 ```mermaid
 flowchart TD
-  A[デプロイ実施] --> B{scp/sshは成功するか}
-  B -->|いいえ| E1[port22拒否: openssh-server起動/22許可/IP確認]
-  B -->|はい| C{attendance.serviceはactiveか}
-  C -->|いいえ| E2[app起動失敗: journalctl確認]
-  E2 --> E2a[MariaDBドライバ漏れ / env誤り / JAR不正]
-  C -->|はい| D{Nginx経由で/loginが応答するか}
-  D -->|いいえ| E3[502/404: proxy_pass/default_site確認]
-  D -->|はい| F{app-vmからDB 3306到達か}
-  F -->|いいえ| E4[DB timeout: bind-address/許可ホスト/UFW確認]
-  F -->|はい| OK[完了条件達成]
+  A[APIリクエスト受信] --> AUTH{認証済みか}
+  AUTH -->|いいえ| E401[401 Unauthorized]
+  AUTH -->|はい| P{Pathはどれか}
+
+  P -->|/api/users...| R1{ROLE_ADMINか}
+  R1 -->|いいえ| E403[403 Forbidden]
+  R1 -->|はい| V1{入力検証OKか}
+  V1 -->|いいえ| E400[400 Validation Error]
+  V1 -->|はい| B1{業務ルール違反か}
+  B1 -->|はい| E409[409 Business Error]
+  B1 -->|いいえ| OK1[200/201/204 JSON]
+
+  P -->|/api/attendances...| U1{認証ユーザーをDBで取得できるか}
+  U1 -->|いいえ| E401
+  U1 -->|はい| B2{本人の勤怠が業務ルール違反か}
+  B2 -->|はい| E409
+  B2 -->|いいえ| OK2[200 JSON]
+
+  P -->|それ以外| E404[404 Not Found]
 ```
 
 ---
 
-## 1. 構成
-
-NATネットワーク: `10.0.2.0/24`  
-Host-Onlyネットワーク（app-vmアクセス用）: `192.168.56.0/24`
-
-### 1-1. サーバー構成（固定IP）
-例として次の値で進めます（必要なら置き換えてください）。
-
-| サーバー | 役割 | OS | NAT IP | Host-Only IP |
-|---|---|---|---|---|
-| app-vm | Spring Boot + Nginx | Ubuntu 22.04 | `10.0.2.11` | `192.168.56.11` |
-| db-vm | MariaDB | Ubuntu 22.04 | `10.0.2.12` | - |
-
-### 1-2. 接続イメージ
-1. ブラウザ（ホストPC） -> app-vm（192.168.56.11）の Nginx（80）
-2. Nginx -> Spring Boot（127.0.0.1:8080）
-3. Spring Boot -> db-vm の MariaDB（10.0.2.12:3306）
-
-### 1-3. VirtualBoxアダプター設定
-この演習ではポートフォワーディングは使用しません。
-
-app-vm:
-- アダプター1: NATネットワーク（`10.0.2.0/24`）
-- アダプター2: ホストオンリーアダプター（`192.168.56.0/24`）
-
-db-vm:
-- アダプター1: NATネットワーク（`10.0.2.0/24`）
-
-### 1-4. Ubuntu側の固定IP設定
-
-最初に各VMのコンソールでインターフェース名を確認します。
-
+## 0. 事前確認
 ```bash
-ip -br link
-ip -br addr
-ip route
-ls /etc/netplan
-```
-
-以下の `enp0s3` / `enp0s8` は例です。実際に表示された名前へ置き換えてください。
-
-app-vmの `/etc/netplan/99-attendance.yaml`:
-
-```yaml
-network:
-  version: 2
-  ethernets:
-    enp0s3:
-      dhcp4: false
-      addresses: [10.0.2.11/24]
-      routes:
-        - to: default
-          via: 10.0.2.1
-      nameservers:
-        addresses: [1.1.1.1, 8.8.8.8]
-    enp0s8:
-      dhcp4: false
-      addresses: [192.168.56.11/24]
-```
-
-db-vmの `/etc/netplan/99-attendance.yaml`:
-
-```yaml
-network:
-  version: 2
-  ethernets:
-    enp0s3:
-      dhcp4: false
-      addresses: [10.0.2.12/24]
-      routes:
-        - to: default
-          via: 10.0.2.1
-      nameservers:
-        addresses: [1.1.1.1, 8.8.8.8]
-```
-
-各VMのコンソールで適用します。SSH接続中ではなく、VirtualBoxコンソールから実行してください。
-
-```bash
-sudo netplan generate
-sudo netplan try
-sudo netplan apply
-ip -br addr
-```
-
-相互疎通を確認します。
-
-```bash
-# app-vmから
-ping -c 3 10.0.2.12
-
-# ホストPCから
-ping 192.168.56.11
+java -version
+mvn -version
+git --version
 ```
 
 ---
 
-## 2. 事前準備（ローカルPC側 / コード変更なし）
-
-### 2-1. ソースコードを固める
-ローカルのリポジトリは変更せず、そのまま app-vm へ転送します。
-
+## 1. 作業フォルダを準備（Lesson5を複製）
 ```bash
-cd ~/order-management-springboot/stages/lesson09
-tar --exclude='.git' --exclude='target' --exclude='data' -czf /tmp/attendance-src.tar.gz .
-ls -lh /tmp/attendance-src.tar.gz
-```
-
-### 2-2. app-vmへソース転送
-```bash
-scp -o PubkeyAuthentication=no -o PreferredAuthentications=password /tmp/attendance-src.tar.gz test@192.168.56.11:/tmp/attendance-src.tar.gz
-```
-
-### 2-3. 転送前チェック（Connection refused 対策）
-`ssh: connect to host ... port 22: Connection refused` が出る場合、app-vm 側で SSH サービスが未起動です。  
-先に app-vm コンソールで以下を実施してください。
-
-```bash
-ip -4 addr
-sudo apt update
-sudo apt install -y openssh-server
-sudo systemctl enable --now ssh
-sudo systemctl status ssh --no-pager
-sudo ss -ltnp | grep :22
-```
-
-その後、ホストPCから再試行:
-
-```bash
-ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password test@192.168.56.11
-scp -o PubkeyAuthentication=no -o PreferredAuthentications=password /tmp/attendance-src.tar.gz test@192.168.56.11:/tmp/attendance-src.tar.gz
-```
-
-補足:
-- MariaDBドライバ追加は app-vm 側で、コピーした `pom.xml` を直接編集して対応します
-- ローカルPC側の `pom.xml` は編集しません（Git管理対象を汚さない）
-
----
-
-## 3. DBサーバー（db-vm）構築
-
-### 3-1. MariaDBインストール
-```bash
-sudo apt update
-sudo apt install -y mariadb-server
-sudo systemctl enable --now mariadb
-```
-
-### 3-2. 初期セットアップ
-```bash
-sudo mysql_secure_installation
-```
-
-対話プロンプトの推奨回答（この演習向け）:
-1. `Enter current password for root (enter for none):` -> `Enter`（空でOK）
-2. `Switch to unix_socket authentication` -> `Y`
-3. `Change the root password?` -> `N`
-4. `Remove anonymous users?` -> `Y`
-5. `Disallow root login remotely?` -> `Y`
-6. `Remove test database and access to it?` -> `Y`
-7. `Reload privilege tables now?` -> `Y`
-
-補足:
-- root は `sudo mysql` で管理操作できるため、演習では root パスワード変更は必須ではありません。
-- アプリ接続は後続手順で作成する `attendance_app` を使用します。
-
-### 3-3. データベースとアプリ用ユーザー作成
-```bash
-sudo mysql <<'SQL'
-CREATE DATABASE attendance
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-CREATE USER 'attendance_app'@'10.0.2.11' IDENTIFIED BY '<研修ごとに設定したDBパスワード>';
-GRANT ALL PRIVILEGES ON attendance.* TO 'attendance_app'@'10.0.2.11';
-FLUSH PRIVILEGES;
-SQL
-```
-
-### 3-4. リモート接続許可（app-vmから）
-`/etc/mysql/mariadb.conf.d/50-server.cnf` の `bind-address` をDB用IPだけに変更:
-
-```cnf
-bind-address = 10.0.2.12
-```
-
-反映:
-```bash
-sudo systemctl restart mariadb
-sudo ufw allow from 10.0.2.11 to any port 3306 proto tcp
+mkdir -p ~/order-management-springboot/stages/lesson06
+cp -r ~/order-management-springboot/stages/lesson05/* ~/order-management-springboot/stages/lesson06/
+cd ~/order-management-springboot/stages/lesson06
 ```
 
 ---
 
-## 4. アプリサーバー（app-vm）構築
-
-### 4-1. Java/Nginx/クライアント導入
+## 2. ディレクトリを追加
 ```bash
-sudo apt update
-sudo apt install -y openjdk-17-jdk-headless maven nginx mariadb-client openssh-server curl
-sudo systemctl enable --now ssh
-```
-
-### 4-2. 実行ユーザーと配置先作成
-```bash
-sudo useradd --system --home /opt/attendance --shell /usr/sbin/nologin attendance
-sudo mkdir -p /opt/attendance /opt/attendance/src /etc/attendance /var/log/attendance
-sudo chown -R attendance:attendance /opt/attendance /var/log/attendance
-```
-
-### 4-3. ソース展開
-`2-2` で転送したアーカイブを展開:
-
-```bash
-sudo tar -xzf /tmp/attendance-src.tar.gz -C /opt/attendance/src
-sudo chown -R attendance:attendance /opt/attendance/src
-```
-
-### 4-4. app-vm上の `pom.xml` を確認（MariaDBドライバ）
-コピー済みソース内の `pom.xml` に MariaDB ドライバがあるか確認します。
-
-```bash
-sudo -u attendance nano /opt/attendance/src/pom.xml
-```
-
-次が無い場合だけ、`<dependencies>` に追加します。同じ依存を重複記載しません。
-
-```xml
-<dependency>
-  <groupId>org.mariadb.jdbc</groupId>
-  <artifactId>mariadb-java-client</artifactId>
-  <scope>runtime</scope>
-</dependency>
-```
-
-### 4-5. app-vmでJARビルド（deploy用）
-```bash
-sudo -u attendance -H bash -lc '
-cd /opt/attendance/src
-mvn clean verify
-cp target/attendance-management-0.0.1-SNAPSHOT.jar /opt/attendance/app.jar
-'
-```
-
-### 4-6. 環境変数ファイル作成
-`/etc/attendance/attendance.env` を作成:
-
-```bash
-sudo tee /etc/attendance/attendance.env > /dev/null <<'ENV'
-SPRING_PROFILES_ACTIVE=prod
-APP_NAME=attendance-management
-SERVER_PORT=8080
-SERVER_ADDRESS=127.0.0.1
-
-DB_URL=jdbc:mariadb://10.0.2.12:3306/attendance?useUnicode=true&characterEncoding=utf8
-DB_USER=attendance_app
-DB_PASSWORD=<3-3で設定したDBパスワード>
-DB_DRIVER=org.mariadb.jdbc.Driver
-
-SHOW_SQL=false
-LOG_LEVEL=INFO
-
-# 研修環境で初回ログイン用ユーザーを作る。実運用ではfalseにし、別の管理手順を使う。
-APP_SEED_ENABLED=true
-APP_SEED_ADMIN_PASSWORD=admin123
-APP_SEED_USER_PASSWORD=password
-ENV
-```
-
-権限設定:
-```bash
-sudo chown root:attendance /etc/attendance/attendance.env
-sudo chmod 640 /etc/attendance/attendance.env
-```
-
-### 4-7. systemdユニット作成
-`/etc/systemd/system/attendance.service`:
-
-```ini
-[Unit]
-Description=Attendance Management Application
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-User=attendance
-Group=attendance
-EnvironmentFile=/etc/attendance/attendance.env
-WorkingDirectory=/opt/attendance
-ExecStart=/usr/bin/java -jar /opt/attendance/app.jar
-SuccessExitStatus=143
-Restart=always
-RestartSec=5
-StandardOutput=append:/var/log/attendance/app.log
-StandardError=append:/var/log/attendance/app-error.log
-NoNewPrivileges=true
-LimitNOFILE=65535
-
-[Install]
-WantedBy=multi-user.target
-```
-
-反映・起動:
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now attendance
-sudo systemctl status attendance --no-pager
-```
-
-ログ確認:
-```bash
-journalctl -u attendance -n 100 --no-pager
-tail -n 100 /var/log/attendance/app.log
+mkdir -p ~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api
+mkdir -p ~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/dto
+mkdir -p ~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/advice
 ```
 
 ---
 
-## 5. Nginx設定（HTTP）
+## 3. DTOを作成
 
-`/etc/nginx/sites-available/attendance` を作成:
+作成ファイル:
+- `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/dto/UserCreateRequest.java`
+- `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/dto/UserUpdateRequest.java`
+- `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/dto/UserResponse.java`
+- `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/dto/ErrorResponse.java`
 
-```nginx
-server {
-    listen 127.0.0.1:80;
-    listen 192.168.56.11:80 default_server;
-    server_name _;
+`UserCreateRequest.java`:
+```java
+package com.shinesoft.attendance.web.api.dto;
 
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+public record UserCreateRequest(
+        @NotBlank @Size(max = 30) String username,
+        @NotBlank @Size(min = 8, max = 64) String password,
+        @NotBlank @Pattern(regexp = "ROLE_ADMIN|ROLE_USER") String role
+) {
+}
+```
+
+`UserUpdateRequest.java`:
+```java
+package com.shinesoft.attendance.web.api.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+public record UserUpdateRequest(
+        @NotBlank @Size(max = 30) String username,
+        @Size(min = 8, max = 64) String password,
+        @NotBlank @Pattern(regexp = "ROLE_ADMIN|ROLE_USER") String role
+) {
+}
+```
+
+`UserResponse.java`:
+```java
+package com.shinesoft.attendance.web.api.dto;
+
+public record UserResponse(
+        Long id,
+        String username,
+        String role
+) {
+}
+```
+
+`ErrorResponse.java`:
+```java
+package com.shinesoft.attendance.web.api.dto;
+
+public record ErrorResponse(
+        String code,
+        String message
+) {
+}
+```
+
+---
+
+## 4. `UserApiController` を作成
+作成ファイル:
+- `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/UserApiController.java`
+
+```java
+package com.shinesoft.attendance.web.api;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.shinesoft.attendance.domain.User;
+import com.shinesoft.attendance.service.UserService;
+import com.shinesoft.attendance.web.api.dto.UserCreateRequest;
+import com.shinesoft.attendance.web.api.dto.UserResponse;
+import com.shinesoft.attendance.web.api.dto.UserUpdateRequest;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/users")
+@Validated
+public class UserApiController {
+    private final UserService userService;
+
+    public UserApiController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping
+    public List<UserResponse> list() {
+        return userService.list().stream().map(this::toResponse).toList();
+    }
+
+    @GetMapping("/{id}")
+    public UserResponse get(@PathVariable Long id) {
+        return toResponse(userService.get(id));
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse create(@Valid @RequestBody UserCreateRequest request) {
+        User created = userService.create(request.username(), request.password(), request.role());
+        return toResponse(created);
+    }
+
+    @PutMapping("/{id}")
+    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UserUpdateRequest request) {
+        User updated = userService.update(id, request.username(), request.password(), request.role());
+        return toResponse(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        userService.delete(id);
+    }
+
+    private UserResponse toResponse(User user) {
+        return new UserResponse(user.getId(), user.getUsername(), user.getRole());
     }
 }
 ```
 
-有効化:
-```bash
-sudo ln -s /etc/nginx/sites-available/attendance /etc/nginx/sites-enabled/attendance
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t
-sudo systemctl restart nginx
+---
+
+## 5. `AttendanceApiController` を作成
+作成ファイル:
+- `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/AttendanceApiController.java`
+
+```java
+package com.shinesoft.attendance.web.api;
+
+import java.security.Principal;
+import java.util.Map;
+
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.shinesoft.attendance.service.AttendanceService;
+import com.shinesoft.attendance.service.UserService;
+
+@RestController
+@RequestMapping("/api/attendances")
+public class AttendanceApiController {
+    private final AttendanceService attendanceService;
+    private final UserService userService;
+
+    public AttendanceApiController(AttendanceService attendanceService,
+                                   UserService userService) {
+        this.attendanceService = attendanceService;
+        this.userService = userService;
+    }
+
+    @PostMapping("/clock-in")
+    public Map<String, String> clockIn(Principal principal) {
+        var user = userService.getByUsername(principal.getName());
+        attendanceService.clockIn(user.getId());
+        return Map.of("message", "出勤しました");
+    }
+
+    @PostMapping("/clock-out")
+    public Map<String, String> clockOut(Principal principal) {
+        var user = userService.getByUsername(principal.getName());
+        attendanceService.clockOut(user.getId());
+        return Map.of("message", "退勤しました");
+    }
+}
+```
+
+重要:
+- 一般ユーザー向け勤怠APIは、リクエストから `userId` を受け取らない。
+- 操作対象は `Principal` のログイン名から決める。これにより、利用者が別ユーザーIDを指定して他人の勤怠を操作することを防ぐ。
+- 管理者による代理操作が必要な場合は、`/api/admin/...` のような管理者専用APIとして別に設計する。
+
+---
+
+## 6. `ApiExceptionHandler` を作成
+作成ファイル:
+- `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/advice/ApiExceptionHandler.java`
+
+```java
+package com.shinesoft.attendance.web.api.advice;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import com.shinesoft.attendance.exception.BusinessException;
+import com.shinesoft.attendance.web.api.dto.ErrorResponse;
+
+@RestControllerAdvice(basePackages = "com.shinesoft.attendance.web.api")
+public class ApiExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleBusiness(BusinessException ex) {
+        return new ErrorResponse("BUSINESS_ERROR", ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidation(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .orElse("入力値が不正です");
+        return new ErrorResponse("VALIDATION_ERROR", message);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return new ErrorResponse("VALIDATION_ERROR", ex.getName() + ": 入力値が不正です");
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleUnknown(Exception ex) {
+        log.error("Unexpected API error", ex);
+        return new ErrorResponse("INTERNAL_SERVER_ERROR", "予期しないエラーが発生しました");
+    }
+}
 ```
 
 ---
 
-## 6. 動作確認（疎通テスト）
+## 7. `SecurityConfig` を編集（API認証とJSONエラー応答）
+編集ファイル:
+- `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/config/SecurityConfig.java`
 
-### 6-1. app-vm から
-```bash
-curl -I http://127.0.0.1:8080/login
-curl -I http://127.0.0.1/login
+変更ポイント:
+1. API権限を追加
+2. `/api/**` はCSRF対象外にする
+3. `httpBasic` を有効化（curl検証用）
+4. APIの401/403を `ErrorResponse` と同じJSON形式で返す
+
+```java
+package com.shinesoft.attendance.config;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shinesoft.attendance.repository.UserRepository;
+import com.shinesoft.attendance.web.api.dto.ErrorResponse;
+
+import jakarta.servlet.http.HttpServletResponse;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   ObjectMapper objectMapper) throws Exception {
+        RequestMatcher apiMatcher = request -> {
+            String apiPrefix = request.getContextPath() + "/api";
+            String requestUri = request.getRequestURI();
+            return apiPrefix.equals(requestUri) || requestUri.startsWith(apiPrefix + "/");
+        };
+
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/login", "/styles.css").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/api/users/**").hasRole("ADMIN")
+                .requestMatchers("/api/attendances/**").authenticated()
+                .requestMatchers("/users/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/", true)
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+            )
+            .httpBasic(Customizer.withDefaults())
+            .exceptionHandling(exceptions -> exceptions
+                .defaultAuthenticationEntryPointFor(
+                    (request, response, exception) -> writeApiError(
+                        response, objectMapper, HttpStatus.UNAUTHORIZED,
+                        "UNAUTHORIZED", "認証が必要です"),
+                    apiMatcher)
+                .defaultAuthenticationEntryPointFor(
+                    new LoginUrlAuthenticationEntryPoint("/login"),
+                    new NegatedRequestMatcher(apiMatcher))
+                .defaultAccessDeniedHandlerFor(
+                    (request, response, exception) -> writeApiError(
+                        response, objectMapper, HttpStatus.FORBIDDEN,
+                        "FORBIDDEN", "この操作を行う権限がありません"),
+                    apiMatcher)
+            )
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**", "/api/**"))
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+        return http.build();
+    }
+
+    private static void writeApiError(HttpServletResponse response,
+                                      ObjectMapper objectMapper,
+                                      HttpStatus status,
+                                      String code,
+                                      String message) throws IOException {
+        response.setStatus(status.value());
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getWriter(), new ErrorResponse(code, message));
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(UserRepository userRepository) {
+        return username -> {
+            var user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                    "User not found: " + username));
+            return org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPassword())
+                .roles(user.getRole().replace("ROLE_", ""))
+                .build();
+        };
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
 ```
 
-### 6-2. app-vm から db-vm 接続確認
-```bash
-mysql -h 10.0.2.12 -u attendance_app -p attendance -e "SHOW TABLES;"
-```
-
-### 6-3. ホストPCから
-ブラウザで次を開く:
-- `http://192.168.56.11/login`
-
-ログイン確認後、ユーザー管理・勤怠画面が操作できれば完了です。
+`@RestControllerAdvice` はControllerで発生した例外を処理します。認証前の401と認可失敗の403はSecurityフィルター内で発生するため、`AuthenticationEntryPoint` / `AccessDeniedHandler` 相当の設定が別途必要です。非APIの未認証アクセスは、従来どおり `/login` へリダイレクトします。
 
 ---
 
-## 7. トラブルシュート
-
-### 症状: アプリが起動しない
-確認:
+## 8. 起動
 ```bash
-journalctl -u attendance -n 200 --no-pager
-```
-よくある原因:
-- `/opt/attendance/src/pom.xml` の MariaDBドライバ不足（`org.mariadb.jdbc.Driver`）
-- `DB_URL` / `DB_USER` / `DB_PASSWORD` の誤り
-- DBサーバー側で 3306 未開放
-
-### 症状: Nginxは起動しているが 502 Bad Gateway
-確認:
-```bash
-sudo systemctl status attendance --no-pager
-sudo systemctl status nginx --no-pager
-```
-原因:
-- Spring Boot が 8080 で待受できていない
-- `proxy_pass` が誤っている
-
-### 症状: `/opt/attendance/app.jarにメイン・マニフェスト属性がありません`
-原因:
-- 実行可能JARではなく通常JARを配置している（POMの `repackage` 実行設定漏れ）
-- `target/*.jar.original` を誤って `app.jar` に配置している
-
-対処:
-```bash
-sudo -u attendance -H bash -lc '
-cd /opt/attendance/src
-mvn clean verify
-cp target/attendance-management-0.0.1-SNAPSHOT.jar /opt/attendance/app.jar
-'
-```
-
-確認:
-```bash
-unzip -p /opt/attendance/app.jar META-INF/MANIFEST.MF | grep -E "Main-Class|Start-Class"
-```
-
-### 症状: `curl -I http://127.0.0.1/login` が 404（Nginx）
-原因:
-- default サイトが優先されている
-- `attendance` サイトが default_server で待受していない
-
-対処:
-```bash
-sudo ln -sf /etc/nginx/sites-available/attendance /etc/nginx/sites-enabled/attendance
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-### 症状: DB接続タイムアウト
-確認:
-```bash
-nc -vz 10.0.2.12 3306
-```
-原因:
-- `bind-address` 未変更
-- UFWやVirtualBoxネットワーク設定
-- 接続元許可（`attendance_app` のホスト範囲）不一致
-
-### 症状: `scp` / `ssh` で `Connection refused`（port 22）
-確認（app-vmコンソール）:
-```bash
-ip -4 addr
-sudo systemctl status ssh --no-pager
-sudo ss -ltnp | grep :22
-sudo ufw status
-```
-原因:
-- `openssh-server` 未インストール
-- `ssh` サービス未起動
-- Host-Only 側IPが `192.168.56.11` になっていない
-- UFWで22/tcpが閉じている
-
-対処:
-```bash
-sudo apt update
-sudo apt install -y openssh-server
-sudo systemctl enable --now ssh
-sudo ufw allow 22/tcp
+cd ~/order-management-springboot/stages/lesson06
+mvn clean spring-boot:run
 ```
 
 ---
 
-## 8. この演習と実運用の差分
+## 9. 動作確認（必須）
+別ターミナルで実行:
 
-この演習は「初学者向けで確実に動かす」ことを優先しています。  
-実運用では次を追加検討してください。
+```bash
+# 未認証でAPIへアクセス（失敗: 401 + JSON）
+curl -i http://localhost:8080/api/users
 
-1. DBスキーマ変更管理（Flyway/Liquibase）
-2. DBパスワードを平文ファイルで管理しない（Secret管理）
-3. HTTPS（証明書運用）
-4. バックアップ/リストア手順の整備
-5. 監視（メトリクス・アラート）
+# 管理者でユーザー一覧を取得（成功: 200）
+curl -i -u admin:admin123 http://localhost:8080/api/users
+
+# 一般ユーザーでユーザー一覧を取得（失敗: 403）
+curl -i -u user1:password http://localhost:8080/api/users
+
+# バリデーションエラー（失敗: 400）
+curl -i -u admin:admin123 -H "Content-Type: application/json" \
+  -d "{\"username\":\"\",\"password\":\"short\",\"role\":\"ROLE_USER\"}" \
+  http://localhost:8080/api/users
+
+# 業務エラー（重複ユーザー名、失敗: 409）
+curl -i -u admin:admin123 -H "Content-Type: application/json" \
+  -d "{\"username\":\"user1\",\"password\":\"password123\",\"role\":\"ROLE_USER\"}" \
+  http://localhost:8080/api/users
+
+# 一般ユーザー本人として出勤（成功: 200）
+# userIdは送らず、Basic認証のuser1が操作対象になる
+curl -i -u user1:password -X POST \
+  http://localhost:8080/api/attendances/clock-in
+```
+
+期待状態:
+- 未認証は `401` と `{"code":"UNAUTHORIZED",...}`
+- 権限不足は `403`
+- 入力不正は `400`
+- 業務ルール違反は `409`
+- APIのエラーはすべて `code` / `message` を持つJSON形式で返る
+- 勤怠APIの操作対象は、リクエスト値ではなく認証済みユーザー本人になる
 
 ---
 
-## 9. 完了条件
-- app-vm の `attendance` サービスが `active (running)`
-- app-vm の Nginx 経由で `/login` が応答
-- app-vm -> db-vm の MariaDB接続が成功
-- ホストPCから画面を開き、ログイン後に機能操作できる
+## 10. API認可の自動テスト（必須）
 
-ここまでできれば、次のコンテナ化/Kubernetes移行に進む準備が整っています。
+[lesson6-testing.md](./lesson6-testing.md) の `ApiSecurityTest` を作成し、次を実行します。
+
+```bash
+mvn test
+```
+
+合格条件:
+- Lesson5から引き継いだ12件とAPIテスト5件の合計17件が成功する
+- 401/403のJSON形式と、勤怠操作がログイン本人へ記録されることを自動確認できる
+
+---
+
+## 11. APIコード解読演習（必須）
+
+### 11-1. コード確認ポイント
+
+1. `@Controller` と `@RestController` の戻り値の違い
+2. `@Valid` と DTO の責務（Controllerで検証）
+3. `BusinessException` を `409` に変換する流れ
+4. 画面系ルートとAPI系ルートのセキュリティ差分
+5. 勤怠APIが `userId` を受け取らず、認証ユーザーから本人性を確定する理由
+
+### 11-2. 正常系を追跡する
+
+「9. 動作確認」ですでに`user1`の出勤データを作成しています。起動中のアプリを`Ctrl + C`で停止し、再起動してインメモリH2を初期状態へ戻してください。
+
+```bash
+mvn spring-boot:run
+```
+
+次のリクエストを実行する前に、HTTPステータスとJSONを予想します。
+
+```bash
+curl -i -u user1:password -X POST \
+  http://localhost:8080/api/attendances/clock-in
+```
+
+次の表を、実際のソースコードを開きながら完成させてください。
+
+| 順番 | ファイル / メソッド | 確認する値・処理 | 次の呼び出しまたは結果 |
+| ---: | --- | --- | --- |
+| 1 | `SecurityConfig` | Basic認証と`/api/attendances/**`の認可 | 認証済みリクエスト |
+| 2 | `AttendanceApiController#clockIn` | `Principal#getName()` | ログインユーザー名 |
+| 3 | `UserService#getByUsername` | ユーザー名からDB検索 | `User`とそのID |
+| 4 | `AttendanceService#clockIn` | 同日データの有無と業務ルール | 保存対象`Attendance` |
+| 5 | `AttendanceRepository` | 同日検索と`save(...)` | 保存済み勤怠 |
+| 6 | `AttendanceService#clockIn` | `INFO`ログ | Controllerへ正常復帰 |
+| 7 | `AttendanceApiController#clockIn` | 戻り値の`Map` | `200`とJSON |
+
+実行後、予想と次の実測値を比較します。
+
+- HTTPステータス
+- レスポンスJSON
+- 起動ターミナルの`Clock in`ログ
+- H2コンソールの`attendances`レコード
+
+### 11-3. 例外系を追跡する
+
+同じcurlをもう一度実行し、二重出勤を発生させます。
+
+1. `AttendanceService#clockIn`のどの条件で`BusinessException`になるか特定する
+2. 例外が`AttendanceApiController`の通常の戻り値まで進まないことを確認する
+3. `ApiExceptionHandler#handleBusiness`が例外を`409`へ変換する箇所を探す
+4. `ErrorResponse`が`code` / `message`のJSONになる流れを説明する
+
+合格条件:
+- 正常系7段階を、入力値と戻り値を含めて順番に説明できる
+- `Controller -> Service -> Repository -> DB`の境界をソースコード上で示せる
+- 二重出勤時に`409`になるまでの例外伝播を説明できる
+- 認証エラーの`401`はControllerへ到達する前にSecurityフィルターで発生すると説明できる
+
+---
+
+## 12. つまずきポイント
+- `@RequestBody` を付け忘れて `400` になる
+  -> APIのJSON受け取りには `@RequestBody` が必須
+- CSRF で `403` になる
+  -> `/api/**` をCSRF除外しているか確認
+- `ROLE_` 接頭辞の不一致で認可失敗する
+  -> DB値は `ROLE_ADMIN` / `ROLE_USER` で統一
+- 401/403だけHTMLまたは空本文になる
+  -> Securityフィルター用のJSONハンドラー設定を確認する
+
+---
+
+## 13. 時間割目安
+- 0〜2: 15分
+- 3〜7: 70分
+- 8〜9: 20分
+- 10: 20分
+- 11: 30分
+- 12: 10分
+
+バックエンド短縮コースでも時間配分は同じです。ブラウザ側JavaScriptの実装は追加せず、`curl` のリクエストとレスポンスをコードへ対応づけます。

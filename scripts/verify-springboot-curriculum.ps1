@@ -77,7 +77,7 @@ if ($brokenLinks.Count -gt 0) {
 Write-Host "[5/5] Markdown code fences"
 $oddFences = [System.Collections.Generic.List[string]]::new()
 Get-ChildItem -LiteralPath $curriculumRoot -Recurse -Filter "*.md" | ForEach-Object {
-    $count = (Select-String -LiteralPath $_.FullName -Pattern '^```' -Encoding UTF8).Count
+    $count = @(Select-String -LiteralPath $_.FullName -Pattern '^```' -Encoding UTF8).Count
     if ($count % 2 -ne 0) {
         $oddFences.Add("$count`t$($_.FullName)")
     }

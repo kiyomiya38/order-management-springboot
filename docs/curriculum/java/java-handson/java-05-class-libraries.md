@@ -104,6 +104,17 @@ java.util.UUID
 - これらの JDK 内部ファイルは、通常は直接編集しない
 - 学習では「どこにあるか」を確認し、使い方は Javadoc やコード例で確認する
 
+### Javadocを3分だけ使う
+
+Java-20で本格的に扱う前に、標準クラスの仕様をJavadocで確認する習慣を付けます。
+
+1. [Java 17のString Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)を開く
+2. ページ内検索で`isBlank`を探す
+3. 戻り値が`boolean`であることを確認する
+4. 「空文字だけでなく空白文字だけの場合も`true`になる」ことを説明する
+
+ここでは暗記せず、「使い方が不明なときはJavadocのメソッド詳細を見る」ことだけ確認します。
+
 ---
 
 ## 4. ハンズオン
@@ -321,6 +332,5 @@ trim後 length: 9
   -> 日付のみは `LocalDate`、日時は `LocalDateTime`
 - `incompatible types: possible lossy conversion from long to int`
   -> `Math.round(...)` の戻り値は `long`。`(int)` キャストするか変数型を見直す
-
 
 

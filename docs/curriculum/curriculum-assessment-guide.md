@@ -27,8 +27,24 @@
 | Week 5 | web-app前半 | `fetch` からJava APIへ届き、JSONで返り、DOMが更新される流れを説明できる |
 | Week 6 | web-app後半 | CRUD、バリデーション、状態遷移、メモリ保存、Spring Bootへの置き換えを説明できる |
 | Week 7 | Spring Boot導入 | Maven、`@Controller`、Thymeleaf、Entity、Repository、Service、DB保存の流れを説明できる |
-| Week 8 | Spring Boot強化 | 業務ルール、認証、認可、Serviceテストの目的を説明できる |
+| Week 8 | Spring Boot強化 | Lesson5A〜5Cを順に完了し、業務ルール、認証、認可、Serviceテスト、プロファイル、参照整合性を説明できる |
 | Week 9 | REST/API/運用 | `@RestController`、DTO、JSONエラー応答、Flyway、デプロイ/コンテナ化の位置づけを説明できる |
+
+### バックエンド短縮コースのチェックポイント
+
+短縮コースでは、Week 4〜6のフロントエンド実装評価を次の確認へ置き換えます。
+
+| 区分 | 必須確認 |
+| --- | --- |
+| HTTP最小理解 | `GET` / `POST`、リクエスト、レスポンス、主要ステータスを説明できる |
+| ファイル配置 | `templates` と `static` の違いを説明し、提供ファイルを指定位置へ配置できる |
+| フォーム連携 | フォームの `action` / `method` とControllerのマッピングを対応づけられる |
+| Thymeleaf | `Model` のキーと `${...}` / `th:text` / `th:if` / `th:each` の対応を追跡できる |
+| API確認 | `curl` でリクエストを送り、HTTPステータスとJSON応答を確認できる |
+| SQL・RDB | 主キー、外部キー、一意制約、CRUD、Entityとテーブルの対応を説明できる |
+
+短縮コースではHTML/CSSのデザイン、JavaScript文法、DOM操作、`fetch` 実装は必須評価に含めません。
+提供コードを配置する際は、既存の説明コメントを削除せず、そのまま使用できていることを確認します。
 
 ## レビューで聞く質問
 
@@ -43,6 +59,22 @@
 2. `await response.json()` の前に `response.ok` を見る理由は何か
 3. API更新とDOM再描画を分ける理由は何か
 4. クライアント側チェックだけでは不十分な理由は何か
+
+### バックエンド短縮コースのWeb確認
+
+1. `GET` と `POST` は何が違うか
+2. `<form action="/clock-in" method="post">` はどのControllerメソッドへ届くか
+3. `templates` と `static` は何が違うか
+4. `model.addAttribute("statusLabel", value)` はHTMLのどこから参照されるか
+5. JavaScriptを実装していない場合、どこまでを自分の習得範囲として説明すべきか
+
+### SQL・RDB
+
+1. 主キーと外部キーの違いは何か
+2. `users` と `attendances` はどの列で関連づくか
+3. 同一ユーザー・同一日付の二重登録をDBで防ぐ制約は何か
+4. Repositoryの `save` / `findById` はどのSQL操作に相当するか
+5. トランザクションが途中失敗時の不整合を防ぐ理由は何か
 
 ### Spring Boot
 1. `@Controller` と `@RestController` の違いは何か
@@ -69,13 +101,25 @@
 
 | 状態 | 戻る場所 |
 | --- | --- |
-| Javaのクラス分割が説明できない | `docs/curriculum/java/java-handson/java-09-multi-class-development.md` 以降 |
+| Javaのクラス分割が説明できない | `docs/curriculum/java/java-handson/java-10-multi-class-development.md` 以降 |
 | `fetch` とJSONの流れが説明できない | `docs/curriculum/javascript/javascript-fetch-json.md` |
 | HTTPメソッドの使い分けが曖昧 | `docs/curriculum/web-app(簡易版)/lesson2.md` と `docs/curriculum/web-app(簡易版)/lesson3.md` |
 | サーバー側バリデーションの理由が説明できない | `docs/curriculum/web-app(簡易版)/lesson4.md` |
 | Spring Bootの層構造が説明できない | `docs/curriculum/springboot/lesson02/lesson2.md` |
-| 認証と認可の違いが曖昧 | `docs/curriculum/springboot/lesson05/lesson5.md` |
-| JSON APIとThymeleafの違いが曖昧 | `docs/curriculum/web-app(簡易版)/bridge-to-springboot.md` と `docs/curriculum/springboot/lesson08/lesson8.md` |
+| 認証と認可の違いが曖昧 | `docs/curriculum/springboot/lesson05/lesson5a-authentication.md` |
+| ユーザー管理・勤怠管理の処理を追えない | `docs/curriculum/springboot/lesson05/lesson5b-management.md` |
+| テスト・プロファイル・参照整合性が曖昧 | `docs/curriculum/springboot/lesson05/lesson5c-testing-operations.md` |
+| JSON APIとThymeleafの違いが曖昧 | `docs/curriculum/web-app(簡易版)/bridge-to-springboot.md` と `docs/curriculum/springboot/lesson06/lesson6.md` |
+
+バックエンド短縮コースでは、次の戻り先を追加します。
+
+| 状態 | 戻る場所 |
+| --- | --- |
+| GET/POSTとフォーム送信先が曖昧 | `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` |
+| `templates` / `static` の配置を間違える | `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` |
+| 主キー・外部キー・一意制約が説明できない | `docs/curriculum/springboot/lesson02/sql-rdb-basics.md` |
+| Entityとテーブルの対応が説明できない | `docs/curriculum/springboot/lesson02/sql-rdb-basics.md` と `lesson02/lesson2.md` |
+| `Optional` の有無判定が追えない | `docs/curriculum/springboot/lesson02/lesson2.md` のOptional補足 |
 
 ## 講師運用メモ
 - 1回のレビューで直す弱点は最大2つに絞る

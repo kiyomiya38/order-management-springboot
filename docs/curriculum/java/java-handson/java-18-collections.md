@@ -1,7 +1,5 @@
 ﻿# Java-18 ハンズオン: コレクション（List / Set / Map）
 
-対応参考資料: `Java-18_コレクション.pptx`
-
 ## 1. この資料のゴール
 - `List`, `Set`, `Map` の違いを説明できる
 - 代表実装（`ArrayList`, `HashSet`, `HashMap`）を使える

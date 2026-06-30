@@ -3,7 +3,7 @@
 位置づけ:
 - この資料は参考資料です。
 - 本線では `docs/curriculum/javascript/javascript-fetch-json.md` と `docs/curriculum/web-app(簡易版)` で、JSON送受信を実際のJava API連携として扱います。
-- Spring Bootでは `docs/curriculum/springboot/lesson08/lesson8.md` で、手書きJSONではなく Jackson によるJSON変換へ進みます。
+- Spring Bootでは `docs/curriculum/springboot/lesson06/lesson6.md` で、手書きJSONではなく Jackson によるJSON変換へ進みます。
 
 ## 目的
 - 画面とサーバー間でJSONを安全に扱えるようにする
@@ -25,4 +25,4 @@
 ## 本線教材との対応
 - `JSON.stringify` / `response.json()`: `docs/curriculum/javascript/javascript-fetch-json.md`
 - 手書きJSONの学習用実装: `docs/curriculum/web-app(簡易版)/lesson1.md` 以降
-- JacksonによるJSON変換: `docs/curriculum/springboot/lesson08/lesson8.md`
+- JacksonによるJSON変換: `docs/curriculum/springboot/lesson06/lesson6.md`

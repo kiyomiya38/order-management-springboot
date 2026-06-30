@@ -150,9 +150,9 @@ cd practice/lesson00/java/lesson0-console-ledger
 ## 3. ファイル1: `LedgerType.java`
 
 ```java
-public enum LedgerType {
-    INCOME,
-    EXPENSE
+public enum LedgerType { // 家計簿の取引種別をまとめた型。指定できる値をこの中の値だけに制限する
+    INCOME, // 収入を表す種別
+    EXPENSE // 支出を表す種別
 }
 ```
 
@@ -164,33 +164,34 @@ public enum LedgerType {
 `LedgerEntry.java` を作成:
 
 ```java
-public class LedgerEntry {
-    private final LedgerType type;
-    private final String category;
-    private final int amount;
-    private final String memo;
+public class LedgerEntry { // 家計簿の取引1件分を表すクラス
+    private final LedgerType type; // 収入か支出かを保持する。LedgerTypeなのでINCOME/EXPENSE以外は入らない
+    private final String category; // 食費、交通費、給料などの分類名
+    private final int amount; // 金額。今回は整数の円として扱う
+    private final String memo; // 補足メモ。空の場合は後で「メモなし」に変換する
 
+    // コンストラクタ: LedgerEntryを作る時に必要な値を受け取り、フィールドへ保存する
     LedgerEntry(LedgerType type, String category, int amount, String memo) {
-        this.type = type;
-        this.category = category;
-        this.amount = amount;
-        this.memo = memo;
+        this.type = type; // 引数typeの値を、このオブジェクトのtypeフィールドへ代入する
+        this.category = category; // 引数categoryの値を、このオブジェクトのcategoryフィールドへ代入する
+        this.amount = amount; // 引数amountの値を、このオブジェクトのamountフィールドへ代入する
+        this.memo = memo; // 引数memoの値を、このオブジェクトのmemoフィールドへ代入する
     }
 
-    LedgerType getType() {
-        return type;
+    LedgerType getType() { // typeを外部から読み取るためのメソッド
+        return type; // 保持している収入/支出の種別を返す
     }
 
-    String getCategory() {
-        return category;
+    String getCategory() { // categoryを外部から読み取るためのメソッド
+        return category; // 保持しているカテゴリ名を返す
     }
 
-    int getAmount() {
-        return amount;
+    int getAmount() { // amountを外部から読み取るためのメソッド
+        return amount; // 保持している金額を返す
     }
 
-    String getMemo() {
-        return memo;
+    String getMemo() { // memoを外部から読み取るためのメソッド
+        return memo; // 保持しているメモを返す
     }
 }
 ```
@@ -201,115 +202,116 @@ public class LedgerEntry {
 `LedgerService.java` を作成:
 
 ```java
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList; // Listの実体として使う、順番を保持できるコレクション
+import java.util.HashMap; // Mapの実体として使う、キーと値の組み合わせを保持できるコレクション
+import java.util.List; // 複数のLedgerEntryを順番に保持するための型
+import java.util.Map; // カテゴリ別合計のように「名前 -> 金額」を保持するための型
 
-public class LedgerService {
-    private final List<LedgerEntry> entries = new ArrayList<>();
+public class LedgerService { // 家計簿データの登録・表示・集計を担当するクラス
+    private final List<LedgerEntry> entries = new ArrayList<>(); // 登録された取引を順番に保存するリスト
 
+    // 取引を1件登録するメソッド。文字列や金額を検証してからLedgerEntryを作成する
     void addEntry(String typeText, String category, int amount, String memo) {
-        LedgerType type;
-        try {
-            type = LedgerType.valueOf(typeText);
-        } catch (IllegalArgumentException | NullPointerException e) {
-            System.out.println("[ERROR] 種別は INCOME または EXPENSE を指定してください");
-            return;
+        LedgerType type; // 文字列のtypeTextをLedgerTypeへ変換した結果を入れる変数
+        try { // valueOfは不正な文字列やnullが来ると例外になるため、try-catchで受け止める
+            type = LedgerType.valueOf(typeText); // "INCOME" や "EXPENSE" という文字列をenumへ変換する（valueOfはenum作成時に自動で使用できるメソッドで、typeText に入っている文字列を、LedgerType の値に変換）
+        } catch (IllegalArgumentException | NullPointerException e) { // 想定外の種別やnullが渡された場合の処理
+            System.out.println("[ERROR] 種別は INCOME または EXPENSE を指定してください"); // エラー理由をコンソールに表示する
+            return; // これ以上処理せず、登録を中止する
         }
 
-        if (amount <= 0) {
-            System.out.println("[ERROR] 金額は1以上を指定してください");
-            return;
+        if (amount <= 0) { // 金額が0以下なら家計簿データとして扱わない
+            System.out.println("[ERROR] 金額は1以上を指定してください"); // 金額エラーを表示する
+            return; // 不正なデータなので登録しない
         }
 
-        if (category == null || category.isBlank()) {
-            System.out.println("[ERROR] カテゴリは必須です");
-            return;
+        if (category == null || category.isBlank()) { // カテゴリがnullまたは空白だけなら不正とする
+            System.out.println("[ERROR] カテゴリは必須です"); // カテゴリ必須エラーを表示する
+            return; // 不正なデータなので登録しない
         }
 
-        LedgerEntry entry = new LedgerEntry(type, category.trim(), amount, normalizeMemo(memo));
-        entries.add(entry);
-        System.out.println("[OK] 登録: " + type + " / " + category + " / " + amount);
+        LedgerEntry entry = new LedgerEntry(type, category.trim(), amount, normalizeMemo(memo)); // 検証済みの値から取引1件分のオブジェクトを作る
+        entries.add(entry); // 作成した取引をリストへ追加する
+        System.out.println("[OK] 登録: " + type + " / " + category + " / " + amount); // 登録できたことを表示する
     }
 
-    void printAll() {
-        System.out.println("=== 取引一覧 ===");
-        if (entries.isEmpty()) {
-            System.out.println("データがありません");
-            return;
+    void printAll() { // 登録済みの取引をすべて表示するメソッド
+        System.out.println("=== 取引一覧 ==="); // 一覧表示の見出し
+        if (entries.isEmpty()) { // リストが空なら表示する取引がない
+            System.out.println("データがありません"); // データなしメッセージを表示する
+            return; // 一覧表示を終了する
         }
 
-        int index = 1;
-        for (LedgerEntry entry : entries) {
-            System.out.println(index + ". "
-                    + entry.getType()
+        int index = 1; // 画面表示用の連番。人が見やすいように1から始める
+        for (LedgerEntry entry : entries) { // entriesの中身を1件ずつentryに取り出して処理する
+            System.out.println(index + ". " // 連番を表示する
+                    + entry.getType() // 収入/支出の種別を表示する
                     + " | "
-                    + entry.getCategory()
+                    + entry.getCategory() // カテゴリを表示する
                     + " | "
-                    + entry.getAmount()
+                    + entry.getAmount() // 金額を表示する
                     + "円 | "
-                    + entry.getMemo());
-            index++;
+                    + entry.getMemo()); // メモを表示する
+            index++; // 次の取引を表示する前に連番を1増やす
         }
     }
 
-    void printSummary() {
-        int incomeTotal = 0;
-        int expenseTotal = 0;
-        Map<String, Integer> categoryTotals = new HashMap<>();
+    void printSummary() { // 収入・支出・カテゴリ別の合計を表示するメソッド
+        int incomeTotal = 0; // 収入合計を入れる変数
+        int expenseTotal = 0; // 支出合計を入れる変数
+        Map<String, Integer> categoryTotals = new HashMap<>(); // キーをカテゴリ名、値を合計金額として保持するMap
 
-        for (LedgerEntry entry : entries) {
-            if (entry.getType() == LedgerType.INCOME) {
-                incomeTotal += entry.getAmount();
-            } else {
-                expenseTotal += entry.getAmount();
+        for (LedgerEntry entry : entries) { // 登録済み取引を1件ずつ集計する
+            if (entry.getType() == LedgerType.INCOME) { // 種別が収入なら収入合計へ足す
+                incomeTotal += entry.getAmount(); // incomeTotal = incomeTotal + 金額 と同じ意味
+            } else { // INCOMEではない場合、このLessonではEXPENSEとして扱う
+                expenseTotal += entry.getAmount(); // expenseTotal = expenseTotal + 金額 と同じ意味
             }
 
-            String key = entry.getType() + ":" + entry.getCategory();
-            int current = categoryTotals.getOrDefault(key, 0);
-            categoryTotals.put(key, current + entry.getAmount());
+            String key = entry.getType() + ":" + entry.getCategory(); // 種別とカテゴリを組み合わせてMapのキーにする
+            int current = categoryTotals.getOrDefault(key, 0); // 既に合計があれば取得し、なければ0から始める
+            categoryTotals.put(key, current + entry.getAmount()); // 今回の金額を足した合計をMapへ保存し直す
         }
 
-        int balance = incomeTotal - expenseTotal;
+        int balance = incomeTotal - expenseTotal; // 収支 = 収入合計 - 支出合計
 
-        System.out.println("=== 集計 ===");
-        System.out.println("収入合計: " + incomeTotal + "円");
-        System.out.println("支出合計: " + expenseTotal + "円");
-        System.out.println("収支: " + balance + "円");
+        System.out.println("=== 集計 ==="); // 集計表示の見出し
+        System.out.println("収入合計: " + incomeTotal + "円"); // 収入合計を表示する
+        System.out.println("支出合計: " + expenseTotal + "円"); // 支出合計を表示する
+        System.out.println("収支: " + balance + "円"); // 収支を表示する
 
-        System.out.println("=== カテゴリ別 ===");
-        for (String key : categoryTotals.keySet()) {
-            System.out.println(key + " -> " + categoryTotals.get(key) + "円");
+        System.out.println("=== カテゴリ別 ==="); // カテゴリ別表示の見出し
+        for (String key : categoryTotals.keySet()) { // Mapに入っているキーを1つずつ取り出す
+            System.out.println(key + " -> " + categoryTotals.get(key) + "円"); // キーと合計金額を表示する
         }
     }
 
-    void printBudgetAdvice(int budgetLimit) {
-        int expenseTotal = 0;
-        for (LedgerEntry entry : entries) {
-            if (entry.getType() == LedgerType.EXPENSE) {
-                expenseTotal += entry.getAmount();
+    void printBudgetAdvice(int budgetLimit) { // 支出合計が予算内かどうかを表示するメソッド
+        int expenseTotal = 0; // 支出合計を入れる変数
+        for (LedgerEntry entry : entries) { // 登録済み取引を1件ずつ確認する
+            if (entry.getType() == LedgerType.EXPENSE) { // 支出だけを集計対象にする
+                expenseTotal += entry.getAmount(); // 支出金額を合計へ足す
             }
         }
 
-        System.out.println("=== 予算チェック ===");
-        System.out.println("予算上限: " + budgetLimit + "円");
-        System.out.println("現在の支出: " + expenseTotal + "円");
+        System.out.println("=== 予算チェック ==="); // 予算チェック表示の見出し
+        System.out.println("予算上限: " + budgetLimit + "円"); // 引数で受け取った予算上限を表示する
+        System.out.println("現在の支出: " + expenseTotal + "円"); // 集計した支出合計を表示する
 
-        if (expenseTotal > budgetLimit) {
-            System.out.println("[WARN] 予算を超えています");
-        } else if (expenseTotal == budgetLimit) {
-            System.out.println("[INFO] 予算ちょうどです");
-        } else {
-            System.out.println("[INFO] 予算内です");
+        if (expenseTotal > budgetLimit) { // 支出が予算を超えている場合
+            System.out.println("[WARN] 予算を超えています"); // 警告メッセージを表示する
+        } else if (expenseTotal == budgetLimit) { // 支出が予算と同じ場合
+            System.out.println("[INFO] 予算ちょうどです"); // ちょうどであることを表示する
+        } else { // 支出が予算より少ない場合
+            System.out.println("[INFO] 予算内です"); // 予算内であることを表示する
         }
     }
 
-    private String normalizeMemo(String memo) {
-        if (memo == null || memo.isBlank()) {
-            return "(メモなし)";
+    private String normalizeMemo(String memo) { // メモの未入力を扱いやすい文字列へ整えるメソッド
+        if (memo == null || memo.isBlank()) { // メモがnullまたは空白だけの場合
+            return "(メモなし)"; // 一覧表示で分かりやすいように固定文言を返す
         }
-        return memo.trim();
+        return memo.trim(); // 前後の余分な空白を取り除いて返す
     }
 }
 ```
@@ -320,28 +322,29 @@ public class LedgerService {
 `LedgerApp.java` を作成:
 
 ```java
-public class LedgerApp {
-    public static void main(String[] args) {
-        LedgerService service = new LedgerService();
+public class LedgerApp { // アプリケーションの起動入口を持つクラス
+    public static void main(String[] args) { // Java実行時に最初に呼び出されるメソッド
+        LedgerService service = new LedgerService(); // 登録・一覧・集計を担当するサービスクラスを作成する
 
-        System.out.println("=== 家計簿Lite (Console) ===");
+        System.out.println("=== 家計簿Lite (Console) ==="); // アプリ名をコンソールに表示する
 
         // サンプルデータ登録
-        service.addEntry("INCOME", "給料", 280000, "3月分");
-        service.addEntry("EXPENSE", "食費", 18000, "スーパー");
-        service.addEntry("EXPENSE", "交通費", 9000, "定期券");
-        service.addEntry("EXPENSE", "娯楽", 12000, "映画・書籍");
-        service.addEntry("INCOME", "副業", 30000, "Web制作");
+        // addEntry(種別, カテゴリ, 金額, メモ) の順番で値を渡す
+        service.addEntry("INCOME", "給料", 280000, "3月分"); // 収入データを1件登録する
+        service.addEntry("EXPENSE", "食費", 18000, "スーパー"); // 支出データを1件登録する
+        service.addEntry("EXPENSE", "交通費", 9000, "定期券"); // 交通費の支出データを登録する
+        service.addEntry("EXPENSE", "娯楽", 12000, "映画・書籍"); // 娯楽費の支出データを登録する
+        service.addEntry("INCOME", "副業", 30000, "Web制作"); // 副業の収入データを登録する
 
         // バリデーション動作確認（意図的にエラー）
-        service.addEntry("PAY", "不正種別", 1000, "テスト");
-        service.addEntry("EXPENSE", "", 2000, "カテゴリ空");
-        service.addEntry("EXPENSE", "食費", -500, "負の金額");
+        service.addEntry("PAY", "不正種別", 1000, "テスト"); // 種別がINCOME/EXPENSEではないためエラーになる
+        service.addEntry("EXPENSE", "", 2000, "カテゴリ空"); // カテゴリが空文字のためエラーになる
+        service.addEntry("EXPENSE", "食費", -500, "負の金額"); // 金額が0以下のためエラーになる
 
         // 一覧表示 / 集計表示 / 予算チェック
-        service.printAll();
-        service.printSummary();
-        service.printBudgetAdvice(45000);
+        service.printAll(); // 登録済みの取引一覧を表示する
+        service.printSummary(); // 収入合計・支出合計・カテゴリ別合計を表示する
+        service.printBudgetAdvice(45000); // 支出合計が45,000円の予算内か確認する
     }
 }
 ```

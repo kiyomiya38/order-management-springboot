@@ -27,10 +27,10 @@ javac -version
 
 ### 全体構成図（メソッド呼び出し）
 ```mermaid
-flowchart TB
-  MAIN["main メソッド"] -->|引数を渡す| METHOD["計算メソッド"]
-  METHOD -->|return で戻り値を返す| RESULT["main で戻り値を受け取る"]
-  RESULT --> PRINT["戻り値を表示"]
+flowchart LR
+  MAIN["main メソッド"] -->|引数を渡して呼び出す| METHOD["計算メソッド"]
+  METHOD -->|return で計算結果を返す| MAIN
+  MAIN -->|戻り値を表示する| OUTPUT["画面"]
 ```
 
 ポイント:
@@ -305,5 +305,3 @@ quantity=-2 -> 0
   -> 宣言型を見直す
 - 引数順序のミス
   -> 呼び出し側の順番をコメントで明示
-
-

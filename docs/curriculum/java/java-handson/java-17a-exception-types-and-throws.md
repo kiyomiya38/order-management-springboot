@@ -1,7 +1,5 @@
 # Java-17A 補講: 例外の分類と `throws`（checked / unchecked）
 
-対応参考資料: `J2_07_その他のオブジェクト指向の知識.pdf`
-
 ## 1. この資料のゴール
 - checked例外とunchecked例外の違いを説明できる
 - `throws` が必要な場面を判断できる

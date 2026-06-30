@@ -1,6 +1,6 @@
-# Java-10A ミニ演習解答
+# Java-09A ミニ演習解答
 
-対象資料: `docs/curriculum/java/java-handson/java-10a-string-reference-and-value-comparison.md`
+対象資料: `docs/curriculum/java/java-handson/java-09a-string-reference-and-value-comparison.md`
 
 ## レベル1（基本）解答
 ```java

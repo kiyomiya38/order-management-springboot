@@ -1,7 +1,5 @@
 ﻿# Java-14 ハンズオン: 高度な継承（abstract / interface）
 
-対応参考資料: `Java-14_高度な継承.pptx`
-
 ## 1. この資料のゴール
 - 抽象クラス（`abstract class`）の用途を説明できる
 - インターフェース（`interface`）の用途を説明できる
@@ -33,21 +31,21 @@ javac -version
 `abstract` は「まだ完成していない」ことを表すキーワードです。Javaでは主に、抽象クラスと抽象メソッドで使います。
 
 ```java
-abstract class PaymentService {
-    abstract int calculateFee(int amount);
+abstract class PaymentService { // abstract class: そのままnewできない未完成の親クラス
+    abstract int calculateFee(int amount); // abstract method: 子クラスで必ず中身を書くメソッド
 }
 ```
 
 この例では、次の2か所で `abstract` を使っています。
 
 ```java
-abstract class PaymentService
+abstract class PaymentService // 決済サービスの共通部分を表すが、決済方法はまだ決まっていない
 ```
 
 これは抽象クラスです。`PaymentService` は「決済サービス」という共通の考え方を表しますが、カード決済なのか銀行振込なのかはまだ決まっていません。そのため、直接 `new PaymentService()` して使うことはできません。
 
 ```java
-abstract int calculateFee(int amount);
+abstract int calculateFee(int amount); // 手数料計算の形だけ決める。計算方法は子クラスに任せる
 ```
 
 これは抽象メソッドです。メソッド名、引数、戻り値だけを決めて、処理内容はまだ書いていません。メソッド本体の `{}` は書かず、最後は `;` で終わります。
@@ -55,10 +53,10 @@ abstract int calculateFee(int amount);
 抽象メソッドは、子クラスで必ず実装します。
 
 ```java
-class CardPaymentService extends PaymentService {
-    @Override
-    int calculateFee(int amount) {
-        return amount / 100;
+class CardPaymentService extends PaymentService { // PaymentServiceを継承したカード決済クラス
+    @Override // 親クラスの抽象メソッドを実装していることを明示する
+    int calculateFee(int amount) { // カード決済用の手数料計算
+        return amount / 100; // 金額の1%を手数料として返す
     }
 }
 ```
@@ -74,21 +72,21 @@ class CardPaymentService extends PaymentService {
 `interface` は「このメソッドを持っている」という約束を表すものです。抽象クラスのように共通処理をまとめる目的ではなく、「通知できる」「保存できる」「比較できる」などの機能の形を決めたいときに使います。
 
 ```java
-interface Notifier {
-    void notifyResult(String message);
+interface Notifier { // 「通知できる」ことを表す約束
+    void notifyResult(String message); // 通知メッセージを受け取り、通知するメソッド
 }
 ```
 
 この例では、次の2か所を確認します。
 
 ```java
-interface Notifier
+interface Notifier // 通知機能を持つクラスが守る約束
 ```
 
 これはインターフェースです。`Notifier` は「通知できるもの」という約束を表します。
 
 ```java
-void notifyResult(String message);
+void notifyResult(String message); // messageを使って通知する、という形だけ決める
 ```
 
 これはインターフェースで決めたメソッドです。メソッド名、引数、戻り値だけを決めて、処理内容は書いていません。抽象メソッドと同じように `{}` は書かず、最後は `;` で終わります。
@@ -96,16 +94,16 @@ void notifyResult(String message);
 インターフェースを使うクラスは、`implements` を使います。
 
 ```java
-class ConsoleNotifier implements Notifier {
-    @Override
-    public void notifyResult(String message) {
-        System.out.println("[通知] " + message);
+class ConsoleNotifier implements Notifier { // Notifierの約束を守る通知クラス
+    @Override // interfaceで決めたメソッドを実装していることを明示する
+    public void notifyResult(String message) { // 通知内容を受け取る
+        System.out.println("[通知] " + message); // コンソールへ通知文を表示する
     }
 }
 ```
 
 ```java
-implements Notifier
+implements Notifier // 「Notifierのメソッドを必ず実装します」という宣言
 ```
 
 これは「このクラスは `Notifier` の約束を守ります」という意味です。`implements Notifier` と書いたクラスは、`notifyResult(...)` を必ず実装します。
@@ -113,25 +111,39 @@ implements Notifier
 インターフェースのメソッドは外部から呼び出される前提のため、実装側では `public` を付けます。
 
 ```java
-public void notifyResult(String message)
+public void notifyResult(String message) // interfaceのメソッドを実装する時はpublicを付ける
 ```
 
 呼び出し側は、具体的なクラス名ではなくインターフェース型で受け取れます。
 
 ```java
-Notifier notifier = new ConsoleNotifier();
+Notifier notifier = new ConsoleNotifier(); // 変数の型はNotifier、実体はConsoleNotifier
 ```
 
 この形にすると、あとから `SimpleNotifier` や `ReceiptNotifier` に差し替えやすくなります。
 
 ```java
-Notifier notifier = new SimpleNotifier();
+Notifier notifier = new SimpleNotifier(); // 実体だけ差し替えても、Notifierとして同じように扱える
 ```
 
 抽象クラスとインターフェースの違いは、次のように考えると整理しやすいです。
 
 - 抽象クラス: 共通の流れは親クラスに書き、決済方法ごとに違う部分だけ子クラスに書かせる
 - インターフェース: 「このメソッドを必ず持つこと」というルールだけを決める
+
+### 抽象クラス・抽象メソッド・インターフェースの比較
+
+| 使うもの | 主な目的 |
+|---|---|
+| 抽象クラス | 共通のフィールド・共通処理を親に持たせつつ、一部メソッドだけ子クラスに実装を強制したい |
+| 抽象メソッド | 子クラスに「このメソッドは必ず実装して」と強制したい |
+| インターフェース | 「このメソッドを持つこと」をクラスに約束させたい |
+
+注意点として、Javaでは「子クラスに特定のフィールドを必ず定義させる」ことは直接はできません。
+
+- 共通のフィールドを持たせたい場合は、抽象クラスにフィールドを定義する
+- 子クラスごとに値を必ず返させたい場合は、`abstract getName()` のような抽象メソッドで強制する
+- 共通の状態よりも「この操作ができる」という約束を表したい場合は、インターフェースを使う
 
 ### なぜ抽象クラスが必要か
 決済処理には、どの決済方法でも同じ流れがあります。
@@ -203,58 +215,58 @@ cd ~/order-management-springboot/practice/java/handson14
 `AdvancedInheritanceDemo.java` を次の内容で作成:
 
 ```java
-abstract class PaymentService {
-    void pay(int amount) {
-        System.out.println("決済開始");
+abstract class PaymentService { // 決済処理の共通手順を持つ親クラス
+    void pay(int amount) { // 決済を実行する共通メソッド。amountは決済金額
+        System.out.println("決済開始"); // どの決済方法でも共通の開始メッセージ
 
-        String paymentName = getPaymentName();
-        int fee = calculateFee(amount);
-        int total = amount + fee;
+        String paymentName = getPaymentName(); // 子クラスに決済方法名を決めてもらう
+        int fee = calculateFee(amount); // 子クラスに手数料を計算してもらう
+        int total = amount + fee; // 決済金額と手数料を足して合計を作る
 
-        System.out.println("決済方法: " + paymentName);
-        System.out.println("金額: " + amount);
-        System.out.println("手数料: " + fee);
-        System.out.println("合計: " + total);
-        System.out.println("決済完了");
+        System.out.println("決済方法: " + paymentName); // 決済方法名を表示する
+        System.out.println("金額: " + amount); // 元の決済金額を表示する
+        System.out.println("手数料: " + fee); // 計算された手数料を表示する
+        System.out.println("合計: " + total); // 金額 + 手数料の合計を表示する
+        System.out.println("決済完了"); // どの決済方法でも共通の完了メッセージ
     }
 
-    abstract String getPaymentName();
+    abstract String getPaymentName(); // 決済方法名は子クラスごとに違うため、子クラスに実装させる
 
-    abstract int calculateFee(int amount);
+    abstract int calculateFee(int amount); // 手数料計算は子クラスごとに違うため、子クラスに実装させる
 }
 
-class CardPaymentService extends PaymentService {
-    @Override
+class CardPaymentService extends PaymentService { // カード決済用の子クラス
+    @Override // 親クラスのgetPaymentName()を実装していることを明示する
     String getPaymentName() {
-        return "カード";
+        return "カード"; // カード決済の表示名を返す
     }
 
-    @Override
+    @Override // 親クラスのcalculateFee(...)を実装していることを明示する
     int calculateFee(int amount) {
-        return amount / 100; // 1% 手数料
+        return amount / 100; // 1% 手数料。例: 5000円なら50円
     }
 }
 
-class BankPaymentService extends PaymentService {
-    @Override
+class BankPaymentService extends PaymentService { // 銀行振込用の子クラス
+    @Override // 親クラスのgetPaymentName()を実装していることを明示する
     String getPaymentName() {
-        return "銀行振込";
+        return "銀行振込"; // 銀行振込の表示名を返す
     }
 
-    @Override
+    @Override // 親クラスのcalculateFee(...)を実装していることを明示する
     int calculateFee(int amount) {
-        return 300; // 固定手数料
+        return 300; // 固定手数料。金額に関係なく300円
     }
 }
 
-public class AdvancedInheritanceDemo {
-    public static void main(String[] args) {
-        PaymentService card = new CardPaymentService();
-        PaymentService bank = new BankPaymentService();
+public class AdvancedInheritanceDemo { // 実行用クラス
+    public static void main(String[] args) { // Javaアプリの開始地点
+        PaymentService card = new CardPaymentService(); // 親クラス型の変数にカード決済の実体を入れる
+        PaymentService bank = new BankPaymentService(); // 親クラス型の変数に銀行振込の実体を入れる
 
-        card.pay(5000);
-        System.out.println("---");
-        bank.pay(5000);
+        card.pay(5000); // カード決済としてpay(...)が動く
+        System.out.println("---"); // 出力を見やすく区切る
+        bank.pay(5000); // 銀行振込としてpay(...)が動く
     }
 }
 ```
@@ -288,6 +300,11 @@ java AdvancedInheritanceDemo
 - 決済名と手数料だけが子クラスごとに変わる
 - 子クラスで `getPaymentName()` や `calculateFee(...)` を書き忘れるとコンパイルエラーになる
 
+### 中間チェック: 抽象クラス
+
+- 共通の処理手順を`PaymentService`へ置く理由を説明できる
+- 子クラスが実装する2つの抽象メソッドを説明できる
+- `AdvancedInheritanceDemo.java`をコンパイル・実行できてからStep 2へ進む
 
 ### Step 2: インターフェースを追加
 `AdvancedInheritanceDemo.java` を次の内容に更新:
@@ -299,81 +316,81 @@ java AdvancedInheritanceDemo
 - `PaymentService` は `Notifier` 型で受け取るので、通知方法の具体的なクラスを気にしない
 
 ```java
-interface Notifier {
-    void notifyResult(String message);
+interface Notifier { // 通知機能の約束を表すインターフェース
+    void notifyResult(String message); // 通知したいメッセージを受け取るメソッド
 }
 
-class ConsoleNotifier implements Notifier {
-    @Override
+class ConsoleNotifier implements Notifier { // "[通知]"付きで表示する通知クラス
+    @Override // Notifierで決めたnotifyResult(...)を実装していることを明示する
+    public void notifyResult(String message) { // publicが必要。interfaceのメソッドは外部から呼ばれる前提
+        System.out.println("[通知] " + message); // 受け取ったメッセージをコンソールへ表示する
+    }
+}
+
+class SimpleNotifier implements Notifier { // 簡易的な文言で表示する通知クラス
+    @Override // Notifierで決めたnotifyResult(...)を実装していることを明示する
     public void notifyResult(String message) {
-        System.out.println("[通知] " + message);
+        System.out.println("通知: " + message); // 表示形式だけConsoleNotifierと変えている
     }
 }
 
-class SimpleNotifier implements Notifier {
-    @Override
-    public void notifyResult(String message) {
-        System.out.println("通知: " + message);
-    }
-}
+abstract class PaymentService { // 決済処理の共通手順を持つ親クラス
+    void pay(int amount, Notifier notifier) { // 決済金額と通知方法を受け取る
+        System.out.println("決済開始"); // どの決済方法でも共通の開始メッセージ
 
-abstract class PaymentService {
-    void pay(int amount, Notifier notifier) {
-        System.out.println("決済開始");
+        String paymentName = getPaymentName(); // 子クラスに決済方法名を決めてもらう
+        int fee = calculateFee(amount); // 子クラスに手数料を計算してもらう
+        int total = amount + fee; // 決済金額と手数料を足して合計を作る
 
-        String paymentName = getPaymentName();
-        int fee = calculateFee(amount);
-        int total = amount + fee;
+        System.out.println("決済方法: " + paymentName); // 決済方法名を表示する
+        System.out.println("金額: " + amount); // 元の決済金額を表示する
+        System.out.println("手数料: " + fee); // 計算された手数料を表示する
+        System.out.println("合計: " + total); // 金額 + 手数料の合計を表示する
+        System.out.println("決済完了"); // どの決済方法でも共通の完了メッセージ
 
-        System.out.println("決済方法: " + paymentName);
-        System.out.println("金額: " + amount);
-        System.out.println("手数料: " + fee);
-        System.out.println("合計: " + total);
-        System.out.println("決済完了");
-
-        notifier.notifyResult(paymentName + "決済が完了しました。合計: " + total);
+        notifier.notifyResult(paymentName + "決済が完了しました。合計: " + total); // 渡された通知方法で結果を通知する
     }
 
-    abstract String getPaymentName();
+    abstract String getPaymentName(); // 決済方法名は子クラスごとに違うため、子クラスに実装させる
 
-    abstract int calculateFee(int amount);
+    abstract int calculateFee(int amount); // 手数料計算は子クラスごとに違うため、子クラスに実装させる
 }
 
-class CardPaymentService extends PaymentService {
-    @Override
+class CardPaymentService extends PaymentService { // カード決済用の子クラス
+    @Override // 親クラスのgetPaymentName()を実装していることを明示する
     String getPaymentName() {
-        return "カード";
+        return "カード"; // カード決済の表示名を返す
     }
 
-    @Override
+    @Override // 親クラスのcalculateFee(...)を実装していることを明示する
     int calculateFee(int amount) {
-        return amount / 100; // 1% 手数料
+        return amount / 100; // 1% 手数料。例: 5000円なら50円
     }
 }
 
-class BankPaymentService extends PaymentService {
-    @Override
+class BankPaymentService extends PaymentService { // 銀行振込用の子クラス
+    @Override // 親クラスのgetPaymentName()を実装していることを明示する
     String getPaymentName() {
-        return "銀行振込";
+        return "銀行振込"; // 銀行振込の表示名を返す
     }
 
-    @Override
+    @Override // 親クラスのcalculateFee(...)を実装していることを明示する
     int calculateFee(int amount) {
-        return 300; // 固定手数料
+        return 300; // 固定手数料。金額に関係なく300円
     }
 }
 
-public class AdvancedInheritanceDemo {
-    public static void main(String[] args) {
-        PaymentService card = new CardPaymentService();
-        PaymentService bank = new BankPaymentService();
+public class AdvancedInheritanceDemo { // 実行用クラス
+    public static void main(String[] args) { // Javaアプリの開始地点
+        PaymentService card = new CardPaymentService(); // 親クラス型の変数にカード決済の実体を入れる
+        PaymentService bank = new BankPaymentService(); // 親クラス型の変数に銀行振込の実体を入れる
 
-        Notifier consoleNotifier = new ConsoleNotifier();
-        Notifier simpleNotifier = new SimpleNotifier();
+        Notifier consoleNotifier = new ConsoleNotifier(); // 通知方法1: [通知]付きで表示する
+        Notifier simpleNotifier = new SimpleNotifier(); // 通知方法2: シンプルな文言で表示する
 
-        card.pay(5000, consoleNotifier);
-        System.out.println("---");
-        bank.pay(5000, simpleNotifier);
+        card.pay(5000, consoleNotifier); // カード決済を実行し、ConsoleNotifierで通知する
+        System.out.println("---"); // 出力を見やすく区切る
+        bank.pay(5000, simpleNotifier); // 銀行振込を実行し、SimpleNotifierで通知する
     }
 }
 ```
@@ -457,6 +474,4 @@ java AdvancedInheritanceDemo
   -> 実装ミス防止のため付ける
 - 抽象クラスとインターフェースの違いが分からない
   -> 抽象クラスは「共通処理を持つ未完成の親クラス」。インターフェースは「このメソッドを持つという約束」
-
-
 

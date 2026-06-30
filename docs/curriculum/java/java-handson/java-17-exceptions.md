@@ -1,10 +1,9 @@
 ﻿# Java-17 ハンズオン: 例外
 
-対応参考資料: `Java-17_例外.pptx`
-
 ## 1. この資料のゴール
 - 例外の基本（`try-catch-finally`）を実装できる
 - `throw` を使って入力不正を通知できる
+- 例外の大まかな分類（Error 系 / 検査例外 / 非検査例外）を説明できる
 - 例外を握りつぶさず、原因を表示する習慣を身につける
 
 ---
@@ -26,6 +25,64 @@ javac -version
 1. 例外は「通常フローでは処理できない異常」を表す
 2. `try` で実行、`catch` で捕捉、`finally` で後処理
 3. 不正入力は `throw` で呼び出し元へ通知する
+4. 例外は大きく Error 系、検査例外、非検査例外に分けて考える
+
+### 例外クラスの分類
+```mermaid
+flowchart TB
+  OBJECT["Object"]
+  THROWABLE["Throwable"]
+  ERROR["Error"]
+  EXCEPTION["Exception"]
+  RUNTIME["RuntimeException"]
+
+  ERROR_KIND["Error 系"]
+  CHECKED["検査例外<br/>RuntimeException 以外の Exception"]
+  UNCHECKED["非検査例外<br/>RuntimeException とその子クラス"]
+
+  ERROR_NOTE["対応範囲外"]
+  CHECKED_NOTE["対応必須"]
+  UNCHECKED_NOTE["対応任意"]
+
+  OBJECT --> THROWABLE
+  THROWABLE --> ERROR
+  THROWABLE --> EXCEPTION
+  EXCEPTION --> RUNTIME
+
+  ERROR --> ERROR_KIND
+  EXCEPTION --> CHECKED
+  RUNTIME --> UNCHECKED
+
+  ERROR_KIND --> ERROR_NOTE
+  CHECKED --> CHECKED_NOTE
+  UNCHECKED --> UNCHECKED_NOTE
+
+  classDef type fill:#d9ead3,stroke:#6aa84f,color:#000;
+  classDef errorNote fill:#eeeeee,stroke:#444,color:#444;
+  classDef checkedNote fill:#f4cccc,stroke:#a33,color:#a33;
+  classDef uncheckedNote fill:#fff2cc,stroke:#e69138,color:#e66a00;
+
+  class OBJECT,THROWABLE,ERROR,EXCEPTION,RUNTIME,ERROR_KIND,CHECKED,UNCHECKED type;
+  class ERROR_NOTE errorNote;
+  class CHECKED_NOTE checkedNote;
+  class UNCHECKED_NOTE uncheckedNote;
+```
+
+Java で `throw` されたり `catch` されたりする異常は、すべて `Throwable` の仲間です。  
+`Throwable` は、大きく `Error` と `Exception` に分かれます。
+
+`Error` 系は、JVM や実行環境レベルの深刻な問題を表します。たとえば、メモリ不足を表す `OutOfMemoryError` や、呼び出しが深くなりすぎたときの `StackOverflowError` があります。通常の業務エラーとして `catch` して回復する対象ではないため、この資料では「対応範囲外」と考えます。
+
+`Exception` 系は、アプリケーションで扱う例外です。`Exception` のうち、`RuntimeException` ではないものを **検査例外**、`RuntimeException` とその子クラスを **非検査例外** として考えます。
+
+| 種類 | 代表例 | コンパイル時の扱い | この資料での考え方 |
+| --- | --- | --- | --- |
+| Error 系 | `OutOfMemoryError`, `StackOverflowError` | `catch` 必須ではない | 通常はアプリで回復しない |
+| 検査例外 | `IOException`, `ClassNotFoundException` | `catch` または `throws` が必要 | 呼び出し側に対応を強制する |
+| 非検査例外 | `ArithmeticException`, `NumberFormatException`, `IllegalArgumentException` | `catch` 必須ではない | 入力チェックや事前条件で防ぐことが多い |
+
+この Java-17 本編では、まず非検査例外を中心に扱います。  
+検査例外と `throws` の詳しい使い方は、Java-17A 補講で扱います。
 
 ### 全体構成図（例外の流れ）
 ```mermaid
@@ -248,6 +305,4 @@ quantity が不正です: 1001
   -> まずは具体例外を捕まえる
 - 例外メッセージが曖昧
   -> どの値が不正かを明示
-
-
 
