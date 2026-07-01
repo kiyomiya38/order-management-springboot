@@ -2,6 +2,98 @@
 
 前提バージョン: JDK 17（17.x）
 
+## 0. 環境セットアップ（Windows / Git Bash）
+最初に環境を揃えます。すでに導入済みの場合は確認だけ実施してください。
+
+### 0-1. 必要ツール一覧
+- JDK 17（Java開発・実行環境）
+- Maven 3.9+（後続のSpring Boot演習で使用）
+- VS Code（編集）
+- Git for Windows（Git Bash含む）
+
+### 0-2. VS Code のインストール
+ダウンロードURL: `https://code.visualstudio.com/Download`
+
+1. 公式サイトからインストーラを入手
+2. インストール実行（デフォルトでOK）
+3. 任意確認:
+   ```bash
+   code -v
+   ```
+
+### 0-3. JDK 17 のインストール
+ダウンロードURL: `https://adoptium.net/temurin/releases/`
+
+1. 「Eclipse Adoptium (Temurin 17)」の Windows x64 インストーラを入手
+2. インストール実行（デフォルトでOK）
+3. 新しい Git Bash で確認:
+   ```bash
+   java -version
+   javac -version
+   ```
+4. どちらも `17.x` が表示されればOK
+
+期待出力例（抜粋）:
+```text
+openjdk version "17.0.x" ...
+OpenJDK Runtime Environment ...
+OpenJDK 64-Bit Server VM ...
+javac 17.0.x
+```
+
+`java` または `javac` が見つからない場合:
+- Windowsの「環境変数」で `JAVA_HOME` を設定
+- `Path` に `%JAVA_HOME%\bin` を追加
+- Git Bash 再起動
+
+### 0-4. Maven 3.9+ のインストール
+ダウンロードURL: `https://maven.apache.org/download.cgi`
+
+1. Apache Maven の「Binary zip」を入手
+2. 例: `%USERPROFILE%\Documents\apache-maven-3.9.x` に展開
+3. Windowsの「環境変数」で `MAVEN_HOME` を設定
+4. `Path` に `%MAVEN_HOME%\bin` を追加
+5. 新しい Git Bash で確認:
+   ```bash
+   mvn -version
+   ```
+
+期待出力例（抜粋）:
+```text
+Apache Maven 3.9.x (...)
+Java version: 17.x, vendor: ...
+```
+
+補足:
+- `Path` 追加後は Git Bash を再起動
+- 反映されない場合は PC 再起動
+- MavenはこのJava-01では直接使いませんが、後続のSpring Boot演習で使用します
+
+### 0-5. Git Bash（Git for Windows）
+ダウンロードURL: `https://git-scm.com/download/win`
+
+1. 「Git for Windows」を入手
+2. インストール実行（デフォルトでOK）
+3. スタートメニューから Git Bash が起動できればOK
+4. 確認:
+   ```bash
+   git --version
+   ```
+
+### 0-6. 作業フォルダ
+この資料は本体アプリとは別に、練習用フォルダで進めます。
+
+```bash
+mkdir -p ~/order-management-springboot/practice/java
+```
+
+VS Codeで開く（GUI）:
+1. VS Code を起動
+2. `ファイル` → `フォルダーを開く`
+3. `~/order-management-springboot/practice/java` を選択
+
+---
+
 ## 1. この資料のゴール
 - プログラムが「コンピュータへの命令」であることを説明できる
 - Java の最小プログラムを自分で作成し、実行できる
