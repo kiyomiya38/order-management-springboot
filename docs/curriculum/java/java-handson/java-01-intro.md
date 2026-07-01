@@ -71,10 +71,34 @@ javac 17.0.x
 ダウンロードURL: `https://maven.apache.org/download.cgi`
 
 1. Apache Maven の「Binary zip」を入手
-2. 例: `%USERPROFILE%\Documents\apache-maven-3.9.x` に展開
-3. Windowsの「環境変数」で `MAVEN_HOME` を設定
-4. `Path` に `%MAVEN_HOME%\bin` を追加
-5. 新しい Git Bash で確認:
+   - ページ内の `Apache Maven 3.9.x` という見出しまで移動
+   - その下の表で、左列が `Binary zip archive` の行を探す
+   - `Link` 列にある `apache-maven-3.9.x-bin.zip` をクリック
+   - `Checksums` 列の `.sha512` は確認用ファイルなので、通常はクリックしない
+   - `Binary tar.gz archive` や `Source zip archive` ではなく、Windowsでは `bin.zip` を使う
+2. zipファイルを展開
+   - ダウンロードした `apache-maven-3.9.x-bin.zip` を右クリック
+   - `すべて展開` を選択
+   - 例: `%USERPROFILE%\Documents` の下に展開
+   - 展開後のフォルダ例: `%USERPROFILE%\Documents\apache-maven-3.9.x`
+   - フォルダの中に `bin` / `conf` / `lib` が見えればOK
+3. Windowsの「環境変数」を開く
+   - Windowsの検索欄で `環境変数` と入力
+   - `システム環境変数の編集` を開く
+   - `環境変数(N)...` ボタンを押す
+4. `MAVEN_HOME` を設定
+   - 上側の `ユーザー環境変数` で `新規` を押す
+   - `変数名`: `MAVEN_HOME`
+   - `変数値`: `%USERPROFILE%\Documents\apache-maven-3.9.x`
+   - 実際のフォルダ名が `apache-maven-3.9.16` なら、`変数値` も `%USERPROFILE%\Documents\apache-maven-3.9.16` にする
+   - `MAVEN_HOME` には `bin` まで含めない
+5. `Path` に Maven の `bin` を追加
+   - 上側の `ユーザー環境変数` で `Path` を選択
+   - `編集` を押す
+   - `新規` を押す
+   - `%MAVEN_HOME%\bin` を追加
+   - `OK` を押して、開いている環境変数画面をすべて閉じる
+6. 新しい Git Bash で確認:
    ```bash
    mvn -version
    ```
@@ -89,6 +113,7 @@ Java version: 17.x, vendor: ...
 - `Path` 追加後は Git Bash を再起動
 - 反映されない場合は PC 再起動
 - MavenはこのJava-01では直接使いませんが、後続のSpring Boot演習で使用します
+- `mvn` が認識されない場合は、`MAVEN_HOME` が Maven の展開フォルダを指しているか、`Path` に `%MAVEN_HOME%\bin` が入っているかを確認してください
 
 ### 0-6. 作業フォルダ
 この資料は本体アプリとは別に、練習用フォルダで進めます。
