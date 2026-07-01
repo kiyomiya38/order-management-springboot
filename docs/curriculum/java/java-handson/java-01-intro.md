@@ -11,7 +11,22 @@
 - VS Code（編集）
 - Git for Windows（Git Bash含む）
 
-### 0-2. VS Code のインストール
+### 0-2. Git Bash（Git for Windows）
+ダウンロードURL: `https://git-scm.com/download/win`
+
+1. 「Git for Windows」を入手
+2. インストール実行（デフォルトでOK）
+3. スタートメニューから Git Bash が起動できればOK
+4. 確認:
+   ```bash
+   git --version
+   ```
+
+補足:
+- VS Code下部のターミナル表示が `powershell` の場合、この資料の `mkdir -p` などのコマンドは Git Bash で実行してください
+- VS Codeで Git Bash を使う場合は、ターミナル右上の `+` 横のメニューから `Git Bash` を選択します
+
+### 0-3. VS Code のインストール
 ダウンロードURL: `https://code.visualstudio.com/Download`
 
 1. 公式サイトからインストーラを入手
@@ -21,7 +36,13 @@
    code -v
    ```
 
-### 0-3. JDK 17 のインストール
+補足:
+- `code -v` は VS Code をコマンドから呼び出せるかの任意確認です
+- `code` が認識されない場合でも、VS Code が起動できていれば次へ進んでOKです
+- `code` コマンドも使いたい場合は、VS Codeを完全に終了して起動し直すか、PC再起動後に再確認してください
+- それでも認識されない場合は、VS Codeを再インストールし、インストール時に「Add to PATH」を有効にしてください
+
+### 0-4. JDK 17 のインストール
 ダウンロードURL: `https://adoptium.net/temurin/releases/`
 
 1. 「Eclipse Adoptium (Temurin 17)」の Windows x64 インストーラを入手
@@ -46,7 +67,7 @@ javac 17.0.x
 - `Path` に `%JAVA_HOME%\bin` を追加
 - Git Bash 再起動
 
-### 0-4. Maven 3.9+ のインストール
+### 0-5. Maven 3.9+ のインストール
 ダウンロードURL: `https://maven.apache.org/download.cgi`
 
 1. Apache Maven の「Binary zip」を入手
@@ -68,17 +89,6 @@ Java version: 17.x, vendor: ...
 - `Path` 追加後は Git Bash を再起動
 - 反映されない場合は PC 再起動
 - MavenはこのJava-01では直接使いませんが、後続のSpring Boot演習で使用します
-
-### 0-5. Git Bash（Git for Windows）
-ダウンロードURL: `https://git-scm.com/download/win`
-
-1. 「Git for Windows」を入手
-2. インストール実行（デフォルトでOK）
-3. スタートメニューから Git Bash が起動できればOK
-4. 確認:
-   ```bash
-   git --version
-   ```
 
 ### 0-6. 作業フォルダ
 この資料は本体アプリとは別に、練習用フォルダで進めます。
