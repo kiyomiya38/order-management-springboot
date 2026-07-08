@@ -64,6 +64,12 @@ flowchart LR
   CSS -->|CSS| B
 ```
 
+読み方:
+- `AttendanceManagementApplication` がSpring Bootを起動する
+- Springが `Controller` / `Service` / `Repository` / `DataSeeder` を部品（Bean）として登録する
+- リクエスト処理では `Controller -> Service -> Repository -> DB` の順に役割を分けて処理する
+- `Application` が毎回直接 `Controller` や `Repository` を呼ぶわけではなく、起動時に使える状態へ準備する役割と考える
+
 ### データ受け渡し最小メモ（JSONはLesson2では未使用）
 - このLessonはフォーム送信中心で、`fetch` + JSON API はまだ使わない。
 - `POST /clock-in` はフォーム送信（`application/x-www-form-urlencoded`）で、本文データはほぼ不要。
@@ -195,110 +201,98 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
 ## 3. `pom.xml` を作成（Maven設定）
 作成ファイル: `~/order-management-springboot/stages/lesson02/pom.xml`
 
+この `pom.xml` は、Lesson1と同じく次の4ブロックに分けて読みます。
+
+1. プロジェクト識別情報: このアプリの名前とバージョン
+2. 共通設定: Javaバージョンや文字コードなど、複数箇所で使う値
+3. 依存関係: Web、画面、DB、テストで使う外部ライブラリ
+4. ビルド設定: コンパイルや起動用Jar作成の方法
+
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <!-- Mavenが読むPOM仕様バージョン（通常は4.0.0） -->
-  <modelVersion>4.0.0</modelVersion>
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd"> <!-- Maven用XMLの定型。今日は編集しない -->
+  <modelVersion>4.0.0</modelVersion> <!-- pom.xml自体の形式バージョン。Mavenでは通常4.0.0を使う -->
 
-  <!-- プロジェクトの識別情報 -->
-  <!-- groupId: 組織名/ドメイン逆順、artifactId: 成果物名、version: 開発版番号 -->
-  <groupId>com.shinesoft</groupId>
-  <artifactId>attendance-management</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <!-- name/description は人が見て判別しやすくするための情報 -->
-  <name>attendance-management</name>
-  <description>Attendance Management MVP Lesson2</description>
+  <!-- 1. プロジェクト識別情報: Mavenがこのアプリを区別するための名前 -->
+  <groupId>com.shinesoft</groupId> <!-- 組織や会社を表すID。Javaのpackage名と同じくドメイン逆順が多い -->
+  <artifactId>attendance-management</artifactId> <!-- アプリ/成果物の名前。jarファイル名にも使われる -->
+  <version>0.0.1-SNAPSHOT</version> <!-- アプリのバージョン。SNAPSHOTは開発中という意味 -->
+  <name>attendance-management</name> <!-- Mavenやログ上で表示されるプロジェクト名 -->
+  <description>Attendance Management MVP Lesson2</description> <!-- プロジェクトの説明。Lessonを識別しやすくする -->
 
-  <!-- 共通値を変数化。${...} で再利用できる -->
+  <!-- 2. 共通設定: このpom.xml内で何度も使う値をまとめる -->
   <properties>
-    <!-- Javaの使用バージョン -->
-    <java.version>17</java.version>
-    <!-- Spring Boot関連の基準バージョン -->
-    <spring-boot.version>3.5.15</spring-boot.version>
-    <!-- 文字コード設定（文字化け防止） -->
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-    <!-- Java 17としてコンパイルする -->
-    <maven.compiler.release>17</maven.compiler.release>
+    <java.version>17</java.version> <!-- この研修で使うJavaのバージョン -->
+    <spring-boot.version>3.5.15</spring-boot.version> <!-- Spring Boot関連ライブラリの基準バージョン -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- ソースやリソースをUTF-8として扱う -->
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding> <!-- Mavenレポート出力もUTF-8として扱う -->
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding> <!-- Javaコンパイル時のソース文字コード -->
+    <maven.compiler.release>${java.version}</maven.compiler.release> <!-- Java 17向けの.classを作る。上のjava.versionを再利用 -->
   </properties>
 
-  <!-- 依存ライブラリの推奨バージョン表（BOM）を読み込む -->
-  <dependencyManagement>
+  <!-- 3-1. 依存関係のバージョン表: Spring Boot推奨の組み合わせを取り込む -->
+  <dependencyManagement> <!-- バージョン管理用。ここに書いただけではライブラリは追加されない -->
     <dependencies>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring-boot.version}</version>
-        <!-- BOMをimportして、依存のversion記述を省略できるようにする -->
-        <type>pom</type>
-        <scope>import</scope>
+        <version>${spring-boot.version}</version> <!-- propertiesで決めたSpring Bootバージョンを使う -->
+        <type>pom</type> <!-- jarではなく、依存関係の一覧表として読む -->
+        <scope>import</scope> <!-- Spring Boot推奨のバージョン表を取り込む -->
       </dependency>
     </dependencies>
   </dependencyManagement>
 
-  <!-- このアプリで実際に使うライブラリ一覧 -->
+  <!-- 3-2. 実際に使うライブラリ: Lesson2で必要な機能を追加する -->
   <dependencies>
-    <!-- Web機能（Spring MVC、組み込みTomcat、JSON変換など） -->
-    <dependency>
+    <dependency> <!-- Webアプリに必要なSpring MVC/Tomcat/JSON変換などをまとめて追加 -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    <!-- Thymeleafテンプレート機能（サーバーサイドHTML描画） -->
-    <dependency>
+    <dependency> <!-- HTMLテンプレートThymeleafを使うために追加 -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
     </dependency>
-    <!-- JPA機能（Entity/RepositoryでDB操作を行うため） -->
-    <dependency>
+    <dependency> <!-- Entity/RepositoryでDB操作を行うために追加 -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-    <!-- H2データベース（研修用の軽量DB） -->
-    <dependency>
+    <dependency> <!-- 研修用の軽量DB。アプリ内で起動できるためローカルDB構築が不要 -->
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <!-- 実行時のみ必要。コンパイル時には不要 -->
-      <scope>runtime</scope>
+      <scope>runtime</scope> <!-- 実行時だけ必要。Javaコードのコンパイルには直接使わない -->
     </dependency>
-    <!-- JUnitとMockito（Serviceの業務ルールを自動確認するため） -->
-    <dependency>
+    <dependency> <!-- JUnit/Mockitoなど、Serviceの業務ルールを自動確認するために追加 -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
-      <!-- テスト時のみ使用する -->
-      <scope>test</scope>
+      <scope>test</scope> <!-- テスト実行時だけ使う。本番起動には含めない -->
     </dependency>
   </dependencies>
 
-  <!-- Mavenのビルド処理を拡張するプラグイン -->
+  <!-- 4. ビルド設定: コンパイルやSpring Boot起動に使うMaven拡張 -->
   <build>
     <plugins>
-      <!-- mvn spring-boot:run を使えるようにする -->
-      <plugin>
+      <plugin> <!-- mvn spring-boot:run や実行可能jar作成を使えるようにする -->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
-        <executions>
+        <executions> <!-- mvn package時に追加で実行する処理 -->
           <execution>
             <goals>
-              <goal>repackage</goal>
+              <goal>repackage</goal> <!-- java -jarで起動できるSpring Boot用jarへ作り直す -->
             </goals>
           </execution>
         </executions>
       </plugin>
-      <!-- Javaのコンパイル設定（バージョン/文字コード） -->
-      <plugin>
+      <plugin> <!-- Javaをどのバージョン・文字コードでコンパイルするかを決める -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
         <configuration>
-          <!-- Java 17としてビルド -->
-          <release>${maven.compiler.release}</release>
-          <!-- UTF-8でソースを読む -->
-          <encoding>${maven.compiler.encoding}</encoding>
+          <release>${maven.compiler.release}</release> <!-- Java 17向けにコンパイル -->
+          <encoding>${maven.compiler.encoding}</encoding> <!-- ソース文字コード -->
         </configuration>
       </plugin>
     </plugins>
@@ -316,6 +310,24 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
 - まず見る場所:
   - `<dependencies>` の5つの依存関係
   - `<description>`（Lesson2用に識別）
+- 講義用説明:
+
+  | 項目 | 初学者向け説明 |
+  |---|---|
+  | `groupId` / `artifactId` / `version` | Maven上でこのプロジェクトを識別する3点セット |
+  | `properties` | バージョンや文字コードなど、共通で使う値の置き場 |
+  | `dependencyManagement` | ライブラリのバージョン表を取り込む場所。ここだけではライブラリは使われない |
+  | `dependencies` | 実際に使うライブラリを書く場所 |
+  | `spring-boot-starter-web` | Controller、HTTP、組み込みTomcatを使うためのセット |
+  | `spring-boot-starter-thymeleaf` | HTMLテンプレートを使うためのセット |
+  | `spring-boot-starter-data-jpa` | Entity / RepositoryでDB操作を行うためのセット |
+  | `h2` | 研修用の軽量DB。アプリを止めるとデータは消える |
+  | `spring-boot-starter-test` | JUnit / MockitoでServiceテストを行うためのセット |
+  | `scope runtime` | 実行時だけ必要な依存を表す |
+  | `scope test` | テスト時だけ必要な依存を表す |
+  | `spring-boot-maven-plugin` | Spring Bootアプリを起動・jar化するためのMaven拡張 |
+  | `maven-compiler-plugin` | Javaをどのバージョンとしてコンパイルするかを決める設定 |
+
 - よくあるミス:
   - `data-jpa` や `h2` の追加漏れでDB関連クラスが動かない
 
@@ -376,6 +388,19 @@ logging:
 - まず見る場所:
   - `url: jdbc:h2:mem:attendance...`
   - `open-in-view: false`（必要なDB取得はService内で完了させる）
+- 講義用説明:
+
+  | 設定 | 初学者向け説明 |
+  |---|---|
+  | `spring.datasource.url` | アプリが接続するDBの場所 |
+  | `jdbc:h2:mem:attendance` | H2のインメモリDB。アプリ実行中だけメモリ上にDBを作る |
+  | `DB_CLOSE_DELAY=-1` | 接続が一度閉じても、アプリ起動中はDBを残すためのH2設定 |
+  | `driver-class-name` | JDBCでH2へ接続するためのドライバ名 |
+  | `username: sa` | H2でよく使われる学習用ユーザー名 |
+  | `ddl-auto: update` | Entity定義を見てテーブルを自動作成/更新する学習用設定 |
+  | `open-in-view: false` | 画面描画中に追加DBアクセスしないようにし、Service内で取得を完了させる |
+  | `h2.console.enabled` | ブラウザからH2 DBを確認する画面を有効化する |
+
 - よくあるミス:
   - `jdbc:h2:mem:attendance` のスペルミス
   - YAMLインデント崩れ
@@ -435,6 +460,21 @@ public class AttendanceManagementApplication {
 関係（重要）:
 - `User` 1件に対して、`Attendance` は複数件（1対多）
 - ただし同じユーザー・同じ日付での重複は `@UniqueConstraint(user_id, work_date)` で禁止
+
+JPAアノテーション対応表:
+
+| アノテーション | Java側での意味 | DB側での対応 |
+|---|---|---|
+| `@Entity` | このクラスをDB保存対象として扱う | テーブルに対応する |
+| `@Table(name = "...")` | 対応するテーブル名を指定する | `users` / `attendances` |
+| `@Id` | 主キーフィールドを示す | `id` 列 |
+| `@GeneratedValue` | 主キーをDB側で自動採番する | AUTO_INCREMENT相当 |
+| `@Column` | フィールドと列の対応や制約を指定する | `NOT NULL` / `UNIQUE` / 文字数など |
+| `@ManyToOne` | 多数の勤怠が1ユーザーに紐づく関係を示す | `attendances.user_id -> users.id` |
+| `@JoinColumn` | 外部キー列名を指定する | `user_id` 列 |
+| `@Enumerated(EnumType.STRING)` | Enumを文字列として保存する | `WORKING` などの文字列 |
+| `@PrePersist` | INSERT前に自動実行する処理を指定する | 作成日時の自動設定 |
+| `@PreUpdate` | UPDATE前に自動実行する処理を指定する | 更新日時の自動更新 |
 
 ### 6-1. 勤怠ステータス
 作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/domain/AttendanceStatus.java`
@@ -752,6 +792,24 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 }
 ```
 
+`findByUser_IdAndWorkDate` の読み方:
+
+| 部分 | 意味 |
+|---|---|
+| `findBy` | 条件に一致するデータを検索する |
+| `User_Id` | `Attendance` の `user` の中にある `id` で絞り込む |
+| `And` | 条件を追加する |
+| `WorkDate` | `Attendance` の `workDate` で絞り込む |
+
+SQLに近いイメージ:
+
+```sql
+SELECT *
+FROM attendances
+WHERE user_id = ?
+  AND work_date = ?;
+```
+
 理解ポイント（10分）:
 - このファイルの役割:
   - DB操作（検索・保存）の窓口
@@ -781,6 +839,17 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 2. Service: 業務ルール判定（出勤できるか、退勤できるか）
 3. Repository: DB検索・保存
 4. Exception: ルール違反をエラーとして呼び出し元へ通知
+
+`clockIn` の処理手順:
+
+| 手順 | 処理 | 失敗時 |
+|---|---|---|
+| 1 | 今日の日付を決める | なし |
+| 2 | `userId + 今日` で既存勤怠を検索する | 既にあれば `BusinessException` |
+| 3 | 研修ユーザーを取得する | なければ `IllegalStateException` |
+| 4 | `Attendance` を作成し、日付・出勤時刻・状態を入れる | なし |
+| 5 | RepositoryでDBへ保存する | DB制約違反などは例外 |
+| 6 | ログを出して保存結果を返す | なし |
 
 ### 8-1. `BusinessException`
 作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/exception/BusinessException.java`
@@ -891,8 +960,33 @@ public class AttendanceService {
 ## 8.5 最小Serviceテストを作成
 
 Lesson5で複数のテストを扱う前に、Lesson2では「同じ日に2回出勤できない」という業務ルールを1件だけ自動確認します。
+このテストではSpring Bootアプリ全体やH2 DBを起動せず、Repositoryの代用品（Mock）を使ってServiceだけを確認します。
 
 作成ファイル: `~/order-management-springboot/stages/lesson02/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
+
+配置注意:
+- テストコードは必ず `src/test/java` 配下に作成する
+- `src/main/java` 配下に作成すると、本番コードとしてコンパイルされる
+- `spring-boot-starter-test` は `<scope>test</scope>` のため、`src/main/java` のコンパイル時にはJUnit/Mockitoを参照できない
+- `org.junit.jupiter.api は存在しません` や `org.mockito は存在しません` が `src/main/java/.../AttendanceServiceTest.java` に対して出た場合は、ファイル配置ミスを疑う
+
+テストの読み方:
+
+| 区分 | このテストでやること |
+|---|---|
+| Arrange（準備） | Mock Repositoryに「当日勤怠が既にある」と返させる |
+| Act（実行） | `attendanceService.clockIn(1L)` を呼ぶ |
+| Assert（確認） | `BusinessException` が発生し、メッセージが仕様通りか確認する |
+
+Mockitoの最小用語:
+
+| 用語 | 意味 |
+|---|---|
+| `@Mock` | 本物のRepositoryの代用品を作る |
+| `when(...).thenReturn(...)` | 代用品が返す結果を事前に決める |
+| `eq(1L)` | 引数が `1L` と一致する条件 |
+| `any(LocalDate.class)` | 日付なら何でもよいという条件 |
+| `assertThrows` | 指定した例外が発生することを確認する |
 
 ```java
 package com.shinesoft.attendance.service; // Serviceテスト用パッケージ
@@ -954,6 +1048,7 @@ class AttendanceServiceTest {
 実行:
 
 ```bash
+ls src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java
 mvn -Dtest=AttendanceServiceTest test
 ```
 
@@ -963,6 +1058,7 @@ mvn -Dtest=AttendanceServiceTest test
 - `when(...).thenReturn(...)`で「既に当日勤怠がある」状態を作る
 - `assertThrows`で業務ルール違反を確認する
 - Spring全体ではなくServiceだけを対象にするため、失敗原因を絞り込みやすい
+- Mavenログで `src/test/java` のテストとして実行されることを確認する
 
 ---
 
@@ -1026,6 +1122,16 @@ public class DataSeeder {
 
 ## 10. Controllerを作成
 作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/web/HomeController.java`
+
+Controllerの役割:
+- `GET /` で画面表示に必要な値を `Model` へ詰める
+- `POST /clock-in` で出勤ボタン押下を受け取り、Serviceへ処理を依頼する
+- 成功/エラーの結果を `RedirectAttributes` へ入れて `redirect:/` でトップ画面に戻す
+
+PRGパターン:
+- POSTでDB更新した後、直接HTMLを返さずGETへリダイレクトする流れ
+- ブラウザ更新による二重POSTを防ぎやすい
+- Lesson2では `POST /clock-in -> redirect:/ -> GET /` という流れになる
 
 ```java
 // 画面（Web）層のクラスを置くパッケージ
@@ -1137,6 +1243,18 @@ public class HomeController {
   - `RedirectAttributes` でメッセージを画面に戻す
 - 画面制御:
   - `canClockIn` により出勤ボタンの表示/非表示を切り替える
+- Model対応:
+
+  | Controllerで入れるキー | HTML側 | 役割 |
+  |---|---|---|
+  | `workDate` | `${workDate}` | 今日の日付 |
+  | `statusLabel` | `${statusLabel}` | `未出勤` / `出勤中` / `退勤済み` |
+  | `startTime` | `${startTime}` | 出勤時刻。値がなければ `-` |
+  | `endTime` | `${endTime}` | 退勤時刻。Lesson2では基本 `-` |
+  | `canClockIn` | `${canClockIn}` | 出勤フォームを表示するかどうか |
+  | `message` | `${message}` | 成功通知 |
+  | `error` | `${error}` | エラー通知 |
+
 - よくあるミス:
   - `@RequestParam(..., required = false)` を外して初回表示でエラー
 
@@ -1150,6 +1268,17 @@ public class HomeController {
 - 以下のコードブロック全体を講師提供コードとして使用する
 - `templates/index.html` を作成し、内容と説明コメントを削除せず配置する
 - HTML実装は評価せず、`POST /clock-in`、`Model` のキー、ボタン表示条件を確認する
+
+Controllerとの対応:
+
+| HTML | Controller側 | 意味 |
+|---|---|---|
+| `th:text="${statusLabel}"` | `model.addAttribute("statusLabel", ...)` | 勤怠状態を表示 |
+| `th:if="${message}"` | `message` リクエストパラメータ | 成功メッセージがある時だけ表示 |
+| `th:if="${error}"` | `error` リクエストパラメータ | エラーメッセージがある時だけ表示 |
+| `th:if="${canClockIn}"` | `model.addAttribute("canClockIn", ...)` | 出勤できる時だけフォームを表示 |
+| `method="post"` | `@PostMapping("/clock-in")` | POSTリクエストとして送信 |
+| `th:action="@{/clock-in}"` | `@PostMapping("/clock-in")` | 出勤処理のURLへ送信 |
 
 ```html
 <!-- HTML5の文書宣言 -->
@@ -1364,11 +1493,72 @@ mvn spring-boot:run
 3. 「出勤」ボタンを押す
 4. 状態が「出勤中」に変わり、出勤時刻が表示されることを確認
 5. 出勤後は画面上のボタンが非表示になることを確認
-6. 別ターミナルから次を実行し、`Location` に `error=` が含まれることを確認
+
+### 14.5 直接POSTで二重出勤エラーを確認する理由
+
+画面上では、1回出勤すると「出勤」ボタンが非表示になります。
+ただし、ボタンが非表示でも、HTTPリクエストを直接送ることはできます。
+
+そのため、Lesson2では次の2段階で二重出勤防止を確認します。
+
+1. 画面側:
+   - 出勤後にボタンが非表示になることを確認する
+2. サーバー側:
+   - 直接 `POST /clock-in` を送っても、Serviceの業務ルールで拒否されることを確認する
+
+`curl` は、ブラウザ画面を使わずにHTTPリクエストを送るためのコマンドです。
+ここでは、画面のボタンを押す代わりに、ターミナルから直接2回目の出勤リクエストを送ります。
+
+別ターミナルから次を実行します。
+`mvn spring-boot:run` を実行しているターミナルはアプリ起動中で入力に使えないため、別ターミナルを使います。
 
 ```bash
 curl -i -X POST http://localhost:8080/clock-in
 ```
+
+コマンドの意味:
+
+| 部分 | 意味 |
+|---|---|
+| `curl` | HTTPリクエストを送るコマンド |
+| `-i` | レスポンスヘッダーも表示する |
+| `-X POST` | POSTメソッドで送信する |
+| `http://localhost:8080/clock-in` | 出勤処理のURLへ直接送る |
+
+期待する流れ:
+
+1. すでに出勤済みの状態で `POST /clock-in` を送る
+2. `AttendanceService#clockIn` が当日勤怠を検索する
+3. 既存データがあるため `BusinessException("すでに出勤済みです")` を投げる
+4. `HomeController` が `error` パラメータ付きで `redirect:/` を返す
+5. レスポンスヘッダーの `Location` に `error=` が含まれる
+
+`Location` はリダイレクト先を表すレスポンスヘッダーです。
+`Location` に `error=` が含まれていれば、二重出勤がサーバー側で拒否され、エラーメッセージ付きでトップ画面へ戻そうとしていることを確認できます。
+
+DB保存確認（H2コンソール）:
+
+1. ブラウザで `http://localhost:8080/h2-console` を開く
+2. 接続情報を入力する
+
+   | 項目 | 値 |
+   |---|---|
+   | JDBC URL | `jdbc:h2:mem:attendance` |
+   | User Name | `sa` |
+   | Password | 空欄 |
+
+3. `Connect` を押す
+4. 次のSQLを実行し、固定ユーザーと勤怠レコードを確認する
+
+```sql
+SELECT * FROM users;
+SELECT * FROM attendances;
+```
+
+確認ポイント:
+- `users` に `user1` が登録されている
+- 出勤ボタン押下後、`attendances` に `work_date` / `start_time` / `status` が登録されている
+- `status` が `WORKING` になっている
 
 ---
 

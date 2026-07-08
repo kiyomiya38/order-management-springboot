@@ -5,13 +5,19 @@
 - Thymeleafで画面が表示される仕組み（Controller → Template）が分かる
 
 ## 前提
-- `docs/curriculum/web-app(簡易版)` の必修範囲を実施済み
-- `docs/curriculum/web-app(簡易版)/bridge-to-springboot.md` を読了済み
+今回の受講順（`java-handson` → `lesson00` → `lesson01`）では、以下を満たしていることを前提にします。
+
+- `docs/curriculum/java/java-handson` のSpring Bootへ進む場合の追加必修まで学習済み
 - `docs/curriculum/springboot/lesson00/lesson0.md`（コンソール復習）を実施済み
 - Java 17 / Maven 3.9+ がインストール済み
 - このリポジトリのルートで作業する
 
-バックエンド短縮コースでは、上記の `web-app(簡易版)` 2項目を次へ読み替えます。
+標準コースで `web-app(簡易版)` を実施している場合は、次の内容も前提になります。
+
+- `docs/curriculum/web-app(簡易版)` の必修範囲を実施済み
+- `docs/curriculum/web-app(簡易版)/bridge-to-springboot.md` を読了済み
+
+バックエンド短縮コースでは、HTML/CSSの実装理解よりもControllerとTemplateの対応確認を優先します。
 
 - `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` を完了している
 - Lesson1のMaven Sandboxを実行し、Maven操作とコンストラクタ注入（DI）を確認している
@@ -84,7 +90,7 @@ Lesson1では、以下の最小構成を体験します。
 そのためLesson1は、最小の構成で起動と画面表示に集中します。
 
 ## Lesson1で作るもの（最小MVC）
-- 画面: `/`（勤怠トップ画面、表示のみ）
+- 画面: `/`（「勤怠管理システム（MVP）」を表示するトップ画面、表示のみ）
 - 機能: まだ出勤/退勤はしない（Lesson2から）
 
 ### 全体構成図（ファイルと役割）
@@ -132,6 +138,7 @@ flowchart LR
   ```html
   <span th:text="${statusLabel}">未出勤</span>
   ```
+- `"statusLabel"` というキー名と `${statusLabel}` が一致しているため、Controllerで入れた値がHTMLに表示される。
 
 ### 画面表示までの時系列（正常系）
 ```mermaid
@@ -302,71 +309,83 @@ mkdir -p ~/order-management-springboot/stages/lesson01/src/main/resources/static
 ## 5. `pom.xml` を作成（Maven設定）
 作成ファイル: `~/order-management-springboot/stages/lesson01/pom.xml`
 
+この `pom.xml` は、次の4ブロックに分けて読みます。
+
+1. プロジェクト識別情報: このアプリの名前とバージョン
+2. 共通設定: Javaバージョンや文字コードなど、複数箇所で使う値
+3. 依存関係: このアプリで使う外部ライブラリ
+4. ビルド設定: コンパイルや起動用Jar作成の方法
+
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd"> <!-- Mavenが読むPOM定義 -->
-  <modelVersion>4.0.0</modelVersion> <!-- POM仕様バージョン（通常4.0.0） -->
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd"> <!-- Maven用XMLの定型。今日は編集しない -->
+  <modelVersion>4.0.0</modelVersion> <!-- pom.xml自体の形式バージョン。Mavenでは通常4.0.0を使う -->
 
-  <groupId>com.shinesoft</groupId> <!-- 組織名/ドメイン逆順が一般的 -->
-  <artifactId>attendance-management</artifactId> <!-- 成果物（Jar）名 -->
-  <version>0.0.1-SNAPSHOT</version> <!-- SNAPSHOT = 開発中バージョン -->
-  <name>attendance-management</name> <!-- 表示名 -->
-  <description>Attendance Management MVP</description> <!-- 説明文 -->
+  <!-- 1. プロジェクト識別情報: Mavenがこのアプリを区別するための名前 -->
+  <groupId>com.shinesoft</groupId> <!-- 組織や会社を表すID。Javaのpackage名と同じくドメイン逆順が多い -->
+  <artifactId>attendance-management</artifactId> <!-- アプリ/成果物の名前。jarファイル名にも使われる -->
+  <version>0.0.1-SNAPSHOT</version> <!-- アプリのバージョン。SNAPSHOTは開発中という意味 -->
+  <name>attendance-management</name> <!-- Mavenやログ上で表示されるプロジェクト名 -->
+  <description>Attendance Management MVP</description> <!-- プロジェクトの説明。起動動作にはほぼ影響しない -->
 
-  <properties> <!-- 共通値を変数化（${...}で再利用） -->
-    <java.version>17</java.version> <!-- 使用Javaバージョン -->
-    <spring-boot.version>3.5.15</spring-boot.version> <!-- 研修で固定するSpring Boot 3.xバージョン -->
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- 文字コード -->
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding> <!-- レポート文字コード -->
-    <maven.compiler.encoding>UTF-8</maven.compiler.encoding> <!-- コンパイラ文字コード -->
-    <maven.compiler.release>17</maven.compiler.release> <!-- Java 17としてコンパイル -->
+  <!-- 2. 共通設定: このpom.xml内で何度も使う値をまとめる -->
+  <properties>
+    <java.version>17</java.version> <!-- この研修で使うJavaのバージョン -->
+    <spring-boot.version>3.5.15</spring-boot.version> <!-- Spring Boot関連ライブラリの基準バージョン -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- ソースやリソースをUTF-8として扱う -->
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding> <!-- Mavenレポート出力もUTF-8として扱う -->
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding> <!-- Javaコンパイル時のソース文字コード -->
+    <maven.compiler.release>${java.version}</maven.compiler.release> <!-- Java 17向けの.classを作る。上のjava.versionを再利用 -->
   </properties>
 
-  <dependencyManagement> <!-- 依存のバージョン管理用（実際の利用一覧ではない） -->
+  <!-- 3-1. 依存関係のバージョン表: Spring Boot推奨の組み合わせを取り込む -->
+  <dependencyManagement> <!-- バージョン管理用。ここに書いただけではライブラリは追加されない -->
     <dependencies>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring-boot.version}</version>
-        <type>pom</type> <!-- BOMの取り込み設定 -->
-        <scope>import</scope> <!-- BOMをimportしてversion記述を省略可能にする -->
+        <version>${spring-boot.version}</version> <!-- propertiesで決めたSpring Bootバージョンを使う -->
+        <type>pom</type> <!-- jarではなく、依存関係の一覧表として読む -->
+        <scope>import</scope> <!-- Spring Boot推奨のバージョン表を取り込む -->
       </dependency>
     </dependencies>
   </dependencyManagement>
 
-  <dependencies> <!-- このアプリで実際に使うライブラリ -->
-    <dependency> <!-- Web機能（Spring MVC/組み込みTomcat/JSON変換など） -->
+  <!-- 3-2. 実際に使うライブラリ: このアプリに必要な機能を追加する -->
+  <dependencies>
+    <dependency> <!-- Webアプリに必要なSpring MVC/Tomcat/JSON変換などをまとめて追加 -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    <dependency> <!-- サーバーサイドHTMLテンプレート機能（Thymeleaf） -->
+    <dependency> <!-- HTMLテンプレートThymeleafを使うために追加 -->
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
     </dependency>
   </dependencies>
 
-  <build> <!-- Mavenのビルド処理を拡張 -->
+  <!-- 4. ビルド設定: コンパイルやSpring Boot起動に使うMaven拡張 -->
+  <build>
     <plugins>
-      <plugin> <!-- mvn spring-boot:run を使えるようにする -->
+      <plugin> <!-- mvn spring-boot:run や実行可能jar作成を使えるようにする -->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
-        <executions> <!-- mvn packageで実行可能Jarを作る -->
+        <executions> <!-- mvn package時に追加で実行する処理 -->
           <execution>
             <goals>
-              <goal>repackage</goal>
+              <goal>repackage</goal> <!-- java -jarで起動できるSpring Boot用jarへ作り直す -->
             </goals>
           </execution>
         </executions>
       </plugin>
-      <plugin> <!-- Javaコンパイル設定 -->
+      <plugin> <!-- Javaをどのバージョン・文字コードでコンパイルするかを決める -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
         <configuration>
-          <release>${maven.compiler.release}</release> <!-- Java 17でビルド -->
+          <release>${maven.compiler.release}</release> <!-- Java 17向けにコンパイル -->
           <encoding>${maven.compiler.encoding}</encoding> <!-- ソース文字コード -->
         </configuration>
       </plugin>
@@ -375,7 +394,7 @@ mkdir -p ~/order-management-springboot/stages/lesson01/src/main/resources/static
 </project>
 ```
 
-理解ポイント（5分）:
+理解ポイント（10分）:
 - このファイルの役割:
   - Mavenがプロジェクトをビルド/起動するための設定ファイル
 - 今日見るキーワード:
@@ -387,6 +406,19 @@ mkdir -p ~/order-management-springboot/stages/lesson01/src/main/resources/static
   - `<dependencies>`（必要機能の宣言）
   - `spring-boot-maven-plugin`（起動と実行可能Jar作成）
   - `repackage` を `package` に結び付け、`java -jar` で起動できるJarを作る
+- 講義用説明:
+
+  | 項目 | 初学者向け説明 |
+  |---|---|
+  | `groupId` / `artifactId` / `version` | Maven上でこのプロジェクトを識別する3点セット |
+  | `properties` | バージョンや文字コードなど、共通で使う値の置き場 |
+  | `dependencyManagement` | ライブラリのバージョン表を取り込む場所。ここだけではライブラリは使われない |
+  | `dependencies` | 実際に使うライブラリを書く場所 |
+  | `spring-boot-starter-web` | Web画面やHTTPを扱うためのセット |
+  | `spring-boot-starter-thymeleaf` | HTMLテンプレートを使うためのセット |
+  | `spring-boot-maven-plugin` | Spring Bootアプリを起動・jar化するためのMaven拡張 |
+  | `maven-compiler-plugin` | Javaをどのバージョンとしてコンパイルするかを決める設定 |
+
 - 変更メモ（12.5でまとめて実施）:
   - `<description>` を任意の文字列に変更し、起動できることを確認
 - よくあるミス:
@@ -497,10 +529,10 @@ public class HomeController {
 
     @GetMapping("/") // ブラウザが "/" にGETアクセスした時に呼ばれる
     public String index(Model model) {
-        model.addAttribute("workDate", LocalDate.now()); // HTML側 ${workDate}
-        model.addAttribute("statusLabel", "未出勤"); // HTML側 ${statusLabel}
-        model.addAttribute("startTime", null); // Lesson1では未使用（HTMLでは "-" 表示）
-        model.addAttribute("endTime", null);
+        model.addAttribute("workDate", LocalDate.now()); // "workDate" という名前で値を入れる。HTML側の ${workDate} と対応する
+        model.addAttribute("statusLabel", "未出勤"); // "statusLabel" という名前で値を入れる。HTML側の ${statusLabel} と対応する
+        model.addAttribute("startTime", "-"); // Lesson1では固定表示。HTML側の ${startTime} と対応する
+        model.addAttribute("endTime", "-"); // Lesson1では固定表示。HTML側の ${endTime} と対応する
         return "index"; // templates/index.html を表示（先頭に "/" は付けない）
     }
 }
@@ -509,6 +541,7 @@ public class HomeController {
 ポイント:
 - `/` にアクセスしたら `index.html` を返す
 - `Model` で画面にデータを渡している
+- `model.addAttribute("キー名", 値)` のキー名と、HTML側の `${キー名}` が一致すると値が表示される
 
 理解ポイント（10分）:
 - このファイルの役割:
@@ -532,7 +565,7 @@ public class HomeController {
 
 - 以下のコードブロック全体を講師提供コードとして使用する
 - `templates/index.html` を受講者自身で作成し、内容と説明コメントを削除せず配置する
-- HTML文法の実装は評価せず、`${workDate}` / `${statusLabel}` / `${startTime}` とControllerの `Model` を対応づける
+- HTML文法の実装は評価せず、`${workDate}` / `${statusLabel}` / `${startTime}` / `${endTime}` とControllerの `Model` を対応づける
 
 ```html
 <!doctype html> <!-- HTML5の文書宣言 -->
@@ -553,11 +586,11 @@ public class HomeController {
     <section class="panel"> <!-- 1つ目の情報パネル -->
       <div class="panel-header">
         <h2>今日の勤怠</h2>
-        <span class="status-badge" th:text="${statusLabel}">未出勤</span> <!-- ${statusLabel}。右の文字はフォールバック -->
+        <span class="status-badge" th:text="${statusLabel}">未出勤</span> <!-- ${statusLabel}。ControllerのstatusLabelを表示。右の文字はフォールバック -->
       </div>
-      <p>日付: <span th:text="${workDate}">2026-02-05</span></p> <!-- ${workDate} -->
-      <p>出勤時刻: -</p>
-      <p>退勤時刻: -</p>
+      <p>日付: <span th:text="${workDate}">2026-02-05</span></p> <!-- ${workDate}。ControllerのworkDateを表示 -->
+      <p>出勤時刻: <span th:text="${startTime}">-</span></p> <!-- ${startTime}。Lesson1ではControllerから "-" を渡す -->
+      <p>退勤時刻: <span th:text="${endTime}">-</span></p> <!-- ${endTime}。Lesson1ではControllerから "-" を渡す -->
     </section>
 
     <section class="panel"> <!-- 2つ目の情報パネル -->
@@ -581,6 +614,11 @@ public class HomeController {
   - `xmlns:th="http://www.thymeleaf.org"`（Thymeleaf有効化）
   - `th:text="${statusLabel}"`（値の差し込み）
   - `th:href="@{/styles.css}"`（静的CSSの参照）
+- 今日の最重要対応:
+  - `model.addAttribute("workDate", ...)` -> `${workDate}`
+  - `model.addAttribute("statusLabel", ...)` -> `${statusLabel}`
+  - `model.addAttribute("startTime", ...)` -> `${startTime}`
+  - `model.addAttribute("endTime", ...)` -> `${endTime}`
 - 変更メモ（12.5でまとめて実施）:
   - `<title>` を変更してブラウザタブ名が変わることを確認
   - `h1` の文言を変更して画面に反映されることを確認
@@ -598,6 +636,8 @@ public class HomeController {
 - 以下のコードブロック全体を講師提供コードとして使用する
 - `static/styles.css` を受講者自身で作成し、内容と説明コメントを削除せず配置する
 - CSS設計は評価せず、`static` 配下のファイルが `/styles.css` として配信されることを確認する
+- Lesson1で読む範囲は、`:root` / `body` / `.container` / `.panel` / `.panel-header` / `.status-badge` / `.muted` を中心にする
+- `.row` / `button` / `table` / `.alert` などはLesson2以降で使う先取りのスタイルとして残す
 
 ```css
 :root { /* 全体で使えるCSS変数 */
@@ -741,8 +781,9 @@ th, td { /* 表ヘッダーとセルの共通設定 */
 
 ---
 
-## 10.4 Servlet基盤の最小理解（15分 / 実装演習なし）
-この章は、Spring Bootを理解するために必要な「Servletの土台」を最小限だけ押さえる章です。  
+## 10.4 補足: Servlet基盤の最小理解（余裕があれば読む / 実装演習なし）
+この章は、Spring Bootを理解するために必要な「Servletの土台」を最小限だけ押さえる補足です。
+Lesson1の本線は `Controller -> Model -> Template` です。時間が限られる場合は、10.5へ進んでください。
 Servlet/JSP の実装演習は行わず、Spring側の対応関係だけ理解します。
 
 ### 1) 先に結論
@@ -750,6 +791,8 @@ Servlet/JSP の実装演習は行わず、Spring側の対応関係だけ理解�
 - 入口は `DispatcherServlet`（Servlet実装）
 - 認証/認可などの共通処理は Filter（この研修では `SecurityFilterChain`）で先に処理される
 - この研修では JSP は使わず、View は Thymeleaf を使う
+- Lesson1では、`DispatcherServlet` がControllerへ振り分けることだけ分かればよい
+- `SecurityFilterChain` はLesson5で詳しく扱う
 
 ### 2) 1リクエストの流れ（概念）
 ```mermaid
@@ -783,7 +826,7 @@ flowchart LR
 
 ### 5) 3分確認（口頭）
 1. `DispatcherServlet` は何をしているか
-2. `SecurityFilterChain` は Controller の前後どちらで効くか
+2. Filter（Lesson5では `SecurityFilterChain`）は Controller の前後どちらで効くか
 3. この研修で JSP を必須にしていない理由
 
 ---
@@ -803,7 +846,10 @@ flowchart LR
 ### 2) 対応関係（重要）
 - `@GetMapping("/")` -> URL `/` を処理
 - `return "index"` -> `~/order-management-springboot/stages/lesson01/src/main/resources/templates/index.html`
+- `model.addAttribute("workDate", ...)` -> HTML側 `${workDate}` に表示
 - `model.addAttribute("statusLabel", "未出勤")` -> HTML側 `${statusLabel}` に表示
+- `model.addAttribute("startTime", "-")` -> HTML側 `${startTime}` に表示
+- `model.addAttribute("endTime", "-")` -> HTML側 `${endTime}` に表示
 
 ### 3) 3分ハンズオン（理解確認）
 1. `HomeController` の `statusLabel` を `"未出勤"` から `"出勤中(テスト)"` に変更
@@ -856,7 +902,7 @@ http://localhost:8080/
 ```
 
 確認ポイント:
-- 「勤怠トップ」が表示される
+- 「勤怠管理システム（MVP）」と「今日の勤怠」が表示される
 - 状態が「未出勤」と表示される
 - 時刻は「-」になっている
 
@@ -904,7 +950,7 @@ http://localhost:8080/
 バックエンド短縮コースでは、設問1の代わりに次を確認します。
 
 1. `GET /` が `HomeController` へ届き、`templates/index.html` が返るまでを説明する
-2. `model.addAttribute(...)` のキーとHTMLの `${...}` を3組対応づける
+2. `model.addAttribute(...)` のキーとHTMLの `${...}` を4組対応づける
 3. Mavenを使わない場合、依存ライブラリ管理で何がつらいかを1つ書く
 
 ---
