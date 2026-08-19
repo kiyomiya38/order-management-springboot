@@ -1,0 +1,80 @@
+# 起動するコンテナをservicesの中に定義する
+services:
+  # dbは、勤怠データを保存するMariaDBのサービス
+  db:
+    # MariaDB 11.4の公式imageを使う
+    image: mariadb:11.4
+
+    # MariaDBの初期データベース名・ユーザー名・パスワードを設定する
+    # 値は、後で作成する.envファイルから受け取る
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-attendance}
+      MARIADB_USER: ${MARIADB_USER:-attendance_app}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
+
+    # DBのデータをdb_data volumeへ保存し、コンテナを停止しても残す
+    volumes:
+      - db_data:/var/lib/mysql
+
+    # MariaDBが接続を受け付けられる状態か、10秒ごとに確認する
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$${MARIADB_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+    # PCやDockerを再起動した場合も、手動で停止していなければ再起動する
+    restart: unless-stopped
+
+  # appは、完成版Spring Bootアプリのサービス
+  app:
+    # 現在のフォルダにあるDockerfileからimageを作る
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # dbのhealthcheckが成功してからappを起動する
+    depends_on:
+      db:
+        condition: service_healthy
+
+    # PCの127.0.0.1:8081を、appコンテナの8080番へ接続する
+    # 127.0.0.1に限定するため、同じPCのブラウザからだけアクセスできる
+    ports:
+      - "127.0.0.1:8081:8080"
+
+    # Spring Bootへ、使用する設定やDBの接続情報を渡す
+    environment:
+      APP_NAME: attendance-container
+      LOG_LEVEL: INFO
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8080
+      SERVER_ADDRESS: 0.0.0.0
+
+      # ホスト名dbは、上で定義したdbサービスを表す
+      DB_URL: jdbc:mariadb://db:3306/${MARIADB_DATABASE:-attendance}?useUnicode=true&characterEncoding=utf8
+      DB_USER: ${MARIADB_USER:-attendance_app}
+      DB_PASSWORD: ${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}
+      DB_DRIVER: org.mariadb.jdbc.Driver
+      SHOW_SQL: "false"
+
+      # 初回起動時に、研修用の管理者と一般ユーザーを登録する
+      APP_SEED_ENABLED: "true"
+      APP_SEED_ADMIN_PASSWORD: ${APP_SEED_ADMIN_PASSWORD:?Set APP_SEED_ADMIN_PASSWORD in .env}
+      APP_SEED_USER_PASSWORD: ${APP_SEED_USER_PASSWORD:?Set APP_SEED_USER_PASSWORD in .env}
+
+    # アプリに不要な書き込みや権限を与えないための設定
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+    # PCやDockerを再起動した場合も、手動で停止していなければ再起動する
+    restart: unless-stopped
+
+# servicesから使用する名前付きvolumeを定義する
+volumes:
+  db_data:

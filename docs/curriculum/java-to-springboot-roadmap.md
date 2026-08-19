@@ -97,9 +97,9 @@
   - `docs/curriculum/springboot/lesson05/lesson5.md`
   - `docs/curriculum/springboot/lesson05/lesson5a-authentication.md`
   - `docs/curriculum/springboot/lesson05/lesson5b-management.md`
-  - `docs/curriculum/springboot/lesson05/lesson5c-testing-operations.md`
+  - `docs/curriculum/springboot/lesson05/lesson5c-operations.md`
 - 到達目標:
-  - 業務ルール実装、認証/認可、最低限のテストを実装できる。
+  - 業務ルール実装、認証/認可、プロファイル設定、参照整合性を説明できる。
 
 ### Week 9: REST APIと実運用寄り（デプロイ/運用）
 - 対象:
@@ -123,13 +123,12 @@
 
 1. Week 1〜3のJava教材を完了する
 2. `java-20b-web-api-prep.md` で `GET` / `POST` / HTTPステータス / `curl` を確認する
-3. `java-21-junit-basics.md` でMavenとJUnitを確認する
-4. `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` を実施する
-5. Spring Boot Lesson0を実施する
-6. Lesson1とMaven SandboxのDI範囲を実施する
-7. `docs/curriculum/springboot/lesson02/sql-rdb-basics.md` を実施する
-8. Spring Boot Lesson2〜4、Lesson5共通準備、5A〜5C、Lesson6〜7へ順番に進む
-9. 環境演習はA（VirtualBox）またはB（Docker Compose）の一方を選択する
+3. `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` を実施する
+4. Spring Boot Lesson0を実施する
+5. Lesson1とMaven SandboxのDI範囲を実施する
+6. `docs/curriculum/springboot/lesson02/sql-rdb-basics.md` を実施する
+7. Spring Boot Lesson2〜4、Lesson5共通準備、5A〜5C、Lesson6〜7へ順番に進む
+8. 環境演習はA（VirtualBox）またはB（Docker Compose）の一方を選択する
 
 ### 短縮コースで講師が提供するもの
 
@@ -148,7 +147,7 @@
 - `fetch` を使ったブラウザ側API実装
 
 これらは「未習得」として扱い、フルスタック開発を修了したとは判定しません。
-一方、`curl` を使ったHTTP/API確認、Spring MVC、DB、Security、テストは通常コースと同じ基準で評価します。
+一方、`curl` を使ったHTTP/API確認、Spring MVC、DB、Securityは通常コースと同じ基準で評価します。
 
 ---
 
@@ -177,30 +176,17 @@
   - 選択式の環境演習A/Bへ接続する。
 
 ### 中優先
-1. テストの段階学習（対応済み）
-- Java基礎: `docs/curriculum/java/java-handson/java-21-junit-basics.md`
-- Maven/JUnit: `docs/curriculum/springboot/lesson01/maven-sandbox/README.md`
-- Service統合テスト + MockMvc認可テスト: `lesson05/lesson5c-testing-operations.md` と `lesson05/lesson5-testing.md`
-- API認証・本人性テスト: `lesson06/lesson6-testing.md`
-
-2. エラー応答統一
+1. エラー応答統一
 - API: `lesson06` の `@RestControllerAdvice` とSecurity用401/403ハンドラーで対応済み
 - 今後の候補: 画面Controllerの共通例外画面とログ相関ID
 
-3. Maven基礎の前倒し導線が弱い
+2. Maven基礎の前倒し導線が弱い
 - 現状:
   - Maven詳説は `springboot/lesson01` で本格登場。
 - 影響:
-  - Java基礎フェーズで「依存管理・テスト実行」を体験しにくい。
+  - Java基礎フェーズで「依存管理・ビルド実行」を体験しにくい。
 - 追加提案:
   - `docs/curriculum/java/java-handson/java-22-maven-basics.md`
-
-### 低優先
-1. CI最小演習（`mvn test` の自動実行）が不足
-- 現状:
-  - CI/CDは一部資料で言及はあるが、ハンズオン化されていない。
-- 追加提案:
-  - `docs/curriculum/springboot/lesson12/lesson12.md`（GitHub Actions最小構成）
 
 ---
 
@@ -211,8 +197,7 @@
 3. Flyway演習（lesson07）
 
 次に着手:
-1. CI最小演習（`mvn verify`）
-2. 画面Controller共通例外処理
+1. 画面Controller共通例外処理
 
 ---
 

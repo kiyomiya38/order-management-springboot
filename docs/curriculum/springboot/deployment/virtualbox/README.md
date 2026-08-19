@@ -20,7 +20,7 @@
 - 運用要素:
   - `java -jar` 常駐化（systemd）
   - 環境変数ファイルでDB接続設定を注入
-  - 疎通テストとトラブルシュート
+  - 疎通確認とトラブルシュート
 
 ### 全体構成図（サーバーと通信経路）
 ```mermaid
@@ -82,7 +82,7 @@ sequenceDiagram
   DbVM->>DB: MariaDB導入 + DB/ユーザー作成
   AppVM->>AppVM: Java/Nginx/systemd導入
   AppVM->>AppVM: pom.xmlへMariaDBドライバ追加
-  AppVM->>AppVM: mvn clean verify
+  AppVM->>AppVM: mvn -DskipTests clean package
   AppVM->>App: /opt/attendance/app.jar を配置
   AppVM->>AppVM: attendance.service + attendance.env 設定
   AppVM->>App: systemctl enable --now attendance
@@ -355,7 +355,7 @@ sudo -u attendance nano /opt/attendance/src/pom.xml
 ```bash
 sudo -u attendance -H bash -lc '
 cd /opt/attendance/src
-mvn clean verify
+mvn -DskipTests clean package
 cp target/attendance-management-0.0.1-SNAPSHOT.jar /opt/attendance/app.jar
 '
 ```
@@ -464,7 +464,7 @@ sudo systemctl restart nginx
 
 ---
 
-## 6. 動作確認（疎通テスト）
+## 6. 動作確認（疎通確認）
 
 ### 6-1. app-vm から
 ```bash
@@ -516,7 +516,7 @@ sudo systemctl status nginx --no-pager
 ```bash
 sudo -u attendance -H bash -lc '
 cd /opt/attendance/src
-mvn clean verify
+mvn -DskipTests clean package
 cp target/attendance-management-0.0.1-SNAPSHOT.jar /opt/attendance/app.jar
 '
 ```

@@ -176,7 +176,7 @@ WORKDIR /workspace
 COPY pom.xml ./
 COPY src ./src
 
-RUN mvn -B clean verify
+RUN mvn -B -DskipTests clean package
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
@@ -345,7 +345,7 @@ docker compose logs app
 
 対処:
 - `pom.xml` の `spring-boot-maven-plugin` に `repackage` execution があることを確認する
-- `Dockerfile` のビルドコマンドを `mvn -B clean verify` にする
+- `Dockerfile` のビルドコマンドを `mvn -B -DskipTests clean package` にする
 - `docker compose build --no-cache app` で再ビルド
 
 ### 症状: `app` が DB接続エラーで落ちる

@@ -1,4 +1,4 @@
-﻿# Java-05 ハンズオン: 代表的なクラスライブラリ
+# Java-05 ハンズオン: 代表的なクラスライブラリ
 
 ## 1. この資料のゴール
 - Java標準ライブラリの基本的な使い方を理解する
@@ -26,14 +26,16 @@ javac -version
 3. 便利メソッドを使うと、自作コードを減らせる
 4. `isBlank()` は入力チェックで「未入力または空白だけ」の値を判定するときに使う
 5. `trim()` はデータ整形で文字列の前後空白を除去し、保存や比較を安定させるときに使う
+6. `length()` は文字列の文字数を `int` 型で返し、空白も1文字として数える
+7. `plusDays(...)` は指定した日数後の新しい `LocalDate` を返し、元の日付は変更しない
 
 用語の整理:
 
 | 対象 | パッケージ | この資料での使用箇所 | `import` |
 | --- | --- | --- | --- |
-| `String`, `trim()`, `isBlank()` | `java.lang` | Step 1, Step 3 | 不要 |
+| `String`, `trim()`, `isBlank()`, `length()` | `java.lang` | Step 1, Step 3 | 不要 |
 | `Math.round()`, `Math.max()` | `java.lang` | Step 2, Step 3 | 不要 |
-| `LocalDate`, `LocalDateTime` | `java.time` | Step 3 | 必要 |
+| `LocalDate`, `LocalDateTime`, `plusDays(...)` | `java.time` | Step 3 | 必要 |
 | `UUID` | `java.util` | Step 3 | 必要 |
 
 基本データ型との違い:
@@ -141,10 +143,13 @@ public class LibraryDemo { // 標準ライブラリの利用例をまとめる�
     public static void main(String[] args) { // 実行開始地点
         String rawName = "  Shinesoft  "; // 先頭と末尾に空白を含む文字列
         String normalized = rawName.trim(); // trim() で前後空白を除去
+        String sampleText = "Java"; // length() の基本形を確認する文字列
+        int sampleLength = sampleText.length(); // 文字数を int 型で取得
 
         System.out.println("元の文字列: [" + rawName + "]"); // 加工前を表示
         System.out.println("整形後: [" + normalized + "]"); // 加工後を表示
         System.out.println("空白だけか: " + "   ".isBlank()); // isBlank() で空白だけか判定
+        System.out.println("文字数例: " + sampleLength); // Java は4文字
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -160,14 +165,19 @@ java LibraryDemo
 元の文字列: [  Shinesoft  ]
 整形後: [Shinesoft]
 空白だけか: true
+文字数例: 4
 ```
 
-
+コード解説:
+- `length()` は文字列に含まれる文字数を `int` 型で返す
+- 文字列の前後にある空白も1文字として数える
+- Stringではメソッドなので `length()` と丸括弧を付ける
 
 ### Step 2: Mathクラスを追加
 `LibraryDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 public class LibraryDemo { // Math クラスの利用例
     public static void main(String[] args) {
         int price = 1280; // 税抜価格
@@ -177,6 +187,7 @@ public class LibraryDemo { // Math クラスの利用例
 
         System.out.println("税込価格(四捨五入): " + taxed); // 計算結果を表示
         System.out.println("比較結果(大きい方): " + max); // 比較結果を表示
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -216,6 +227,7 @@ Step 3 で追加する `import`:
 - `import` しない場合は、`java.time.LocalDate.now()` のように完全修飾名で書く必要がある
 
 ```java
+// ===== Step 3 で追加・変更 =====
 import java.time.LocalDate; // 日付のみを扱うクラス
 import java.time.LocalDateTime; // 日時を扱うクラス
 import java.util.UUID; // 一意な識別子を生成するクラス
@@ -231,6 +243,7 @@ public class LibraryDemo { // 代表的な標準ライブラリの利用例
         int max = Math.max(900, taxed); // 900 と taxed の大きい方を取得
 
         LocalDate today = LocalDate.now(); // 今日の日付を取得
+        LocalDate tomorrow = today.plusDays(1); // 今日を変更せず、翌日の日付を取得
         LocalDateTime now = LocalDateTime.now(); // 現在の日時を取得
         String orderId = UUID.randomUUID().toString(); // ランダムなUUIDを文字列化
 
@@ -240,8 +253,10 @@ public class LibraryDemo { // 代表的な標準ライブラリの利用例
         System.out.println("税込価格(四捨五入): " + taxed); // 計算結果を表示
         System.out.println("比較結果(大きい方): " + max); // 比較結果を表示
         System.out.println("営業日: " + today); // 日付を表示
+        System.out.println("翌日: " + tomorrow); // plusDays(...) の結果を表示
         System.out.println("処理時刻: " + now); // 日時を表示
         System.out.println("注文ID: " + orderId); // 生成したIDを表示
+// ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -260,6 +275,7 @@ java LibraryDemo
 税込価格(四捨五入): 1408
 比較結果(大きい方): 1408
 営業日: 2026-05-29
+翌日: 2026-05-30
 処理時刻: 2026-05-29T09:30:15.123456789
 注文ID: 123e4567-e89b-12d3-a456-426614174000
 ```
@@ -267,6 +283,7 @@ java LibraryDemo
 補足:
 - 日付、時刻、UUID は実行する日時や環境によって変わる
 - 例として、2026年5月29日に実行した場合は `営業日: 2026-05-29` のように表示される
+- `today.plusDays(1)` は翌日の新しい値を返し、`today` 自体は変更しない
 
 
 
@@ -276,12 +293,31 @@ java LibraryDemo
 
 ---
 
-## 5. ミニ演習（10分）
-### レベル1（基本）
-1. `LocalDate.now()` を `plusDays(3)` して3日後を表示する。
-2. `UUID` を2回生成して値が異なることを確認する。
+## 5. ミニ演習（15分）
 
-期待出力例:
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 3の完成コードから開始してください。
+
+### レベル1（基本）
+1. Step 3の`normalized`を宣言した直後に、`int rawLength = rawName.length();`を追加する。
+2. 続けて、`int normalizedLength = normalized.length();`を追加する。
+3. `rawLength`と`normalizedLength`を表示し、`trim()`によって文字数が変わることを確認する。
+4. `price`を`1980`、`taxRate`を`0.08`に変更する。
+5. 既存の`Math.round(...)`を使った税込価格を確認する。
+
+確認対象の出力（抜粋）:
+```text
+trim前 length: 13
+trim後 length: 9
+税込価格(四捨五入): 2138
+```
+
+### レベル2（拡張）
+1. レベル1まで完了したコードで、`today`を宣言した直後に`LocalDate threeDaysLater = today.plusDays(3);`を追加する。
+2. `orderId`を宣言した直後に、`String secondOrderId = UUID.randomUUID().toString();`を追加する。
+3. `threeDaysLater`、`orderId`、`secondOrderId`を表示する。
+4. `today`が変化していないことと、2つのUUIDが異なることを確認する。
+
+確認対象の出力（抜粋）:
 ```text
 3日後: 2026-06-01
 UUID-1: 11111111-1111-1111-1111-111111111111
@@ -289,27 +325,21 @@ UUID-2: 22222222-2222-2222-2222-222222222222
 ```
 
 補足:
-- 例として、2026年5月29日に実行した場合の3日後は `2026-06-01`
-- UUID の値は実行するたびに変わる
-
-### レベル2（拡張）
-1. `trim()` 前後の文字列長を `length()` で比較する。
-2. `price = 1980`、`taxRate = 0.08` に変更し、`Math.round` の結果が変わることを確認する。
-
-期待出力例:
-```text
-trim前 length: 13
-trim後 length: 9
-税込価格(四捨五入): 2138
-```
+- 日付は実行日によって変わる
+- UUIDは実行するたびに変わる
+- 日付とUUIDが例と完全に一致する必要はない
 
 ### レベル3（実務）
-1. `orderId` の先頭に `"ORD-"` を付けた業務向けIDを作り、`today` と合わせて1行で表示する。
+1. レベル2まで完了したコードで、`orderId`の先頭に`"ORD-"`を付けた結果を`String businessOrderId`へ代入する。
+2. `today`と`businessOrderId`を1行で表示する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
 2026-05-29 / ORD-123e4567-e89b-12d3-a456-426614174000
 ```
+
+補足:
+- 日付とUUID部分は実行するたびに変わる
 
 ### 実行前予想問題（1分）
 次の結果を実行前に予想してください。
@@ -317,9 +347,10 @@ trim後 length: 9
 - `System.out.println("ABC".length());`
 
 ### デバッグ演習（任意, 5分）
-1. `import java.time.LocalDate;` を一時的に削除してコンパイルする。
-2. `cannot find symbol` を確認したら `import` を戻す。
-3. 再コンパイルして成功を確認する。
+1. Step 3の `import java.time.LocalDate;` を一時的に削除する。
+2. コンパイルして `cannot find symbol` を確認する。
+3. エラーメッセージに表示されたクラス名と発生行を確認する。
+4. `import` を戻し、再コンパイルして成功を確認する。
 
 ---
 
@@ -332,5 +363,3 @@ trim後 length: 9
   -> 日付のみは `LocalDate`、日時は `LocalDateTime`
 - `incompatible types: possible lossy conversion from long to int`
   -> `Math.round(...)` の戻り値は `long`。`(int)` キャストするか変数型を見直す
-
-

@@ -124,6 +124,7 @@ Step 1 と同じ目的のコードを、`record` で短く書きます。
 `RecordEnumDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 record Message(long id, String name, String text) { // id、name、text をまとめるデータ型。取得メソッドや toString() は自動で作られる
 }
 
@@ -135,6 +136,7 @@ public class RecordEnumDemo { // record で Message を作る確認用クラス
         System.out.println("name=" + message.name()); // name の値を取得する
         System.out.println("text=" + message.text()); // text の値を取得する
         System.out.println(message); // record は toString() が自動で用意される
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの処理はここまで
 } // RecordEnumDemo クラスの定義はここまで
 ```
@@ -164,6 +166,7 @@ Message[id=1, name=Taro, text=こんにちは、Taroさん]
 `RecordEnumDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 3 で追加・変更 =====
 public class RecordEnumDemo { // String で API 状態を表す確認用クラス
     public static void main(String[] args) {
         String status = "CRETAED"; // "CREATED" のつもりだが、スペルミスしている。String なのでコンパイルは通る
@@ -179,6 +182,7 @@ public class RecordEnumDemo { // String で API 状態を表す確認用クラ�
 
         String json = "{\"status\":\"" + status + "\",\"message\":\"" + message + "\"}"; // 文字列をつなげて JSON 風の文字列を作る
         System.out.println(json); // status のスペルミスも JSON に入ってしまう
+// ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの処理はここまで
 } // RecordEnumDemo クラスの定義はここまで
 ```
@@ -206,6 +210,7 @@ Step 3 と同じAPI状態を、`enum` で表します。
 `RecordEnumDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 4 で追加・変更 =====
 enum ApiStatus { // API 状態として使える候補をここで固定する
     OK,
     CREATED,
@@ -230,6 +235,7 @@ public class RecordEnumDemo { // enum で API 状態を表す確認用クラス
 
         String json = "{\"status\":\"" + response.status() + "\",\"message\":\"" + response.message() + "\"}"; // enum の値を JSON 風の文字列に入れる
         System.out.println(json);
+// ===== Step 4 で追加・変更ここまで =====
     } // main メソッドの処理はここまで
 } // RecordEnumDemo クラスの定義はここまで
 ```
@@ -258,6 +264,7 @@ status=CREATED
 `RecordEnumDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 5 で追加・変更 =====
 enum ApiStatus { // API レスポンスで使う状態を候補として定義する
     CREATED,
     ERROR
@@ -288,6 +295,7 @@ public class RecordEnumDemo { // Web アプリ Lesson2 の Message / ApiStatus �
                 + "\"message\":\"" + message.text() + "\"" // record の text() で本文を取り出して入れる
                 + "}";
     } // toMessageJson メソッドの処理はここまで
+// ===== Step 5 で追加・変更ここまで =====
 } // RecordEnumDemo クラスの定義はここまで
 ```
 
@@ -311,26 +319,30 @@ java RecordEnumDemo
 ---
 
 ## 5. ミニ演習（10分）
+Step 5の完成コードを基準に、レベル1からレベル3まで順番に進めてください。レベル1と2は直前の変更を残したままコードを拡張し、レベル3では完成コードとStep 3の例を比較します。
+
 ### レベル1（基本）
-1. Step 2 の `record Message(long id, String name, String text)` に `String source` を追加する。
-2. `new Message(...)` と表示処理も合わせて修正する。
+1. Step 5の`record Message(long id, String name, String text)`に`String source`を追加する。
+2. `Message message`の生成処理を、4番目の引数へ`"web"`を渡す`new Message(1, "Taro", "こんにちは、Taroさん", "web")`へ変更する。
+3. `toMessageJson(...)`の`message`項目より後へ、`message.source()`を使った`source`項目を追加する。
+4. `source`はJSON風文字列の最後の項目になるため、その直前の`message`項目末尾へカンマを追加する。
 
 期待出力例:
-```text
-source=web
+```json
+{"status":"CREATED","id":1,"name":"Taro","message":"こんにちは、Taroさん","source":"web"}
 ```
 
 ### レベル2（拡張）
-1. Step 4 の `enum ApiStatus` に `DELETED` を追加する。
-2. `ApiStatus.DELETED` を使ってレスポンスを作り、表示する。
+1. レベル1まで完了したStep 5の`enum ApiStatus`に`DELETED`を追加する。
+2. 既存の`Message`を使い、`ApiStatus.DELETED`を持つ`ApiResponse`を作って表示する。
 
 期待出力例:
-```text
-status=DELETED
+```json
+{"status":"DELETED","id":1,"name":"Taro","message":"こんにちは、Taroさん","source":"web"}
 ```
 
 ### レベル3（実務）
-1. Step 3 の `String status = "CRETAED";` と、Step 4 の `ApiStatus.CREATED` の違いを説明する。
+1. レベル1・2まで完成したコードは変更せず、Step 3の`String status = "CRETAED";`と、現在の`ApiStatus.CREATED`の違いを説明する。
 
 期待状態:
 - `String` は存在しない状態名でもコンパイルが通る、と説明できる

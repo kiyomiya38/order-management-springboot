@@ -116,13 +116,21 @@ do {
 
 ```mermaid
 flowchart TB
-  OUTER["outer：外側ループ"] --> INNER["内側ループ"]
-  INNER --> SELECT{"終了方法"}
-  SELECT -->|break| INNER_END["内側ループだけ終了"]
-  INNER_END --> OUTER
-  SELECT -->|break outer| OUTER_END["内側・外側の両方を終了"]
-  OUTER_END --> END["外側ループの後"]
+  OUTER["外側ループを実行"] --> INNER["内側ループを実行"]
+  INNER --> SELECT{"どの break を実行するか"}
+  SELECT -->|break;| INNER_END["内側ループだけ終了"]
+  INNER_END --> NEXT_OUTER["外側ループの次の繰り返しへ"]
+  NEXT_OUTER --> OUTER
+  SELECT -->|break ラベル名;| ALL_END["内側・外側の両方を終了"]
+  ALL_END --> NEXT["2重ループを終了して、次の処理へ進む"]
 ```
+
+図の読み方:
+- `break;` は、現在実行している内側ループだけを終了する
+- 内側ループを終了した後も、外側ループは次の繰り返しを続ける
+- `break ラベル名;` は、そのラベルが付いた外側ループまでまとめて終了する
+- 「次の処理」とは、外側の `for` 文の閉じ波括弧 `}` より後に書かれた処理を指す
+- 外側の `for` 文より後に処理がない場合は、現在のメソッドの終了へ進む
 
 ```java
 ラベル名:
@@ -218,12 +226,14 @@ java AdvancedControlFlowDemo
 ```java
 public class AdvancedControlFlowDemo {
     public static void main(String[] args) {
+        // ===== Step 2 で追加・変更 =====
         int retry = 0;
 
         do {
             retry++;
             System.out.println("再試行: " + retry);
         } while (retry < 3);
+        // ===== Step 2 で追加・変更ここまで =====
     }
 }
 ```
@@ -249,6 +259,7 @@ java AdvancedControlFlowDemo
 ```java
 public class AdvancedControlFlowDemo {
     public static void main(String[] args) {
+        // ===== Step 3 で追加・変更 =====
         outer:
         for (int row = 1; row <= 3; row++) {
             for (int col = 1; col <= 3; col++) {
@@ -258,6 +269,7 @@ public class AdvancedControlFlowDemo {
                 System.out.println("row=" + row + ", col=" + col);
             }
         }
+        // ===== Step 3 で追加・変更ここまで =====
     }
 }
 ```
@@ -276,35 +288,125 @@ row=1, col=3
 row=2, col=1
 ```
 
+### Step 4: 状態判定と繰り返し処理にまとめる（仕上げ）
+前のコード全体を置き換え、`AdvancedControlFlowDemo.java` を次の内容に更新:
+
+```java
+public class AdvancedControlFlowDemo {
+    public static void main(String[] args) {
+        // ===== Step 4 で追加・変更 =====
+        String status = "PAID";
+
+        switch (status) {
+            case "PAID":
+                System.out.println("状態: 入金済み");
+                break;
+            case "PENDING":
+                System.out.println("状態: 入金待ち");
+                break;
+            default:
+                System.out.println("状態: 不明");
+                break;
+        }
+
+        int countdown = 3;
+        do {
+            System.out.println("開始まで: " + countdown);
+            countdown--;
+        } while (countdown >= 1);
+
+        inspection: // 外側のfor文にinspection（検査処理）というラベルを付ける
+        for (int row = 1; row <= 3; row++) {
+            for (int col = 1; col <= 3; col++) {
+                if (row == 2 && col == 2) {
+                    System.out.println("不正データ検出: row=" + row + ", col=" + col);
+                    break inspection; // 内側・外側の両方を終了し、2重ループの次へ進む
+                }
+                System.out.println("確認済み: row=" + row + ", col=" + col);
+        // ===== Step 4 で追加・変更ここまで =====
+            }
+        }
+    }
+}
+```
+
+実行:
+```bash
+javac -encoding UTF-8 AdvancedControlFlowDemo.java
+java AdvancedControlFlowDemo
+```
+
+期待出力例:
+```text
+状態: 入金済み
+開始まで: 3
+開始まで: 2
+開始まで: 1
+確認済み: row=1, col=1
+確認済み: row=1, col=2
+確認済み: row=1, col=3
+確認済み: row=2, col=1
+不正データ検出: row=2, col=2
+```
+
+確認ポイント:
+- `switch` で状態ごとの処理を分けている
+- `do-while` で処理を1回以上実行している
+- ラベル付き `break` で2重ループ全体を終了している
+
 ---
 
 ## 5. ミニ演習（10分）
-### レベル1（基本）
-1. `switch` の判定対象を `String status = "PAID";` に変更し、状態別メッセージを出す。
 
-期待状態:
-- `status` に応じたメッセージが1つ表示される。
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 4の完成コードから開始してください。
+
+### レベル1（基本）
+1. Step 4の `status` を `"PENDING"` に変更する。
+2. `switch` によって入金待ちのメッセージだけが表示されることを確認する。
+3. 次に `status` を `"CANCELLED"` に変更し、`default` が実行されることを確認する。
+
+確認対象の出力（値を変えて2回実行）:
+```text
+status = "PENDING":
+状態: 入金待ち
+
+status = "CANCELLED":
+状態: 不明
+```
 
 ### レベル2（拡張）
-1. `do-while` で `countdown`（3,2,1）を表示する。
+1. Step 4の `countdown` を `5` に変更する。
+2. `do-while` の処理を変更せず、`5`から`1`まで表示されることを確認する。
 
-期待状態:
-- 1回以上実行される後判定ループでカウントダウンできる。
+確認対象の出力（抜粋）:
+```text
+開始まで: 5
+開始まで: 4
+開始まで: 3
+開始まで: 2
+開始まで: 1
+```
 
 ### レベル3（実務）
-1. 2重ループで「不正データ検出時に処理全体を終了する」挙動をラベル付き `break` で実装する。
+1. Step 4の不正データ条件を `row == 3 && col == 1` に変更する。
+2. `row=2, col=3` までは確認処理が続くことを確認する。
+3. `row=3, col=1` でラベル付き `break` が実行され、2重ループ全体が終了することを確認する。
 
-期待状態:
-- 不正条件で外側ループまで即時終了する。
+確認対象となる出力の末尾:
+```text
+確認済み: row=2, col=2
+確認済み: row=2, col=3
+不正データ検出: row=3, col=1
+```
 
 ### 実行前予想問題（1分）
 次のコードの出力を実行前に予想してください。
 - `int n = 0; do { n++; } while (n < 0); System.out.println(n);`
 
 ### デバッグ演習（任意, 5分）
-1. `switch` の `break;` を1つ外して実行する。
-2. フォールスルーで想定外の分岐に流れることを確認する。
-3. `break;` を戻して再実行する。
+1. Step 4の `case "PAID":` にある `break;` を一時的に削除する。
+2. `status` が `"PAID"` のまま実行し、`PENDING` の処理まで続くことを確認する。
+3. `break;` を戻し、`状態: 入金済み` だけが表示されることを確認する。
 
 ---
 

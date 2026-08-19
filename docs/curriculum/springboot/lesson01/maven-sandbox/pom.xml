@@ -42,12 +42,6 @@
       <artifactId>spring-boot-starter-thymeleaf</artifactId> <!-- Thymeleaf -->
     </dependency> <!-- Thymeleaf依存終了 -->
 
-    <dependency> <!-- テスト依存 -->
-      <groupId>org.junit.jupiter</groupId> <!-- JUnit 5 -->
-      <artifactId>junit-jupiter</artifactId> <!-- テスト実行ライブラリ -->
-      <!-- versionはSpring Boot BOMに任せ、JUnit関連ライブラリの組み合わせを揃える -->
-      <scope>test</scope> <!-- テスト時のみ利用 -->
-    </dependency> <!-- テスト依存終了 -->
   </dependencies> <!-- dependenciesセクション終了 -->
 
   <build> <!-- ビルド設定 -->
@@ -60,12 +54,6 @@
           <release>${maven.compiler.release}</release> <!-- Java 17でコンパイル -->
         </configuration> <!-- compiler plugin設定終了 -->
       </plugin> <!-- maven-compiler-plugin終了 -->
-
-      <plugin> <!-- 単体テスト実行 -->
-        <groupId>org.apache.maven.plugins</groupId> <!-- 公式Mavenプラグイン -->
-        <artifactId>maven-surefire-plugin</artifactId> <!-- JUnit実行 -->
-        <version>3.2.5</version> <!-- プラグインバージョン -->
-      </plugin> <!-- maven-surefire-plugin終了 -->
 
       <plugin> <!-- Spring Boot起動 -->
         <groupId>org.springframework.boot</groupId> <!-- Spring Bootプラグイン -->

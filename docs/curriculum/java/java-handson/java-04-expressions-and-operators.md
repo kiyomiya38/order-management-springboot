@@ -1,4 +1,4 @@
-﻿# Java-04 ハンズオン: 式と演算子（実務で使う計算・判定）
+# Java-04 ハンズオン: 式と演算子（実務で使う計算・判定）
 
 補講（任意）: [Java-04A 型変換とキャスト](./java-04a-type-conversion-and-cast.md)
 
@@ -35,6 +35,28 @@ javac -version
 | 比較演算 | `==`, `!=`, `>`, `>=`, `<`, `<=` | 条件判定（閾値チェック等） | `isHighAmount = subtotal >= 3000` | `boolean` |
 | 論理演算 | <code>&amp;&amp;</code>, <code>&#124;&#124;</code>, <code>!</code> | 複数条件の組み合わせ（出荷可否・審査要否などの業務判定） | `canShip = isHighAmount && paid` | `boolean` |
 | 三項演算 | `?:` | 条件に応じた値の切り替え | `discount = member ? 500 : 0` | 式の型に依存 |
+
+### 式を左からではなく、内側から読む
+
+```java
+int subtotal = quantity * unitPrice;
+```
+
+この文は、次の順序で処理されます。
+
+1. 右辺の`quantity * unitPrice`を計算する
+2. 計算結果として1つの`int`値が作られる
+3. その値を左辺の`subtotal`へ代入する
+
+条件式も同じです。
+
+```java
+boolean canShip = stock >= quantity && paid;
+```
+
+`stock >= quantity`と`paid`を`&&`で組み合わせた結果は、`true`または`false`です。そのため、結果を受け取る変数の型は`boolean`になります。
+
+ハンズオンでは「計算する」「比較する」「条件を組み合わせる」の順に進み、最後に1つの金額計算へまとめます。
 
 ---
 
@@ -100,6 +122,7 @@ java OperatorDemo
 `OperatorDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 public class OperatorDemo { // 比較演算子と論理演算子を使った判定例
     public static void main(String[] args) {
         int quantity = 3; // 数量
@@ -114,6 +137,7 @@ public class OperatorDemo { // 比較演算子と論理演算子を使った判�
         System.out.println("高額注文か: " + isHighAmount); // 比較結果を表示
         System.out.println("出荷可能か: " + canShip); // 論理積 (&&) の結果を表示
         System.out.println("審査が必要か: " + needsReview); // 論理和 (||) の結果を表示
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -142,6 +166,7 @@ java OperatorDemo
 `OperatorDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 3 で追加・変更 =====
 public class OperatorDemo { // 演算子の優先順位を確認する例
     public static void main(String[] args) {
         int a = 4 + 5 * 6; // 乗算が先に計算されるため 4 + (5 * 6)
@@ -149,6 +174,7 @@ public class OperatorDemo { // 演算子の優先順位を確認する例
 
         System.out.println("4 + 5 * 6 = " + a); // 括弧なしの結果を表示
         System.out.println("(4 + 5) * 6 = " + b); // 括弧ありの結果を表示
+// ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -169,6 +195,7 @@ java OperatorDemo
 `OperatorDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 4 で追加・変更 =====
 public class OperatorDemo { // 演算子を組み合わせた実務風の金額計算
     public static void main(String[] args) {
         int quantity = 4; // 数量
@@ -185,6 +212,7 @@ public class OperatorDemo { // 演算子を組み合わせた実務風の金額�
         System.out.println("会員割引: " + discount); // 割引額を表示
         System.out.println("税込金額: " + taxed); // 税込金額を表示
         System.out.println("請求金額: " + billingAmount); // 最終請求金額を表示
+// ===== Step 4 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -212,31 +240,37 @@ java OperatorDemo
 ---
 
 ## 5. ミニ演習（10分）
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 4の完成コードから開始してください。
+
 ### レベル1（基本）
 1. `member` を `false` にして割引額を確認する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
 会員割引: 0
 請求金額: 8720
 ```
 
 ### レベル2（拡張）
-1. `quantity` を `10` に変えたときの請求金額を確認する。
+1. レベル1の `quantity` を `10` に変えたときの請求金額を確認する。
 
 期待出力例:
 ```text
 小計: 18000
-請求金額: 20050
+会員割引: 0
+税込金額: 19800
+請求金額: 20600
 ```
 
 ### レベル3（実務）
-1. `discount` を「`subtotal >= 5000` のとき `1000`、それ以外 `0`」に変更する。
+1. レベル2の `discount` を「`subtotal >= 5000` のとき `1000`、それ以外 `0`」に変更する。
 
 期待出力例:
 ```text
+小計: 18000
 会員割引: 1000
-会員割引: 0
+税込金額: 18700
+請求金額: 19500
 ```
 
 ### 実行前予想問題（1分）
@@ -259,6 +293,4 @@ java OperatorDemo
   -> 条件式と算術式を分ける
 - 括弧忘れで意図しない計算になる
   -> 業務ロジックは括弧で明示する
-
-
 

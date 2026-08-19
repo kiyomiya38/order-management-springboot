@@ -1,4 +1,4 @@
-﻿# Java-13 ハンズオン: 継承
+# Java-13 ハンズオン: 継承
 
 ## 1. この資料のゴール
 - `extends` を使った継承を実装できる
@@ -162,6 +162,7 @@ java InheritanceDemo
 `InheritanceDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 class Employee { // 親クラス
     String name; // 社員名
 
@@ -185,6 +186,7 @@ public class InheritanceDemo { // 実行クラス
         m.teamName = "Platform"; // 子クラス固有フィールド設定
         m.printName(); // 親クラスメソッド呼び出し
         m.printTeam(); // 子クラスメソッド呼び出し
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -214,6 +216,7 @@ java InheritanceDemo
 class Employee { // 親クラス
     String name; // 社員名
 
+    // ===== Step 3 で追加・変更 =====
     String roleLabel() { // 役割名を返すメソッド（親の既定実装）
         return "社員";
     }
@@ -235,6 +238,7 @@ public class InheritanceDemo { // 実行クラス
         Manager m = new Manager(); // Manager を生成
         m.name = "Tanaka"; // 名前設定
         m.printProfile(); // オーバーライド結果を含めて表示
+    // ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -281,26 +285,35 @@ java InheritanceDemo
 ---
 
 ## 5. ミニ演習（10分）
-### レベル1（基本）
-1. `PartTimeEmployee` クラスを追加する。
+Step 4の確認変更を元へ戻し、各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 3から開始してください。
 
-期待出力例:
+### レベル1（基本）
+1. `Manager`クラスより後、`InheritanceDemo`クラスより前へ、`Employee`を継承する`PartTimeEmployee`クラスを追加する。このレベルではクラスの中身は空にする。
+2. `main(...)`の既存処理より後で、`PartTimeEmployee partTime = new PartTimeEmployee();`を生成する。
+3. `partTime.name = "Sato";`で名前を設定する。
+4. `partTime.printProfile();`を呼び出す。
+
+確認対象の出力（抜粋）:
 ```text
-PartTimeEmployee: Sato
+社員: Sato
 ```
 
 ### レベル2（拡張）
-1. `roleLabel()` をそれぞれ上書きする。
+1. レベル1で追加した`PartTimeEmployee`に`roleLabel()`を追加する。
+2. `@Override`を付け、`"アルバイト"`を返す。
+3. レベル1の`partTime`生成、名前設定、`printProfile()`呼び出しは変更しない。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
-社員
-管理者
-アルバイト
+アルバイト: Sato
 ```
 
 ### レベル3（実務）
-1. 出力を「役割: 名前」の形式で統一する。
+1. レベル2のクラス定義は残し、`main(...)`の生成・表示処理を次の内容へ変更する。
+   - `Employee employee = new Employee();`を生成し、名前を`"Tanaka"`にする。
+   - `Manager manager = new Manager();`を生成し、名前を`"Suzuki"`にする。
+   - `PartTimeEmployee partTime = new PartTimeEmployee();`を生成し、名前を`"Sato"`にする。
+2. `employee`、`manager`、`partTime`の順に`printProfile()`を呼び出す。
 
 期待出力例:
 ```text
@@ -318,6 +331,3 @@ PartTimeEmployee: Sato
   -> クラス定義の責務を整理
 - 継承しすぎて複雑化
   -> 共通化が明確な場合に限定する
-
-
-

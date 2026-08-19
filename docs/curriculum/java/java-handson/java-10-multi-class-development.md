@@ -203,6 +203,27 @@ java -cp out app.OrderApp
 - そのため、実行時は `app.OrderApp` という正式名で指定する
 - `out/app/OrderApp.class` を探して実行するイメージ
 
+### ハンズオンで比較する2つの段階
+
+この章では、最初から `package` を使いません。まず同じフォルダに3ファイルを置き、「クラスを役割ごとに分ける」ことだけを確認します。その後、同じ3クラスをパッケージへ分けます。
+
+| 段階 | ファイルの置き方 | 学ぶこと |
+| --- | --- | --- |
+| Step 1〜3 | 3ファイルを同じフォルダに置く | クラスごとの役割分担と、別クラスのインスタンスを使う流れ |
+| Step 4 | `model` / `service` / `app`へ分ける | `package`、`import`、`-d`、`-cp` |
+
+Step 4では計算内容を変えるのではなく、「クラスの住所と置き場所」を変えます。したがって、実行結果がStep 3と同じなら、パッケージへ分けてもクラス同士の連携を維持できたと判断できます。
+
+変更の対応は次のとおりです。
+
+```text
+OrderItem.java       -> src/model/OrderItem.java
+OrderCalculator.java -> src/service/OrderCalculator.java
+OrderApp.java        -> src/app/OrderApp.java
+```
+
+ファイルを移動するだけではなく、各ファイルの先頭へ `package` を追加し、別パッケージのクラスを使うファイルへ `import` を追加します。
+
 ---
 
 ## 4. ハンズオン
@@ -352,6 +373,7 @@ mkdir -p src/model src/service src/app out
 
 作成ファイル: `src/model/OrderItem.java`
 ```java
+// ===== Step 4で変更: modelパッケージへ移動 =====
 package model; // model パッケージに属することを宣言
 
 public class OrderItem { // 注文データを表すクラス
@@ -359,10 +381,12 @@ public class OrderItem { // 注文データを表すクラス
     public int quantity; // 数量
     public int unitPrice; // 単価
 } // クラス定義の終わり
+// ===== Step 4で変更ここまで =====
 ```
 
 作成ファイル: `src/service/OrderCalculator.java`
 ```java
+// ===== Step 4で変更: serviceパッケージへ移動し、OrderItemをimport =====
 package service; // service パッケージに属することを宣言
 
 import model.OrderItem; // model パッケージの OrderItem を利用
@@ -372,10 +396,12 @@ public class OrderCalculator { // 金額計算を担当するサービスクラ�
         return item.quantity * item.unitPrice; // itemの中の quantity と unitPrice を使って計算し、結果(int)を呼び出し元へ返す
     }
 } // クラス定義の終わり
+// ===== Step 4で変更ここまで =====
 ```
 
 作成ファイル: `src/app/OrderApp.java`
 ```java
+// ===== Step 4で変更: appパッケージへ移動し、利用する2クラスをimport =====
 package app; // app パッケージに属することを宣言
 
 import model.OrderItem; // model パッケージのクラスを利用
@@ -393,6 +419,7 @@ public class OrderApp { // パッケージ構成版の実行クラス
         System.out.println(item.productName + " 小計: " + subtotal); // 結果を表示
     } // main メソッドの終わり
 } // クラス定義の終わり
+// ===== Step 4で変更ここまで =====
 ```
 
 実行:
@@ -469,9 +496,27 @@ java -cp out app.OrderApp
 
 ---
 
-## 5. ミニ演習（10分）
+## 5. ミニ演習（25分）
+
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 4のパッケージ構成から開始してください。失敗確認で一時的に壊した箇所だけは、確認後に戻します。
+
 ### レベル1（基本）
-1. `OrderCalculator` に送料込み計算メソッドを追加する。
+1. `src/service/OrderCalculator.java`の`calcSubtotal(...)`より後へ、次のメソッドを追加する。
+
+```java
+public int calcTotalWithShipping(OrderItem item, int shippingFee) {
+    return calcSubtotal(item) + shippingFee;
+}
+```
+
+2. `src/app/OrderApp.java`にある既存の`subtotal`の計算と表示を、次の処理へ置き換える。
+
+```java
+int billingAmount = calculator.calcTotalWithShipping(item, 800);
+System.out.println(item.productName + " 請求額: " + billingAmount);
+```
+
+3. `item`、`calculator`など、それ以外のStep 4のコードは変更しない。
 
 期待出力例:
 ```text
@@ -479,11 +524,20 @@ Laptop 請求額: 240800
 ```
 
 ### レベル2（拡張）
-1. `OrderItem` を2件作って合計表示する。
-2. `productName` を `"Mouse"` に変更して確認する。
+1. レベル1の`Laptop`を表す`item`、追加した送料込みメソッド、請求額の表示処理を残す。
+2. `src/app/OrderApp.java` に2件目の `OrderItem` として `mouse` を追加する。
+3. `mouse.productName` を `"Mouse"`、数量を `2`、単価を `2500` にする。
+4. レベル1の請求額を表示した後へ、次の変数を追加する。
+   - `int laptopSubtotal`: `item`の小計
+   - `int mouseSubtotal`: `mouse`の小計
+   - `int total`: 2つの小計の合計
+5. `calculator.calcSubtotal(...)`を使って`laptopSubtotal`と`mouseSubtotal`を求める。
+6. `laptopSubtotal + mouseSubtotal`を`total`へ代入する。
+7. 各商品の小計と`total`を、確認対象の出力と同じ形式で表示する。
 
 期待出力例:
 ```text
+Laptop 請求額: 240800
 Laptop 小計: 240000
 Mouse 小計: 5000
 2件合計: 245000
@@ -491,11 +545,12 @@ Mouse 小計: 5000
 
 ### レベル3（実務: package/import 失敗パターン修正）
 1. `src/service/OrderCalculator.java` の `import model.OrderItem;` を一度削除してコンパイルする。
-2. `cannot find symbol` を確認したら `import` を戻して再コンパイルする。
+2. `OrderItem` を解決できない `cannot find symbol` を確認したら、`import` を戻して再コンパイルする。
 3. `src/model/OrderItem.java` の `package model;` を一時的に `package models;` に変えてコンパイルする。
-4. パッケージ宣言とフォルダ階層を一致させて修正し、再実行する。
+4. `OrderCalculator` が `model.OrderItem` を解決できないことを確認する。
+5. `package model;` に戻し、Step 4のコンパイル・実行コマンドで復旧を確認する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
 (失敗時)
 error: cannot find symbol
@@ -505,22 +560,19 @@ Laptop 小計: 240000
 ```
 
 ### レベル4（実務: classpath 失敗パターン修正）
-1. `java app.OrderApp` を実行し、失敗することを確認する。
-2. `java -cp . app.OrderApp` を実行し、失敗することを確認する。
-3. `java -cp out app.OrderApp` で成功することを確認する。
+1. Step 4でコンパイルした後、`java app.OrderApp` を実行し、失敗することを確認する。
+2. 次に `java -cp . app.OrderApp` を実行し、失敗することを確認する。
+3. 最後に `java -cp out app.OrderApp` を実行し、成功することを確認する。
 4. `-cp out` と `-cp .` の違いを、クラス探索の起点という言葉で説明する。
 
 期待状態:
 - `-cp out` が必要な理由を、`out/app/OrderApp.class` の位置と結びつけて説明できる。
 
 ### 実行前予想問題（1分）
-次のうち、`src/app/OrderApp.java` から `OrderCalculator` を使うために必須な行を実行前に選んでください。
+Step 4のパッケージ構成を維持する場合、次のうち `src/app/OrderApp.java` に必要な行を実行前に選んでください。
 1. `package app;`
 2. `import service.OrderCalculator;`
 3. `import java.util.List;`
-
-答え合わせ:
-- 必須は `1` と `2`（`3` はこの課題では不要）。
 
 ---
 

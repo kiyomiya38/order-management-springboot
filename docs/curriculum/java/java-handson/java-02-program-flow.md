@@ -1,4 +1,4 @@
-﻿# Java-02 ハンズオン: プログラムの書き方（作成→コンパイル→実行）
+# Java-02 ハンズオン: プログラムの書き方（作成→コンパイル→実行）
 
 ## 1. この資料のゴール
 - Java 開発の基本3ステップ（作成・コンパイル・実行）を説明できる
@@ -88,10 +88,12 @@ javac -encoding UTF-8 HelloFlow.java
 `HelloFlow.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 public class HelloFlow { // Step 1 のクラスに実行開始地点を追加する
     public static void main(String[] args) { // Java 実行時に最初に呼ばれる特別なメソッド
         // まだ処理を書かないため空のままにする
     } // main メソッドの終わり
+// ===== Step 2 で追加・変更ここまで =====
 } // クラス定義の終わり
 ```
 
@@ -112,10 +114,12 @@ java HelloFlow
 `HelloFlow.java` を次の内容に更新:
 
 ```java
+// ===== Step 3 で追加・変更 =====
 public class HelloFlow { // クラス名とファイル名を一致させたまま使う
     public static void main(String[] args) { // 実行開始地点
         System.out.println("Hello Flow"); // 1 行目のメッセージを表示
         System.out.println("Java開発サイクル確認中"); // 2 行目のメッセージを表示
+// ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -136,11 +140,13 @@ Java開発サイクル確認中
 `HelloFlow.java` のクラス名を一時的に `HelloFlowX` に変えてコンパイル:
 
 ```java
+// ===== Step 4 で追加・変更 =====
 public class HelloFlowX { // あえてファイル名 (HelloFlow.java) と不一致にしてエラーを再現
     public static void main(String[] args) {
         System.out.println("Hello Flow"); // 本文が正しくても名前不一致でコンパイルエラーになる
     }
 }
+// ===== Step 4 で追加・変更ここまで =====
 ```
 
 実行:
@@ -161,6 +167,7 @@ javac -encoding UTF-8 HelloFlow.java
 `HelloFlow.java` を次の内容に更新:
 
 ```java
+// ===== Step 5 で追加・変更 =====
 public class HelloFlow { // 最終版: 実務ログ風メッセージに変更
     public static void main(String[] args) {
         System.out.println("[INFO] バッチ起動"); // 処理開始ログ
@@ -168,6 +175,7 @@ public class HelloFlow { // 最終版: 実務ログ風メッセージに変更
         System.out.println("[INFO] バッチ正常終了"); // 処理終了ログ
     } // main メソッドの終わり
 } // クラス定義の終わり
+// ===== Step 5 で追加・変更ここまで =====
 ```
 
 実行:
@@ -188,6 +196,8 @@ java HelloFlow
 ---
 
 ## 5. ミニ演習（5〜10分）
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1は直前のハンズオン完成コードから開始してください。
+
 ### レベル1（基本）
 1. `System.out.println` を1行増やし、処理ステップを追加する。
 
@@ -200,18 +210,19 @@ java HelloFlow
 ```
 
 ### レベル2（拡張）
-1. `main` の引数名 `args` を別名に変更しても動くことを確認する。
+1. レベル1の`main`の引数名`args`を`parameters`へ変更しても動くことを確認する。
 2. インデントを崩した状態で保存し、読みづらさを確認して整える。
 
 期待出力例:
 ```text
 [INFO] バッチ起動
 [INFO] 受注データ読込
+[INFO] 検証処理
 [INFO] バッチ正常終了
 ```
 
 ### レベル3（実務）
-1. ログを「開始」「コンパイル対象クラス名」「終了」の3行に整理する。
+1. レベル2のログを「開始」「対象クラス」「終了」の3行に整理する。
 2. 1行目と3行目の間に処理内容の行が来るように並べる。
 
 期待出力例:

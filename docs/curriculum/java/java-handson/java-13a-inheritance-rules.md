@@ -37,6 +37,24 @@ javac -version
 初期化の流れ（例）:
 `new Child("Tanaka")` -> `super("Tanaka")` -> 親の初期化 -> 子の初期化
 
+### 通常のメソッド呼び出しとの違い
+
+`super(...)`は、好きなタイミングで呼び出す通常のメソッドではありません。子クラスのインスタンスを作るために、親クラス部分を最初に初期化する特別な呼び出しです。
+
+| 書き方 | 呼ぶもの | 書ける場所 |
+| --- | --- | --- |
+| `super(name);` | 親クラスのコンストラクタ | 子コンストラクタの先頭 |
+| `super.method();` | 親クラスの通常メソッド | 子クラスのメソッド内 |
+| `this(name);` | 同じクラスの別コンストラクタ | コンストラクタの先頭 |
+
+### ハンズオンで確認する順序
+
+1. Step 1では`super()`を書かなくても、親の引数なしコンストラクタが先に動くことを確認する
+2. Step 2では親に引数ありコンストラクタしかない場合、`super(name)`が必要になることを確認する
+3. Step 3では初期化とは別の継承制約として、`final`メソッドと`final`クラスを確認する
+
+Step 3のコンパイルエラー確認は一時的な変更です。確認後にコメントアウトへ戻してから、次の演習へ進みます。
+
 ---
 
 ## 4. ハンズオン
@@ -95,6 +113,7 @@ Child()
 `InheritanceRulesDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 class Parent { // 親クラス
     String name; // 親クラスが保持する名前フィールド
 
@@ -114,6 +133,7 @@ class Child extends Parent { // 子クラス: Parent を継承
 public class InheritanceRulesDemo { // 実行クラス
     public static void main(String[] args) { // プログラム開始地点
         new Child("Tanaka"); // Parent(String) -> Child(String) の順で初期化される
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // 実行クラス定義の終わり
 ```
@@ -137,6 +157,7 @@ Child ready
 `InheritanceRulesDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 3 で追加・変更 =====
 class Worker { // 親クラス
     final void submitReport() { // final メソッド: 子クラスで上書き（override）できない
         System.out.println("report submitted"); // レポート提出完了メッセージを表示
@@ -158,6 +179,7 @@ public class InheritanceRulesDemo { // 実行クラス
     public static void main(String[] args) { // プログラム開始地点
         Manager m = new Manager(); // Manager のインスタンスを生成
         m.submitReport(); // 親クラスの final メソッドをそのまま利用する
+// ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // 実行クラス定義の終わり
 ```
@@ -209,27 +231,30 @@ report submitted
 ---
 
 ## 5. ミニ演習（10分）
-### レベル1（基本）
-1. `GrandParent -> Parent -> Child` の3階層を作り、コンストラクタ順序を出力で確認する。
+各レベルはStep 3のコードを使って順番に実施します。レベル1・2のコンパイルエラー確認用変更は確認後に元へ戻し、レベル3で通常コードを発展させます。
 
-期待出力例:
+### レベル1（基本）
+1. `Manager` 内の `submitReport()` のコメントを外し、finalメソッドをオーバーライドできないことを確認する。
+
+期待状態:
 ```text
-GrandParent
-Parent
-Child
+cannot override the final method
 ```
 
 ### レベル2（拡張）
-1. `Parent` に引数なしコンストラクタを追加し、`Child` の `super(...)` 省略時の挙動を確認する。
+1. `DerivedRole extends FixedRole` のコメントを外し、finalクラスを継承できないことを確認する。
 
 期待状態:
-- `super(...)` を明示しなくても、親の引数なしコンストラクタが呼ばれる
+- `cannot inherit from final FixedRole` のようなエラーになる
 
 ### レベル3（実務）
-1. `final` メソッドを通常メソッドへ変更し、オーバーライドが可能になることを確認する。
+1. `Worker.submitReport()` から `final` を外す。
+2. `Manager` でオーバーライドし、`manager report submitted` を表示する。
 
 期待状態:
-- `@Override` を付けた子クラス側メソッドがコンパイルできる
+```text
+manager report submitted
+```
 
 ---
 

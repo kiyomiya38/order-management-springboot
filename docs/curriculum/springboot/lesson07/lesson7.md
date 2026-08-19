@@ -121,7 +121,7 @@ cd ~/order-management-springboot/stages/lesson07
 確認:
 ```bash
 cd ~/order-management-springboot/stages/lesson07
-mvn -q -DskipTests compile
+mvn -q compile
 ```
 
 ---
@@ -133,10 +133,20 @@ mvn -q -DskipTests compile
 変更ポイント:
 1. `spring.jpa.hibernate.ddl-auto` を `update` -> `validate` に変更
 2. `spring.flyway` 設定を追加
+3. H2をインメモリDBからファイルDBへ変更し、再起動後もFlyway履歴を残す
+4. Lesson5Cから引き継いだプロファイル、初期ユーザー、画面、ログ設定は残す
 
-例:
+一部分だけを置き換えると、`spring.profiles.active`や`app.seed`との接続が失われます。
+`application.yml`を次の全コードへ置き換えてください。
+
 ```yaml
+# 全環境共通の設定
 spring:
+  application:
+    name: ${APP_NAME:attendance-management}
+  profiles:
+    # application-dev.yml / application-prod.ymlを切り替える
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   datasource:
     # 履歴を再起動後も残し、後続のMariaDB演習とDDLを揃える
     url: ${DB_URL:jdbc:h2:file:./data/attendance;MODE=MariaDB}
@@ -145,14 +155,34 @@ spring:
     driver-class-name: ${DB_DRIVER:org.h2.Driver}
   jpa:
     hibernate:
+      # Flywayが作成したテーブルとEntityが一致するか確認し、自動作成はしない
       ddl-auto: validate
     show-sql: ${SHOW_SQL:false}
+    open-in-view: false
+  thymeleaf:
+    # dev/prodファイルで上書きできる共通初期値
+    cache: false
   flyway:
+    # アプリ起動時にdb/migration配下のSQLを順番に適用する
     enabled: true
     locations: classpath:db/migration
+
+server:
+  port: ${SERVER_PORT:8080}
+  address: ${SERVER_ADDRESS:0.0.0.0}
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+
+app:
+  name: ${APP_NAME:attendance-management}
 ```
 
-`lesson07/data` は実行時DBなのでGit管理しません。`lesson07/.gitignore` に次を追加します。
+`application-dev.yml`と`application-prod.yml`はLesson5Cからコピーした内容を変更しません。
+開発時は`application-dev.yml`の`app.seed.enabled: true`が適用されるため、`admin`と`user1`も引き続き作成されます。
+
+`lesson07/data` は実行時DBなのでGit管理しません。`lesson07/.gitignore`がなければ新規作成し、既にあれば次の行を追加します。
 
 ```gitignore
 data/
@@ -256,7 +286,7 @@ curl -i -u admin:admin123 http://localhost:8080/api/users
 cp src/main/resources/db/migration/V1__create_tables.sql /tmp/V1__create_tables.sql
 ```
 
-3. V1の末尾にコメント `-- checksum test` を追加する
+3. V1の末尾にコメント `-- 適用済みファイルの変更確認` を追加する
 4. 再起動し、`Validate failed` または `checksum mismatch` で失敗することを確認する
 5. V1を元に戻して再起動する
 
@@ -272,58 +302,21 @@ mvn spring-boot:run
 
 ---
 
-## 8. Flyway履歴の自動テスト（必須）
-
-作成ファイル:
-- `~/order-management-springboot/stages/lesson07/src/test/java/com/shinesoft/attendance/MigrationSmokeTest.java`
-
-```java
-package com.shinesoft.attendance;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-@SpringBootTest
-class MigrationSmokeTest {
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Test
-    void twoMigrationsAreApplied() {
-        Integer count = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM flyway_schema_history WHERE success = TRUE",
-            Integer.class);
-        assertEquals(2, count);
-    }
-}
-```
-
-```bash
-mvn test
-```
-
----
-
-## 9. 変更の反映ルール（実務での基本）
+## 8. 変更の反映ルール（実務での基本）
 1. 既存の `V1` / `V2` は書き換えない（履歴固定）
 2. 変更が必要なら `V3__...sql` を追加する
 3. 失敗時はログと `flyway_schema_history` を見て原因を切り分ける
 
 ---
 
-## 10. コード確認ポイント
+## 9. コード確認ポイント
 1. `ddl-auto: validate` の役割（自動生成しない）
 2. Flywayが「アプリ起動前」にスキーマを整える意味
 3. `V1` から順番に適用されるバージョン管理の価値
 
 ---
 
-## 11. つまずきポイント
+## 10. つまずきポイント
 - `ddl-auto: update` のままでFlywayの価値が薄れる
   -> `validate` にして責務を分離する
 - 既存 migration を編集して checksum エラー
@@ -333,9 +326,8 @@ mvn test
 
 ---
 
-## 12. 時間割目安
+## 11. 時間割目安
 - 0〜3: 25分
 - 4〜6: 45分
 - 7: 30分
-- 8: 30分
-- 9〜11: 20分
+- 8〜10: 20分

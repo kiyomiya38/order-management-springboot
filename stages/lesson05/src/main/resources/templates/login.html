@@ -1,0 +1,35 @@
+<!doctype html> <!-- HTML5文書宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"> <!-- Thymeleafを使うため xmlns:th を宣言 -->
+<head>
+  <meta charset="utf-8" /> <!-- 文字コード -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> <!-- モバイル表示対応 -->
+  <title>ログイン</title> <!-- ブラウザタブ表示名 -->
+  <link rel="stylesheet" th:href="@{/styles.css}" /> <!-- 共通CSSを読み込む -->
+</head>
+<body>
+  <div class="container"> <!-- 全体レイアウト枠 -->
+    <header>
+      <h1>勤怠管理システム（MVP）</h1>
+      <p class="subtitle">ログインしてください</p>
+    </header>
+
+    <div th:if="${error != null and !#strings.isEmpty(error)}" class="alert alert-error" th:text="${error}"></div> <!-- エラー表示 -->
+    <div th:if="${message != null and !#strings.isEmpty(message)}" class="alert alert-info" th:text="${message}"></div> <!-- 通知表示 -->
+
+    <section class="panel">
+      <form method="post" th:action="@{/login}"> <!-- POST /login へ送信（認証はSpring Securityが処理） -->
+        <div class="row">
+          <label>ユーザー名
+            <input type="text" name="username" required /> <!-- name=username はSecurity標準パラメータ -->
+          </label>
+          <label>パスワード
+            <input type="password" name="password" required /> <!-- name=password はSecurity標準パラメータ -->
+          </label>
+        </div>
+        <button type="submit">ログイン</button>
+      </form>
+      <p class="muted">初期ユーザー: admin / admin123, user1 / password</p> <!-- 学習用の初期アカウント -->
+    </section>
+  </div>
+</body>
+</html>

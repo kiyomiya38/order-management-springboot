@@ -93,6 +93,38 @@ mvn test
 - テストがすべて成功すると `BUILD SUCCESS` が表示される
 - 失敗した場合は、失敗したテスト名と期待値・実際値を確認する
 
+### テストで確認する流れ
+
+テストコードを書く目的は、最後に`BUILD SUCCESS`を表示することだけではありません。仕様をテストとして書き、実装が仕様を守っているか繰り返し確認できる状態にすることです。
+
+```text
+期待する仕様をテストに書く
+  ↓
+mvn testを実行する
+  ↓
+失敗した場合は、期待値と実際値を確認する
+  ↓
+実装またはテストを修正する
+  ↓
+もう一度mvn testを実行する
+```
+
+### `assertThrows`のラムダ式
+
+```java
+assertThrows(
+        IllegalArgumentException.class,
+        () -> calculator.calcWithTax(-1, 0.10)
+);
+```
+
+このコードでは、`calcWithTax(...)`を先に実行して結果を渡しているわけではありません。`() -> ...`で「あとからJUnitに実行してもらう処理」を渡しています。JUnitはその処理を実行し、指定した`IllegalArgumentException`が発生したかを確認します。
+
+| 引数 | 意味 |
+| --- | --- |
+| `IllegalArgumentException.class` | 発生してほしい例外の種類 |
+| `() -> calculator.calcWithTax(...)` | JUnitに実行してほしい処理 |
+
 ---
 
 ## 4. ハンズオン
@@ -130,22 +162,28 @@ cd ~/order-management-springboot/practice/java/handson21
     <version>1.0-SNAPSHOT</version>
 
     <properties>
+        <!-- Java 17の文法・標準APIを使ってコンパイルする -->
         <maven.compiler.release>17</maven.compiler.release>
+        <!-- Javaソースなどの文字コードをUTF-8として扱う -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- JUnitのバージョンを1か所で管理し、後から変更しやすくする -->
         <junit.version>5.10.2</junit.version>
     </properties>
 
     <dependencies>
+        <!-- テストコードでJUnit 5を使えるようにする -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.version}</version>
+            <!-- JUnitをテスト時だけ使用し、実行用アプリには含めない -->
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- mvn testでJUnit 5のテストを見つけて実行するプラグイン -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -170,7 +208,9 @@ public class TaxCalculator { // 税込計算用クラス
         if (rate < 0) { // 税率負数も不正
             throw new IllegalArgumentException("rate must be >= 0");
         }
-        return (int) Math.floor(price * (1.0 + rate)); // 切り捨てで税込計算
+        // Math.floor(...)は小数点以下を切り捨てたdouble型の値を返す
+        // 戻り値を税込価格のint型にするため、(int)で型変換する
+        return (int) Math.floor(price * (1.0 + rate));
     } // メソッド終わり
 } // クラス終わり
 ```
@@ -222,12 +262,43 @@ Tests run: 3, Failures: 0, Errors: 0
 ```
 
 ### Step 5: 1本追加して確認（仕上げ）
-`TaxCalculatorTest.java` に以下を追加:
+`TaxCalculatorTest.java`を次の内容に更新します。Step 3から追加したテストをコメントで示しています。
 
 ```java
-@Test
-void calcWithTax_negativeRate_throwsException() { // 異常系: 負数税率
-    assertThrows(IllegalArgumentException.class, () -> calculator.calcWithTax(1000, -0.01));
+package com.example.tax; // テスト対象と同じパッケージ
+
+import org.junit.jupiter.api.Test; // @Test アノテーション
+
+import static org.junit.jupiter.api.Assertions.assertEquals; // 等価比較
+import static org.junit.jupiter.api.Assertions.assertThrows; // 例外検証
+
+class TaxCalculatorTest { // TaxCalculator のテストクラス
+
+    private final TaxCalculator calculator = new TaxCalculator(); // テスト対象
+
+    @Test
+    void calcWithTax_rate10Percent() { // 正常系: 10%課税
+        int actual = calculator.calcWithTax(1000, 0.10);
+        assertEquals(1100, actual);
+    }
+
+    @Test
+    void calcWithTax_rate8Percent_floor() { // 正常系: 切り捨て確認
+        int actual = calculator.calcWithTax(999, 0.08);
+        assertEquals(1078, actual);
+    }
+
+    @Test
+    void calcWithTax_negativePrice_throwsException() { // 異常系: 負数価格
+        assertThrows(IllegalArgumentException.class, () -> calculator.calcWithTax(-1, 0.10));
+    }
+
+    // ===== Step 5で追加: 負数税率の異常系テスト =====
+    @Test
+    void calcWithTax_negativeRate_throwsException() { // 異常系: 負数税率
+        assertThrows(IllegalArgumentException.class, () -> calculator.calcWithTax(1000, -0.01));
+    }
+    // ===== Step 5で追加ここまで =====
 }
 ```
 

@@ -136,6 +136,8 @@ Java-09 や Java-11A では、`0` 未満なら `0` にするような「補正�
 
 #### setter 内のバリデーション
 
+ここで使う `IllegalArgumentException`（イリーガル・アーギュメント・エクセプション）は、引数として受け取った値が不正であることを表す例外です。
+
 ```java
 public void setUsername(String username) {
     if (username == null || username.isBlank()) {
@@ -266,23 +268,27 @@ public class UserAccount { // バリデーション付きのカプセル化ク�
         return username; // 現在の username を返す
     }
 
+    // ===== Step 3で変更: usernameを保存する前に検証する =====
     public void setUsername(String username) { // username の setter
         if (username == null || username.isBlank()) { // ここが不正検知（バリデーション）：null や空白だけの入力を見つける
             throw new IllegalArgumentException("username は必須です"); // ここで例外を発生：この setter の処理を中断し、呼び出し元へエラーを通知
         }
         this.username = username.trim(); // 前後空白を除去して保存
     }
+    // ===== Step 3で変更ここまで =====
 
     public int getAge() { // age の getter
         return age; // 現在の age を返す
     }
 
+    // ===== Step 3で変更: ageを保存する前に範囲を検証する =====
     public void setAge(int age) { // age の setter
         if (age < 0 || age > 120) { // ここが不正検知（バリデーション）：年齢が 0〜120 の範囲か確認
             throw new IllegalArgumentException("age の範囲が不正です"); // ここで例外を発生：この setter の処理を中断し、呼び出し元へエラーを通知
         }
         this.age = age; // 検証済み値を保存
     }
+    // ===== Step 3で変更ここまで =====
 } // クラス定義の終わり
 ```
 
@@ -308,22 +314,41 @@ age: 25
 ---
 
 ## 5. ミニ演習（10分）
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 3から開始してください。不正値へ一時変更した確認コードだけは、例外確認後に正常値へ戻します。
+
 ### レベル1（基本）
-1. `setUsername("   ")` を試して例外を確認する。
+1. `EncapsulationDemo.java` の `user.setUsername(...)` に `"   "` を渡して例外を確認する。
+2. 確認後は、Step 2で設定した正常値である`user.setUsername("tanaka");`へ戻す。
 
 期待状態:
 - `username は必須です` のような例外メッセージが表示される
 
 ### レベル2（拡張）
-1. `setAge(130)` を試して例外を確認する。
+1. レベル1の正常値へ戻した`EncapsulationDemo.java`で、`user.setAge(...)`に`130`を渡して例外を確認する。
+2. 確認後は、Step 2で設定した正常値である`user.setAge(25);`へ戻す。
 
 期待状態:
 - `age の範囲が不正です` のような例外メッセージが表示される
 
 ### レベル3（実務）
-1. `email` フィールドを追加し、`@` 含有チェックを実装する。
+このレベルでは、`String`の`contains(...)`を使います。
 
-期待出力例:
+```java
+String email = "user@example.com";
+boolean containsAtMark = email.contains("@"); // 「@」を含むためtrue
+```
+
+- `contains("文字列")`は、対象の文字列を含んでいる場合に`true`を返す
+- `!email.contains("@")`の`!`は結果を反転するため、「`@`を含んでいない」という条件になる
+
+1. `UserAccount`に`private String email;`を追加する。
+2. `public void setEmail(String email)`を追加し、`email == null || !email.contains("@")`の場合は、`IllegalArgumentException("email 形式が不正です: " + email)`を投げる。`contains("@")`では、メールアドレスに`@`が含まれているかを確認する。
+3. 正常な値は`this.email = email;`で保存する。
+4. `email`を返す`public String getEmail()`を追加する。
+5. `EncapsulationDemo`の既存表示処理より後で、`user.setEmail("user@example.com");`を呼び出す。
+6. `System.out.println("email: " + user.getEmail());`で保存した値を表示する。
+
+確認対象の出力（抜粋）:
 ```text
 email: user@example.com
 ```

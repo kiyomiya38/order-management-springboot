@@ -7,7 +7,7 @@
 ## 前提
 今回の受講順（`java-handson` → `lesson00` → `lesson01`）では、以下を満たしていることを前提にします。
 
-- `docs/curriculum/java/java-handson` のSpring Bootへ進む場合の追加必修まで学習済み
+- `docs/curriculum/java/java-handson/README.md` の「Spring Boot向け最短コース」で、開始前の学習範囲を完了している
 - `docs/curriculum/springboot/lesson00/lesson0.md`（コンソール復習）を実施済み
 - Java 17 / Maven 3.9+ がインストール済み
 - このリポジトリのルートで作業する
@@ -20,7 +20,7 @@
 バックエンド短縮コースでは、HTML/CSSの実装理解よりもControllerとTemplateの対応確認を優先します。
 
 - `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` を完了している
-- Lesson1のMaven Sandboxを実行し、Maven操作とコンストラクタ注入（DI）を確認している
+- Lesson1本編の前にMaven Sandboxを実行し、Maven操作、アノテーション、コンストラクタ注入（DI）の最小形を確認している
 - HTML/CSSは講師提供コードを使用し、指定された配置場所とControllerとの対応を確認する
 
 ## フレームワークとは（初心者向け）
@@ -85,6 +85,35 @@ Lesson1では、以下の最小構成を体験します。
   - `Controller`から受け取ったデータをHTMLに埋め込んで表示する
 - `Application`:
   - Spring Bootアプリの起動エントリポイント（`main`メソッド）
+
+### Springで使うアノテーションとは
+
+`@Controller`や`@GetMapping`のように`@`から始まる記述を、アノテーションと呼びます。
+アノテーションは、クラスやメソッドへ付ける「Springが読む目印」です。アノテーション自体を上から順番に実行するわけではありません。
+
+```java
+@Controller // このクラスは画面用Controllerである、とSpringへ伝える
+public class HomeController {
+
+    @GetMapping("/") // GET / をこのメソッドで処理する、とSpringへ伝える
+    public String index(Model model) {
+        return "index";
+    }
+}
+```
+
+この例では、開発者が`new HomeController()`や`index(...)`を直接呼びません。
+Springが起動時に`@Controller`を見つけ、ブラウザから`GET /`が届いたときに`@GetMapping("/")`のメソッドを呼びます。
+
+Lesson1で最初に区別するもの:
+
+| 記述 | 付ける場所 | Springへ伝えること |
+| --- | --- | --- |
+| `@SpringBootApplication` | 起動クラス | このクラスをSpring Bootの起点にする |
+| `@Controller` | クラス | 画面を返すControllerとして登録する |
+| `@GetMapping("/")` | メソッド | `GET /`とメソッドを対応付ける |
+
+以降のLessonでも新しいアノテーションが登場します。その都度、「どこに付いているか」「Springへ何を伝えるか」を確認します。
 
 この研修の目的は、Java文法を深掘りすることではなく、後続のDocker/CI/CD/K8sで扱う「動くアプリ土台」を作ることです。  
 そのためLesson1は、最小の構成で起動と画面表示に集中します。
@@ -207,7 +236,7 @@ Lesson1で使う `mvn` は、Javaプロジェクトの「依存関係管理」�
 - 依存関係管理:
   - `pom.xml` に必要ライブラリを書くと、取得とバージョン整合を自動化できる
 - ビルド自動化:
-  - コンパイル、リソース配置、テスト、成果物作成をコマンドで実行できる
+  - コンパイル、リソース配置、成果物作成をコマンドで実行できる
 - 実行補助:
   - `spring-boot-maven-plugin` を通じて `mvn spring-boot:run` で起動できる
 
@@ -234,20 +263,14 @@ Lesson1で使う `mvn` は、Javaプロジェクトの「依存関係管理」�
 - コンパイル:
   - Javaソースをバイトコード（`.class`）へ変換する工程
 - ビルド:
-  - 依存解決、コンパイル、テスト、成果物作成まで含む一連の工程
+  - 依存解決、コンパイル、リソース配置、成果物作成まで含む一連の工程
 - 関係:
   - コンパイルはビルドの一部
-
-### テストとは何をするか
-- `mvn test` は `src/test/java` のテストコードを実行し、期待結果と実際結果を比較する
-- テスト失敗時はビルド失敗として扱われる
-- Lesson1時点ではテストコード未作成のため、実行対象はほぼない
 
 ### Lesson1で最低限使うコマンド
 - `mvn -version`: Mavenが使えるか確認
 - `mvn clean`: `target` を削除して作業状態を初期化
 - `mvn spring-boot:run`: 依存解決・コンパイル後にアプリ起動
-- `mvn test`: （必要時）テスト実行
 - `mvn package`: （必要時）jarを作成
 
 ---
@@ -852,7 +875,7 @@ flowchart LR
 - `model.addAttribute("endTime", "-")` -> HTML側 `${endTime}` に表示
 
 ### 3) 3分ハンズオン（理解確認）
-1. `HomeController` の `statusLabel` を `"未出勤"` から `"出勤中(テスト)"` に変更
+1. `HomeController` の `statusLabel` を `"未出勤"` から `"出勤中(動作確認)"` に変更
 2. `11` で起動（または再起動）して `/` を開き、表示が変わることを確認
 3. 元に戻す
 

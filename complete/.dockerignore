@@ -1,0 +1,10 @@
+.git
+.gitignore
+target
+data
+docs
+practice
+scripts
+README.md
+prompt.md
+.env

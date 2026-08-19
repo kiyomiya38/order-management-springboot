@@ -1,4 +1,4 @@
-﻿# Java-18 ハンズオン: コレクション（List / Set / Map）
+# Java-18 ハンズオン: コレクション（List / Set / Map）
 
 ## 1. この資料のゴール
 - `List`, `Set`, `Map` の違いを説明できる
@@ -185,6 +185,7 @@ P-002
 `CollectionDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 import java.util.HashSet; // Set の代表実装
 import java.util.Set; // Set インターフェース
 
@@ -197,6 +198,7 @@ public class CollectionDemo { // Set 利用例
 
         System.out.println("件数(重複除去): " + tags.size()); // 重複除去後件数を表示
         System.out.println(tags); // Set 全体を表示
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -219,6 +221,7 @@ java CollectionDemo
 `CollectionDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 3 で追加・変更 =====
 import java.util.HashMap; // Map の代表実装
 import java.util.Map; // Map インターフェース
 
@@ -234,6 +237,7 @@ public class CollectionDemo { // Map 利用例
         for (Map.Entry<String, Integer> entry : stockByCode.entrySet()) { // 全エントリを走査
             System.out.println(entry.getKey() + " -> " + entry.getValue()); // キーと値を表示
         }
+// ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -257,26 +261,46 @@ P-002 -> 5
 ---
 
 ## 5. ミニ演習（10分）
-### レベル1（基本）
-1. `List` に商品名を5件追加して表示する。
+Step 3の完成コードを基準に、レベル1からレベル3まで順番に進めてください。既存の`Map`処理を残し、`List`、`Set`の順に処理を追記した後、最後に`Map`を変更します。
 
-期待出力例:
+### レベル1（基本）
+1. Step 3のimportへ`java.util.ArrayList`と`java.util.List`を追加する。
+2. `main(...)`の既存の`Map`処理より後へ、`List<String> products = new ArrayList<>();`を追加する。
+3. `products`へ`"Keyboard"`、`"Mouse"`、`"Monitor"`、`"Display"`、`"Dock"`の順に追加する。
+4. Java-07で学習した拡張`for`を使い、`products`から商品名を1件ずつ取り出して表示する。
+
+```java
+for (String product : products) {
+    System.out.println(product);
+}
+```
+
+`forEach(...)`と`System.out::println`という書式は、次章のJava-19で学習します。この章では、学習済みの拡張`for`で`List`を走査します。
+
+確認対象の出力（抜粋）:
 ```text
 Keyboard
 Mouse
 Monitor
+Display
+Dock
 ```
 
 ### レベル2（拡張）
-1. `Set` で重複データが消えることを確認する。
+1. レベル1まで完了したコードのimportへ`java.util.HashSet`と`java.util.Set`を追加する。
+2. `main(...)`の`List`処理より後へ、`Set<String> tags = new HashSet<>();`を追加する。
+3. `tags`へ`"PAID"`を2回、`"URGENT"`を1回追加する。
+4. `tags.size()`と`tags`を表示する。`HashSet`の表示順は保証されないため、要素の順序は問わない。
 
 期待状態:
-- 同じ値を複数回追加しても、表示される件数は1件分になる
+- `"PAID"`を2回追加しても、`tags.size()`は`2`になる
+- 内容には`PAID`と`URGENT`が1件ずつ含まれる
 
 ### レベル3（実務）
-1. `Map` に `put` で同じキーを入れたときの上書きを確認する。
+1. レベル1・2の処理を残したまま、既存の`Map`へ同じキー`P-001`で値`20`を再度`put`する。
+2. キーと上書き後の値を表示する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
 P-001 -> 20
 ```
@@ -290,6 +314,3 @@ P-001 -> 20
   -> キー存在確認に `containsKey` を使う
 - コレクション選定ミス
   -> 順序・重複・キー検索の要件で選ぶ
-
-
-

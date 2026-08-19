@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/attendance;MODE=MariaDB;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+
+app:
+  seed:
+    enabled: ${APP_SEED_ENABLED:true}
+    admin-password: ${APP_SEED_ADMIN_PASSWORD:admin123}
+    user-password: ${APP_SEED_USER_PASSWORD:password}

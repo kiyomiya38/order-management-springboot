@@ -149,6 +149,45 @@ cd practice/lesson00/java/lesson0-console-ledger
 
 ## 3. ファイル1: `LedgerType.java`
 
+### `enum`の最小理解
+
+`enum`（イーナム、列挙型）は、「この変数へ入れてよい値」をあらかじめ限定する型です。
+通常の`String`ではタイプミスした文字列も代入できますが、`LedgerType`なら`INCOME`と`EXPENSE`以外を代入できません。
+
+```java
+String typeText = "INCOM";            // コンパイルできるが、INCOMEのタイプミスに気付きにくい
+LedgerType type = LedgerType.INCOME;   // 定義済みの値だけを選べる
+```
+
+作成するコードの読み方:
+
+```java
+public enum LedgerType {
+    INCOME,
+    EXPENSE
+}
+```
+
+| 記述 | 意味 |
+| --- | --- |
+| `public enum LedgerType` | `LedgerType`という新しい型を定義する |
+| `INCOME` | `LedgerType`型が取れる「収入」の値 |
+| `EXPENSE` | `LedgerType`型が取れる「支出」の値 |
+| `LedgerType.INCOME` | 型名を付けて`INCOME`を指定する |
+
+このLessonでは、文字列を`enum`へ変換するために`valueOf()`も使用します。
+
+```java
+LedgerType type = LedgerType.valueOf("INCOME"); // LedgerType.INCOMEになる
+```
+
+- `"INCOME"`や`"EXPENSE"`のように、定義した名前と完全に一致する必要がある
+- `"PAY"`など定義にない文字列では`IllegalArgumentException`が発生する
+- `null`では`NullPointerException`が発生する
+- どちらの値かを比べるときは`type == LedgerType.INCOME`と書ける
+
+直後の`try-catch`は、`valueOf()`へ不正な文字列が渡された場合に登録を中止するための処理です。
+
 ```java
 public enum LedgerType { // 家計簿の取引種別をまとめた型。指定できる値をこの中の値だけに制限する
     INCOME, // 収入を表す種別
@@ -337,7 +376,7 @@ public class LedgerApp { // アプリケーションの起動入口を持つク�
         service.addEntry("INCOME", "副業", 30000, "Web制作"); // 副業の収入データを登録する
 
         // バリデーション動作確認（意図的にエラー）
-        service.addEntry("PAY", "不正種別", 1000, "テスト"); // 種別がINCOME/EXPENSEではないためエラーになる
+        service.addEntry("PAY", "不正種別", 1000, "動作確認"); // 種別がINCOME/EXPENSEではないためエラーになる
         service.addEntry("EXPENSE", "", 2000, "カテゴリ空"); // カテゴリが空文字のためエラーになる
         service.addEntry("EXPENSE", "食費", -500, "負の金額"); // 金額が0以下のためエラーになる
 

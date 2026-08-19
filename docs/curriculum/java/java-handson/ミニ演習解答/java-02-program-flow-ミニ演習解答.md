@@ -1,6 +1,12 @@
-﻿# Java-02 ミニ演習解答
+# Java-02 ミニ演習解答
 
 対象資料: `docs/curriculum/java/java-handson/java-02-program-flow.md`
+## 解答の読み方
+
+- 本文のミニ演習をレベル1から順番に実施し、各レベル冒頭にある引き継ぎ・復元条件を優先します。
+- 「全コード」と書かれたコードブロックは、そのファイル全体を置き換えます。
+- 「追加」「変更」と書かれたコードブロックは、直前の説明で指定された位置だけへ反映し、ほかの既存コードは残します。
+- コンパイルエラーを確認するための一時変更は、確認後に必ず元へ戻してから次のレベルへ進みます。
 
 ## レベル1（基本）解答
 変更内容:
@@ -10,8 +16,8 @@
 public class HelloFlow {
     public static void main(String[] args) {
         System.out.println("[INFO] バッチ起動");
-        System.out.println("[INFO] 設定ファイル読込");
         System.out.println("[INFO] 受注データ読込");
+        System.out.println("[INFO] 検証処理");
         System.out.println("[INFO] バッチ正常終了");
     }
 }
@@ -20,14 +26,15 @@ public class HelloFlow {
 期待出力例:
 ```text
 [INFO] バッチ起動
-[INFO] 設定ファイル読込
 [INFO] 受注データ読込
+[INFO] 検証処理
 [INFO] バッチ正常終了
 ```
 
 ---
 
 ## レベル2（拡張）解答
+レベル1のコードを引き継ぎ、引数名とインデントだけを変更する。
 変更内容:
 1. `main` の引数名 `args` を `parameters` に変更
 2. インデントを整えて可読性を維持
@@ -37,6 +44,7 @@ public class HelloFlow {
     public static void main(String[] parameters) {
         System.out.println("[INFO] バッチ起動");
         System.out.println("[INFO] 受注データ読込");
+        System.out.println("[INFO] 検証処理");
         System.out.println("[INFO] バッチ正常終了");
     }
 }
@@ -49,15 +57,17 @@ public class HelloFlow {
 ---
 
 ## レベル3（実務）解答
+レベル2の完成コードを引き継ぎ、`main`の引数名`parameters`はそのまま残してログだけを整理する。
+
 変更内容:
 - ログを「開始」「コンパイル対象クラス名」「終了」の3行に整理
 - 並び順を「開始 -> 処理内容 -> 終了」に固定
 
 ```java
 public class HelloFlow {
-    public static void main(String[] args) {
+    public static void main(String[] parameters) {
         System.out.println("[INFO] 開始");
-        System.out.println("[INFO] コンパイル対象クラス名: HelloFlow");
+        System.out.println("[INFO] 対象クラス: HelloFlow");
         System.out.println("[INFO] 終了");
     }
 }
@@ -66,7 +76,7 @@ public class HelloFlow {
 期待出力例:
 ```text
 [INFO] 開始
-[INFO] コンパイル対象クラス名: HelloFlow
+[INFO] 対象クラス: HelloFlow
 [INFO] 終了
 ```
 

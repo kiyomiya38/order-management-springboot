@@ -4,7 +4,6 @@
 - 出勤ボタン押下で DB に勤怠レコードを登録できる
 - `Controller -> Service -> Repository -> DB` の流れを追える
 - 同日の二重出勤を業務ルールとして弾ける
-- Mockitoを使い、二重出勤禁止の業務ルールをService単体で確認できる
 
 ## 前提
 - Lesson1 を完了している
@@ -15,6 +14,7 @@
 
 - `docs/curriculum/springboot/lesson02/sql-rdb-basics.md`
 - `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md`
+- `docs/curriculum/java/java-handson/java-19-stream-api.md`の「先取り補足」を読み、`値 -> 処理`がラムダ式、`型名::メソッド名`がメソッド参照であることを確認している
 - HTML/CSSは講師提供コードを指定位置へ配置し、フォームとControllerの対応だけを追跡する
 
 ## Lesson2で作るもの
@@ -191,7 +191,6 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shineso
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/repository
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/exception
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/config
-mkdir -p ~/order-management-springboot/stages/lesson02/src/test/java/com/shinesoft/attendance/service
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/templates
 mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
 ```
@@ -205,7 +204,7 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
 
 1. プロジェクト識別情報: このアプリの名前とバージョン
 2. 共通設定: Javaバージョンや文字コードなど、複数箇所で使う値
-3. 依存関係: Web、画面、DB、テストで使う外部ライブラリ
+3. 依存関係: Web、画面、DBで使う外部ライブラリ
 4. ビルド設定: コンパイルや起動用Jar作成の方法
 
 ```xml
@@ -264,11 +263,6 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
       <artifactId>h2</artifactId>
       <scope>runtime</scope> <!-- 実行時だけ必要。Javaコードのコンパイルには直接使わない -->
     </dependency>
-    <dependency> <!-- JUnit/Mockitoなど、Serviceの業務ルールを自動確認するために追加 -->
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope> <!-- テスト実行時だけ使う。本番起動には含めない -->
-    </dependency>
   </dependencies>
 
   <!-- 4. ビルド設定: コンパイルやSpring Boot起動に使うMaven拡張 -->
@@ -306,9 +300,8 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
 - Lesson1からの追加点:
   - `spring-boot-starter-data-jpa`（DBアクセス）
   - `h2`（研修用のローカルDB）
-  - `spring-boot-starter-test`（JUnitとMockitoによる自動テスト）
 - まず見る場所:
-  - `<dependencies>` の5つの依存関係
+  - `<dependencies>` の4つの依存関係
   - `<description>`（Lesson2用に識別）
 - 講義用説明:
 
@@ -322,9 +315,7 @@ mkdir -p ~/order-management-springboot/stages/lesson02/src/main/resources/static
   | `spring-boot-starter-thymeleaf` | HTMLテンプレートを使うためのセット |
   | `spring-boot-starter-data-jpa` | Entity / RepositoryでDB操作を行うためのセット |
   | `h2` | 研修用の軽量DB。アプリを止めるとデータは消える |
-  | `spring-boot-starter-test` | JUnit / MockitoでServiceテストを行うためのセット |
   | `scope runtime` | 実行時だけ必要な依存を表す |
-  | `scope test` | テスト時だけ必要な依存を表す |
   | `spring-boot-maven-plugin` | Spring Bootアプリを起動・jar化するためのMaven拡張 |
   | `maven-compiler-plugin` | Javaをどのバージョンとしてコンパイルするかを決める設定 |
 
@@ -706,6 +697,25 @@ Optional<User> user = userRepository.findByUsername("user1");
 | `orElse(defaultValue)` | 値がなければ既定値を返す |
 | `orElseThrow(...)` | 値がなければ例外を投げる |
 
+### `orElseThrow`の中にあるラムダ式
+
+次の`() ->`はラムダ式です。ここでは、「値がなかったときに実行する小さな処理」を`orElseThrow`へ渡しています。
+
+```java
+User user = userRepository.findById(userId)
+        .orElseThrow(() -> new IllegalStateException("研修ユーザーが存在しません"));
+//                   └─ 引数なしで、新しい例外を作って返す処理
+```
+
+読む順番:
+
+1. `findById(userId)`でユーザーを検索する
+2. 値があれば、その`User`を`user`へ代入する
+3. 値がなければ、`() -> ...`の処理を実行して例外を作る
+4. `orElseThrow`が、その例外を投げて通常処理を中断する
+
+この段階では、ラムダ式を自分で自由に作ることよりも、`() -> new 例外(...)`を「必要になったときに例外を作る処理」と読めれば十分です。
+
 Lesson2での例:
 
 ```java
@@ -725,6 +735,23 @@ User user = userRepository.findById(userId)
 - 二重出勤確認では「値があること」が業務エラーになる
 - ユーザー検索では「値がないこと」を `orElseThrow` でシステム上の異常として扱う
 
+### `Optional.map`の中にあるメソッド参照
+
+Controllerでは、次のメソッド参照も使用します。
+
+```java
+today.map(Attendance::getStartTime)
+```
+
+これは、次のラムダ式を短く書いたものです。
+
+```java
+today.map(attendance -> attendance.getStartTime())
+```
+
+`today`に`Attendance`があれば`getStartTime()`を呼び、空なら空のまま次へ進みます。
+`Attendance::getStartTime`は、「`Attendance`を1件受け取り、その`getStartTime()`を呼ぶ処理」と読みます。
+
 ---
 
 ## 7. Repositoryを作成
@@ -737,6 +764,33 @@ Controller や Service から直接SQLを書く代わりに、「保存」「検
 - DB操作の責務を1か所へ集約する
 - Serviceは業務ルール判断に集中できる
 - `JpaRepository` 継承で基本CRUD（作成・参照・更新・削除）を自動利用できる
+
+### `interface ... extends JpaRepository`の読み方
+
+通常のクラスは、処理内容をメソッド本体に書きます。一方、Repositoryではインターフェースを使って「利用できる操作の形」を宣言します。
+
+```java
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByUsername(String username);
+}
+```
+
+| 部分 | 意味 |
+| --- | --- |
+| `interface UserRepository` | `UserRepository`というDB操作の窓口を宣言する |
+| `extends JpaRepository<User, Long>` | `User`を保存対象、`Long`をID型とする基本CRUDを引き継ぐ |
+| `findByUsername(...)` | このアプリ固有の検索操作を追加する |
+
+このコードには`findAll()`や`save()`のメソッド本体が見当たりませんが、書き忘れではありません。
+Spring Data JPAが起動時に実装オブジェクトを自動生成し、Serviceのコンストラクタへ渡します。そのため、自分で`new UserRepository()`とは書きません。
+
+```text
+開発者: Repositoryインターフェースを宣言
+  ↓
+Spring Data JPA: 実際にDB操作するオブジェクトを自動生成
+  ↓
+Service: コンストラクタで受け取って利用
+```
 
 この章での対応:
 - `UserRepository`:
@@ -854,6 +908,18 @@ WHERE user_id = ?
 ### 8-1. `BusinessException`
 作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/exception/BusinessException.java`
 
+`BusinessException`は、「勤怠アプリ固有の業務ルール違反」を表すために自分で作る例外クラスです。
+
+```java
+public class BusinessException extends RuntimeException
+```
+
+この`extends`は、「`RuntimeException`の機能を引き継いだ子クラスを作る」という意味です。
+`RuntimeException`を引き継ぐとunchecked例外になるため、すべてのメソッドへ`throws BusinessException`を書く必要はありません。
+
+コンストラクタ内の`super(message)`は、受け取ったメッセージを親クラス`RuntimeException`へ渡します。
+その結果、呼び出し側で`e.getMessage()`を使って「すでに出勤済みです」などの文言を取得できます。
+
 ```java
 // 業務ルール違反を表す独自例外
 // 例: 二重出勤、未出勤退勤など
@@ -957,111 +1023,6 @@ public class AttendanceService {
 
 ---
 
-## 8.5 最小Serviceテストを作成
-
-Lesson5で複数のテストを扱う前に、Lesson2では「同じ日に2回出勤できない」という業務ルールを1件だけ自動確認します。
-このテストではSpring Bootアプリ全体やH2 DBを起動せず、Repositoryの代用品（Mock）を使ってServiceだけを確認します。
-
-作成ファイル: `~/order-management-springboot/stages/lesson02/src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java`
-
-配置注意:
-- テストコードは必ず `src/test/java` 配下に作成する
-- `src/main/java` 配下に作成すると、本番コードとしてコンパイルされる
-- `spring-boot-starter-test` は `<scope>test</scope>` のため、`src/main/java` のコンパイル時にはJUnit/Mockitoを参照できない
-- `org.junit.jupiter.api は存在しません` や `org.mockito は存在しません` が `src/main/java/.../AttendanceServiceTest.java` に対して出た場合は、ファイル配置ミスを疑う
-
-テストの読み方:
-
-| 区分 | このテストでやること |
-|---|---|
-| Arrange（準備） | Mock Repositoryに「当日勤怠が既にある」と返させる |
-| Act（実行） | `attendanceService.clockIn(1L)` を呼ぶ |
-| Assert（確認） | `BusinessException` が発生し、メッセージが仕様通りか確認する |
-
-Mockitoの最小用語:
-
-| 用語 | 意味 |
-|---|---|
-| `@Mock` | 本物のRepositoryの代用品を作る |
-| `when(...).thenReturn(...)` | 代用品が返す結果を事前に決める |
-| `eq(1L)` | 引数が `1L` と一致する条件 |
-| `any(LocalDate.class)` | 日付なら何でもよいという条件 |
-| `assertThrows` | 指定した例外が発生することを確認する |
-
-```java
-package com.shinesoft.attendance.service; // Serviceテスト用パッケージ
-
-import static org.junit.jupiter.api.Assertions.assertEquals; // 期待値との一致確認
-import static org.junit.jupiter.api.Assertions.assertThrows; // 例外発生の確認
-import static org.mockito.ArgumentMatchers.any; // 任意の日付をテスト条件に使う
-import static org.mockito.ArgumentMatchers.eq; // userIdの一致条件に使う
-import static org.mockito.Mockito.when; // Repositoryの戻り値を決める
-
-import java.time.LocalDate; // Repository検索条件の日付型
-import java.util.Optional; // 既存勤怠ありを表現する
-
-import org.junit.jupiter.api.BeforeEach; // 各テスト前の準備
-import org.junit.jupiter.api.Test; // テストメソッドを示す
-import org.junit.jupiter.api.extension.ExtendWith; // MockitoをJUnitで使う
-import org.mockito.Mock; // Repositoryの代用品を作る
-import org.mockito.junit.jupiter.MockitoExtension; // Mockito初期化を自動化する
-
-import com.shinesoft.attendance.domain.Attendance; // 既存勤怠として返すEntity
-import com.shinesoft.attendance.exception.BusinessException; // 確認対象の業務例外
-import com.shinesoft.attendance.repository.AttendanceRepository; // テスト用の代用品
-import com.shinesoft.attendance.repository.UserRepository; // Service生成に必要な代用品
-
-@ExtendWith(MockitoExtension.class) // Spring Boot全体を起動せずServiceだけ確認する
-class AttendanceServiceTest {
-
-    @Mock
-    private AttendanceRepository attendanceRepository; // DBへ接続しない代用品
-
-    @Mock
-    private UserRepository userRepository; // DBへ接続しない代用品
-
-    private AttendanceService attendanceService; // テスト対象
-
-    @BeforeEach
-    void setUp() {
-        // 本番コードと同じコンストラクタ注入でServiceを作る
-        attendanceService = new AttendanceService(attendanceRepository, userRepository);
-    }
-
-    @Test
-    void clockIn_rejectsSecondClockInOnSameDay() {
-        // userId=1の当日勤怠が既に存在する状態を作る
-        when(attendanceRepository.findByUser_IdAndWorkDate(eq(1L), any(LocalDate.class)))
-            .thenReturn(Optional.of(new Attendance()));
-
-        // 2回目の出勤でBusinessExceptionが発生することを確認する
-        BusinessException exception = assertThrows(
-            BusinessException.class,
-            () -> attendanceService.clockIn(1L));
-
-        // 利用者へ返すエラーメッセージも業務仕様として確認する
-        assertEquals("すでに出勤済みです", exception.getMessage());
-    }
-}
-```
-
-実行:
-
-```bash
-ls src/test/java/com/shinesoft/attendance/service/AttendanceServiceTest.java
-mvn -Dtest=AttendanceServiceTest test
-```
-
-確認ポイント:
-
-- `@Mock`はRepositoryの代用品であり、H2へ接続しない
-- `when(...).thenReturn(...)`で「既に当日勤怠がある」状態を作る
-- `assertThrows`で業務ルール違反を確認する
-- Spring全体ではなくServiceだけを対象にするため、失敗原因を絞り込みやすい
-- Mavenログで `src/test/java` のテストとして実行されることを確認する
-
----
-
 ## 9. 初期データ投入（固定ユーザー）
 ### 9-0. 何をしているか（最初に読む）
 この章では、アプリ起動時に「研修用の固定ユーザー `user1`」をDBへ自動登録します。
@@ -1075,6 +1036,25 @@ mvn -Dtest=AttendanceServiceTest test
 1. 起動時に `user1` が存在するか確認
 2. 存在しなければ `users` テーブルへ1件登録
 3. 既に存在する場合は何もしない（重複防止）
+
+### `CommandLineRunner`と`args ->`の読み方
+
+`CommandLineRunner`は、Spring Boot起動後に1回実行する処理の形を決めたインターフェースです。
+
+```java
+CommandLineRunner seedUser(UserRepository userRepository) {
+    return args -> {
+        // 起動後に実行したい処理
+    };
+}
+```
+
+- `seedUser(...)`メソッドは、`CommandLineRunner`型の値を返す
+- `args -> {...}`は、`CommandLineRunner`が必要とする処理をラムダ式で書いたもの
+- `args`には起動時の引数が入るが、このLessonでは使用しない
+- `@Bean`が付いているため、Springが戻り値を管理し、起動後に実行する
+
+「メソッドを定義した直後に自分で呼んでいる」のではなく、「起動後に実行する処理をSpringへ渡している」と考えます。
 
 作成ファイル: `~/order-management-springboot/stages/lesson02/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
 

@@ -1,10 +1,9 @@
-# Lesson5（7/15）ログイン + 管理者機能 + テスト（Lesson4から拡張）
+# Lesson5（7/15）ログイン + 管理者機能（Lesson4から拡張）
 
 ## 目的（Lesson5でできるようになること）
 - ログイン機能（Spring Security）を実装できる
 - 一般ユーザー / 管理者でアクセス権が分かれることを確認できる
 - 管理者のアカウント管理・勤怠編集ができる
-- `mvn test` でServiceテストを実行できる
 - 画面操作をControllerからRepositoryまでコードで追跡できる
 
 ## 前提
@@ -13,7 +12,7 @@
 
 バックエンド短縮コースでは、HTML/CSS/JavaScriptは講師提供コードを使用します。
 受講者は指定されたファイルを作成し、提供コードを内容や説明コメントを削らず配置します。
-フロントエンド文法は評価せず、フォーム送信先、認証・認可、Controller、Service、Repository、テストを重点的に追跡します。
+フロントエンド文法は評価せず、フォーム送信先、認証・認可、Controller、Service、Repositoryを重点的に追跡します。
 
 ## Lesson5で作るもの
 - 画面:
@@ -27,7 +26,7 @@
   - 認可（一般ユーザーと管理者のアクセス制御）
   - 管理者によるユーザー作成/更新/削除
   - 管理者による勤怠編集（整合性チェック）
-  - `mvn test` による業務ルール・削除制約・認可の回帰確認
+  - ブラウザ操作による業務ルール・削除制約・認可の動作確認
 
 ### 全体構成図（ファイルと役割）
 ```mermaid
@@ -67,7 +66,6 @@ flowchart LR
     JS[users.js]
   end
 
-  TEST[AttendanceServiceTest] --> AS
   SEED --> UR
 
   B -->|GET /login| AUTHC
@@ -204,7 +202,6 @@ cd ~/order-management-springboot/stages/lesson05
 ```bash
 mkdir -p ~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config
 mkdir -p ~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/form
-mkdir -p ~/order-management-springboot/stages/lesson05/src/test/java/com/shinesoft/attendance/service
 ```
 
 ---
@@ -215,8 +212,7 @@ mkdir -p ~/order-management-springboot/stages/lesson05/src/test/java/com/shineso
 この章でやること（具体手順）:
 1. `~/order-management-springboot/stages/lesson05/pom.xml` を開く
 2. 実利用側の `<dependencies>`（`spring-boot-starter-web` などが並んでいるブロック）を探す
-3. その `</dependencies>` の直前に、以下3つを追記する
-4. Lesson2から引き継いだ `spring-boot-starter-test` が既にあることを確認し、重複追加しない
+3. その `</dependencies>` の直前に、以下2つを追記する
 
 ```xml
 <dependency>
@@ -229,45 +225,27 @@ mkdir -p ~/order-management-springboot/stages/lesson05/src/test/java/com/shineso
   <artifactId>spring-boot-starter-validation</artifactId>
 </dependency>
 
-<dependency>
-  <groupId>org.springframework.security</groupId>
-  <artifactId>spring-security-test</artifactId>
-  <scope>test</scope>
-</dependency>
 ```
 
 Lesson4からの追加依存:
 - `spring-boot-starter-security`
 - `spring-boot-starter-validation`
-- `spring-security-test`（認証・認可のテスト用）
-
-Lesson2から引き継ぐ既存依存（追加済みであることを確認）:
-
-```xml
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-test</artifactId>
-  <scope>test</scope>
-</dependency>
-```
 
 確認コマンド:
 ```bash
 cd ~/order-management-springboot/stages/lesson05
 # 依存が追記されているか確認（Git Bash）
-grep -nE "spring-boot-starter-security|spring-boot-starter-validation|spring-boot-starter-test|spring-security-test" pom.xml
+grep -nE "spring-boot-starter-security|spring-boot-starter-validation" pom.xml
 # コンパイル確認（成功時は BUILD SUCCESS）
 mvn compile
 ```
 
 理解ポイント（10分）:
 - この変更の目的:
-  - Lesson5で必要な「認証」「入力検証」「テスト」を有効化する
+  - Lesson5で必要な「認証」「入力検証」を有効化する
 - 依存の意味:
   - `spring-boot-starter-security`: ログイン/権限制御
   - `spring-boot-starter-validation`: `@Valid` / `@NotBlank` など入力検証
-  - `spring-boot-starter-test`: Lesson2から使用しているJUnit + Mockito + Spring Test
-  - `spring-security-test`: 認証・認可の自動テスト
 - よくあるミス:
   - 依存追加漏れで `org.springframework.security...` や `jakarta.validation...` のコンパイルエラー
 
@@ -291,7 +269,7 @@ Lesson5は差分が多いため、手動で一気に作ると混乱しやすい�
 
 補足:
 - 上記は実装作業だけの目安
-- 新人研修では、動作確認、テスト、コード追跡、説明レビューを含めて5A〜5C合計10〜11時間（2日）を確保する
+- 新人研修では、動作確認、コード追跡、説明レビューを含めて5A〜5C合計9〜9.5時間を確保する
 
 進め方ルール:
 1. フェーズごとの対象ファイルだけ触る
@@ -308,7 +286,7 @@ Lesson5は差分が多いため、手動で一気に作ると混乱しやすい�
 | --- | --- | --- |
 | 5A | [lesson5a-authentication.md](./lesson5a-authentication.md) | ログイン・認証・認可 |
 | 5B | [lesson5b-management.md](./lesson5b-management.md) | ユーザー管理・勤怠管理 |
-| 5C | [lesson5c-testing-operations.md](./lesson5c-testing-operations.md) | テスト・プロファイル・参照整合性 |
+| 5C | [lesson5c-operations.md](./lesson5c-operations.md) | 動作確認・プロファイル・参照整合性 |
 
 標準時間配分:
 
@@ -316,11 +294,11 @@ Lesson5は差分が多いため、手動で一気に作ると混乱しやすい�
 | --- | ---: |
 | 5A | 2.5時間 |
 | 5B | 5時間 |
-| 5C | 3.5時間 |
+| 5C | 1.5〜2時間 |
 
 進め方:
 
 1. この共通準備で `stages/lesson05`、依存関係、追加ディレクトリを準備する
 2. 5A、5B、5Cの順に、同じ `stages/lesson05` へ差分を追加する
-3. 各教材の終了時にコンパイルまたはテストを実行する
+3. 各教材の終了時にコンパイルとブラウザでの動作確認を行う
 4. 5Cの完了条件まで確認してからLesson6へ進む

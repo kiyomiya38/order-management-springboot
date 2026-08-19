@@ -1,0 +1,37 @@
+<!doctype html> <!-- HTML5の文書宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"> <!-- lang: 日本語 / xmlns:th: Thymeleaf有効化 -->
+<head>
+  <meta charset="utf-8" /> <!-- 日本語表示のためUTF-8 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> <!-- レスポンシブ表示 -->
+  <title>勤怠管理（MVP）</title>
+  <link rel="stylesheet" th:href="@{/styles.css}" /> <!-- @{} はURL生成式。/static/styles.css を参照 -->
+</head>
+<body>
+  <div class="container"> <!-- 画面全体のラッパー -->
+    <header>
+      <h1>勤怠管理システム（MVP）</h1>
+      <p class="subtitle">研修用 / Lesson1（画面表示のみ）</p>
+    </header>
+
+    <section class="panel"> <!-- 1つ目の情報パネル -->
+      <div class="panel-header">
+        <h2>今日の勤怠</h2>
+        <span class="status-badge" th:text="${statusLabel}">未出勤</span> <!-- ${statusLabel}。ControllerのstatusLabelを表示。右の文字はフォールバック -->
+      </div>
+      <p>日付: <span th:text="${workDate}">2026-02-05</span></p> <!-- ${workDate}。ControllerのworkDateを表示 -->
+      <p>出勤時刻: <span th:text="${startTime}">-</span></p> <!-- ${startTime}。Lesson1ではControllerから "-" を渡す -->
+      <p>退勤時刻: <span th:text="${endTime}">-</span></p> <!-- ${endTime}。Lesson1ではControllerから "-" を渡す -->
+    </section>
+
+    <section class="panel"> <!-- 2つ目の情報パネル -->
+      <h2>業務ルール（抜粋）</h2>
+      <ul>
+        <li>同日に複数回の出勤は不可</li>
+        <li>未出勤で退勤は不可</li>
+        <li>退勤後に再度退勤は不可</li>
+      </ul>
+      <p class="muted">※ Lesson2 以降でボタンや業務ルールを実装します。</p>
+    </section>
+  </div>
+</body>
+</html>

@@ -119,12 +119,18 @@ int unboxed = boxed;
 StringBuilder sb = new StringBuilder();
 sb.append("受注ID=").append("ORD-1001");
 String logLine = sb.toString();
+
+StringBuilder multiLine = new StringBuilder();
+multiLine.append("START").append(System.lineSeparator());
+multiLine.append("END");
 ```
 
 ポイント:
 - `StringBuilder` は文字列を少しずつ組み立てるためのクラス
 - `append(...)` は連続して呼び出せる
 - 最後に `toString()` で通常の `String` に変換する
+- `System.lineSeparator()` は、実行環境に合った改行文字を返す
+- `append(System.lineSeparator())` と書くと、組み立てた文字列の途中で改行できる
 
 #### `Path` / `Pattern` と定数
 
@@ -137,6 +143,30 @@ private static final Pattern NAME_PATTERN = Pattern.compile("\"name\"\\s*:\\s*\"
 - `Path.of(...)` はファイルパスを表す `Path` を作る
 - `Pattern.compile(...)` は正規表現パターンを事前に作る
 - `private static final` はクラス内だけで使う再代入しない共有値に向いている
+
+### この章を3つのまとまりに分けて考える
+
+この章には複数の標準クラスが登場しますが、すべてを一度に覚える必要はありません。役割ごとに次の3つへ分けます。
+
+| まとまり | 対象Step | 解決する問題 |
+| --- | --- | --- |
+| 自作クラスの表示と比較 | Step 1〜4 | インスタンスを分かりやすく表示し、値として比較する |
+| 基本型・文字列の扱い | Step 5〜6 | `int`と`Integer`の変換、文字列の組み立て |
+| Webアプリの先読み | Step 7 | ファイルパスと正規表現パターンを型として保持する |
+
+特にStep 1〜4は、次の順序で違いを比較します。
+
+```text
+toString()なしの表示
+  ↓
+自作のdisplayText()を明示的に呼ぶ
+  ↓
+toString()をオーバーライドして標準の表示方法にする
+  ↓
+equals()をオーバーライドして値の比較方法も決める
+```
+
+`toString()`と`equals()`は、呼び出し方を短くするだけの機能ではありません。「このクラスをどう表示し、何をもって同じ値とするか」をクラス自身に定義するための標準ルールです。
 
 ---
 
@@ -213,6 +243,7 @@ class Product { // 商品クラス
     Product(String code) { // コンストラクタ
         this.code = code; // フィールド初期化
     }
+// ===== Step 2 で追加・変更 =====
 
     String displayText() { // Product を表示するための自作メソッド
         return "Product{code='" + code + "'}";
@@ -226,6 +257,7 @@ public class StandardClassDemo { // 実行クラス
         System.out.println(p1.displayText()); // 自作メソッドを明示して表示
         System.out.println("商品: " + p1.displayText()); // 文字列連結でも明示して呼ぶ
         System.out.println(p1); // displayText は自動では使われない
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -263,6 +295,7 @@ class Product { // 商品クラス
         this.code = code; // フィールド初期化
     }
 
+    // ===== Step 3 で追加・変更 =====
     @Override
     public String toString() { // Product を文字列として見せる標準ルール
         return "Product{code='" + code + "'}";
@@ -275,6 +308,7 @@ public class StandardClassDemo { // 実行クラス
 
         System.out.println(p1); // println の中で toString が使われる
         System.out.println("商品: " + p1); // 文字列連結でも toString が使われる
+    // ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -306,6 +340,7 @@ Product{code='P-001'}
 - 通常の `instanceof` とキャストを短く安全に書くための構文として読む
 
 ```java
+// ===== Step 4 で追加・変更 =====
 import java.util.Objects; // null 安全な比較ユーティリティ
 
 class Product { // 商品クラス
@@ -342,6 +377,7 @@ public class StandardClassDemo { // 実行クラス
         System.out.println("p2: " + p2); // toString の結果が使われる
         System.out.println("p1 equals p2: " + p1.equals(p2)); // true 期待
         System.out.println("p1 equals p3: " + p1.equals(p3)); // false 期待
+// ===== Step 4 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -372,6 +408,7 @@ p1 equals p3: false
 `StandardClassDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 5 で追加・変更 =====
 public class StandardClassDemo { // ラッパークラス利用例
     public static void main(String[] args) {
         String quantityText = "25"; // 数値文字列
@@ -383,6 +420,7 @@ public class StandardClassDemo { // ラッパークラス利用例
         System.out.println("quantity: " + quantity); // int 値を表示
         System.out.println("boxed: " + boxed); // Integer 値を表示
         System.out.println("unboxed: " + unboxed); // 再び int 化した値を表示
+// ===== Step 5 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -404,6 +442,7 @@ unboxed: 25
 `StandardClassDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 6 で追加・変更 =====
 class Product { // 商品クラス
     String code; // 商品コード
 
@@ -430,6 +469,7 @@ public class StandardClassDemo { // StringBuilder 利用例
 
         String logLine = sb.toString(); // 完成した文字列へ変換
         System.out.println(logLine); // ログ1行を表示
+// ===== Step 6 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -455,6 +495,7 @@ java StandardClassDemo
 `StandardClassDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 7 で追加・変更 =====
 import java.nio.file.Path; // パス情報を扱う型
 import java.util.regex.Matcher; // 正規表現の検索結果を扱う型
 import java.util.regex.Pattern; // 正規表現パターンを表す型
@@ -475,6 +516,7 @@ public class StandardClassDemo { // Path と Pattern の利用例
         sb.append("static dir: ").append(STATIC_DIR).append(System.lineSeparator()); // パスを1行目に連結
         sb.append("name: ").append(name); // 抽出結果を2行目に連結
         System.out.println(sb); // 2行分をまとめて表示
+// ===== Step 7 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -497,36 +539,131 @@ name: Tanaka
 - `Matcher` は `Pattern` を使って文字列を検索する実行オブジェクト
 - `private static final` で「クラス内で共有し再代入しない定数」を宣言できる
 
----
+### Step 8: 学習した標準クラスを1つのコードにまとめる
+ミニ演習では、ここまで別々に確認した内容を同じコード上で変更します。`StandardClassDemo.java` を次の内容に更新:
 
-## 5. ミニ演習（10分）
-### レベル1（基本）
-1. `Product` に `name` と `price` を追加し、`toString()` で `code` / `name` / `price` が見えるようにする。
-2. `Integer.parseInt` に不正文字列を渡したときの挙動を確認する。
+```java
+// ===== Step 8 で追加・変更 =====
+import java.nio.file.Path;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+class Product {
+    String code;
+
+    Product(String code) {
+        this.code = code;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{code='" + code + "'}";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Product other)) {
+            return false;
+        }
+        return Objects.equals(code, other.code);
+    }
+}
+
+public class StandardClassDemo {
+    private static final Path STATIC_DIR = Path.of("static");
+    private static final Pattern NAME_PATTERN =
+            Pattern.compile("\"name\"\\s*:\\s*\"(.*?)\"");
+
+    public static void main(String[] args) {
+        Product p1 = new Product("P-001");
+        Product p2 = new Product("P-001");
+        System.out.println(p1);
+        System.out.println("同じ商品: " + p1.equals(p2));
+
+        String quantityText = "12";
+        int quantity = Integer.parseInt(quantityText);
+        Integer boxed = quantity;
+        int unboxed = boxed;
+        System.out.println("数量: " + unboxed);
+
+        StringBuilder log = new StringBuilder();
+        log.append("START");
+        System.out.println(log);
+
+        String body = "{\"name\":\"Tanaka\"}";
+        Matcher matcher = NAME_PATTERN.matcher(body);
+        if (matcher.find()) {
+            System.out.println("抽出名: " + matcher.group(1));
+        }
+        System.out.println("static dir: " + STATIC_DIR);
+    }
+}
+// ===== Step 8 で追加・変更ここまで =====
+```
 
 期待出力例:
+```text
+Product{code='P-001'}
+同じ商品: true
+数量: 12
+START
+抽出名: Tanaka
+static dir: static
+```
+
+---
+
+## 5. ミニ演習（20分）
+Step 8の完成コードを基準に、レベル1からレベル3まで順番に進めてください。各レベルは直前の変更を残したまま追記・変更します。
+
+### レベル1（基本）
+1. `Product` に `name` と `price` を追加し、コンストラクタで受け取る。
+2. コンストラクタを`Product(String code, String name, int price)`へ変更し、3つのフィールドを初期化する。
+3. `toString()`を、確認対象の出力と同じ`code` / `name` / `price`を含む形式へ変更する。
+4. `p1`と`p2`は、どちらも`new Product("P-001", "Keyboard", 3000)`で生成する。
+5. `quantityText`を一時的に`"12A"`へ変更し、`Integer.parseInt`で`NumberFormatException`が発生することを確認したら`"12"`へ戻す。
+
+確認対象の出力（抜粋）:
 ```text
 Product{code='P-001', name='Keyboard', price=3000}
 ```
 
 ### レベル2（拡張）
-1. `Product` に `hashCode` も実装し、`HashSet` で重複判定を確認する。
-2. `StringBuilder` で3行分のログを作る。
+1. レベル1まで完了した`Product`の`equals(...)`より後へ、次の`hashCode()`を追加する。
 
-期待出力例:
+```java
+@Override
+public int hashCode() {
+    return Objects.hash(code);
+}
+```
+
+`Objects.hash(code)`は、商品コードをもとに比較用の整数値を作る。`equals(...)`で同じと判定する商品は、`hashCode()`も同じ値になるように実装する。
+
+2. 同じ商品コードを持つ`p1`と`p2`について、`p1.hashCode() == p2.hashCode()`の結果を表示し、`true`になることを確認する。
+3. 既存の`StringBuilder`を、`START` / `PROCESS` / `END`の3行分のログを作る処理へ変更する。`START`と`PROCESS`を追加した後に`append(System.lineSeparator())`をつなげ、次の文字列を新しい行へ送る。
+
+確認対象の出力（抜粋）:
 ```text
+hashCode一致: true
 START
 PROCESS
 END
 ```
 
 ### レベル3（実務）
-1. `body` を `{"name":"Suzuki"}` に変更し、抽出結果が変わることを確認する。
-2. `STATIC_DIR` の宣言から `final` を外し、再代入して挙動の違いを確認する（確認後は元に戻す）。
+1. レベル2までの変更を残したまま、`body` を `{"name":"Suzuki"}` に変更し、抽出結果が変わることを確認する。
+2. `STATIC_DIR`の宣言から`final`を一時的に外す。
+3. `main(...)`の先頭へ`STATIC_DIR = Path.of("static2");`を追加し、`static dir: static2`と表示できることを確認する。
+4. 確認後は再代入行を削除し、`STATIC_DIR`へ`final`を戻す。レベル1・2の変更と`body`の変更は残す。
 
 期待状態:
-- `抽出名: Suzuki` のように抽出結果を変えられる
-- `final` があると再代入できず、外すと再代入できる
+- `抽出名: Suzuki`と表示される
+- `final`があると再代入できず、外して再代入すると`static dir: static2`と表示される
 
 ---
 

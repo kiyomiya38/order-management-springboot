@@ -1,46 +1,75 @@
 # Java-13A ミニ演習解答
 
 対象資料: `docs/curriculum/java/java-handson/java-13a-inheritance-rules.md`
+## 解答の読み方
 
-## ミニ演習解答
-1. `GrandParent -> Parent -> Child` の3階層:
+- 本文のミニ演習をレベル1から順番に実施し、各レベル冒頭にある引き継ぎ・復元条件を優先します。
+- 「全コード」と書かれたコードブロックは、そのファイル全体を置き換えます。
+- 「追加」「変更」と書かれたコードブロックは、直前の説明で指定された位置だけへ反映し、ほかの既存コードは残します。
+- コンパイルエラーを確認するための一時変更は、確認後に必ず元へ戻してから次のレベルへ進みます。
+
+## レベル1（基本）解答
+Step 3の`Manager`内にある次のコメントを外す:
 
 ```java
-class GrandParent {
-    GrandParent() { System.out.println("GrandParent()"); }
-}
-
-class Parent extends GrandParent {
-    Parent() { System.out.println("Parent()"); }
-}
-
-class Child extends Parent {
-    Child() { System.out.println("Child()"); }
+class Manager extends Worker {
+    @Override
+    void submitReport() { }
 }
 ```
 
-`new Child()` の出力順: `GrandParent -> Parent -> Child`
+`Worker.submitReport()`は`final`メソッドなのでコンパイルエラーになる。確認後はこのメソッドを再びコメントアウトし、Step 3がコンパイルできる状態へ戻す。
 
-2. `Parent` に引数なしコンストラクタ追加:
+## レベル2（拡張）解答
+レベル1の確認用変更を戻した後、Step 3にある次のコメントを外す:
 
 ```java
-class Parent extends GrandParent {
-    Parent() { System.out.println("Parent()"); }
-    Parent(String name) { System.out.println("Parent name=" + name); }
+class DerivedRole extends FixedRole {
 }
 ```
 
-`Child` 側で `super(...)` 省略時は暗黙 `super()` が呼ばれる。
+`FixedRole`は`final`クラスなのでコンパイルエラーになる。確認後は`DerivedRole`を再びコメントアウトしてからレベル3へ進む。
 
-3. `final` メソッドを通常メソッドへ変更:
+## レベル3（実務）解答
+レベル1・2の確認用変更を元へ戻した後、`InheritanceRulesDemo.java`を次の全コードへ更新します。
+
+### レベル3完了時の全コード
 
 ```java
 class Worker {
-    void submitReport() { System.out.println("base"); } // final を外す
+    // ===== レベル3で変更: 子クラスでオーバーライドできるようfinalを外す =====
+    void submitReport() {
+        System.out.println("report submitted");
+    }
+    // ===== レベル3で変更ここまで =====
 }
 
 class Manager extends Worker {
+    // ===== レベル3で追加: Manager固有の表示へオーバーライドする =====
     @Override
-    void submitReport() { System.out.println("override"); }
+    void submitReport() {
+        System.out.println("manager report submitted");
+    }
+    // ===== レベル3で追加ここまで =====
 }
+
+final class FixedRole {
+}
+
+// finalクラスを継承できないことはレベル2で確認済み
+// class DerivedRole extends FixedRole {
+// }
+
+public class InheritanceRulesDemo {
+    public static void main(String[] args) {
+        Manager manager = new Manager();
+        manager.submitReport();
+    }
+}
+```
+
+期待出力:
+
+```text
+manager report submitted
 ```

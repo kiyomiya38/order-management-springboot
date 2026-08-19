@@ -299,18 +299,6 @@ public class AttendanceService {
 
 ---
 
-## 2.5 Lesson2のServiceテストを再実行
-
-退勤処理を追加した後も、Lesson2で作成した「二重出勤禁止」のテストが成功することを確認します。
-
-```bash
-mvn -Dtest=AttendanceServiceTest test
-```
-
-この時点ではテストを増やしません。既存機能を壊していないことを先に確認し、Lesson5Cで状態遷移テストを発展させます。
-
----
-
 ## 3. `HomeController` を編集（退勤エンドポイント追加）
 作成ファイル: `~/order-management-springboot/stages/lesson03/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 

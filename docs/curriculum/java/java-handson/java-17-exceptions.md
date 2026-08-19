@@ -1,4 +1,4 @@
-﻿# Java-17 ハンズオン: 例外
+# Java-17 ハンズオン: 例外
 
 ## 1. この資料のゴール
 - 例外の基本（`try-catch-finally`）を実装できる
@@ -211,6 +211,7 @@ java ExceptionDemo
 `ExceptionDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 public class ExceptionDemo { // 数値変換例外を扱うクラス
     public static void main(String[] args) {
         String input = "abc"; // 数値ではない文字列
@@ -219,6 +220,7 @@ public class ExceptionDemo { // 数値変換例外を扱うクラス
             System.out.println(quantity); // 例外発生時は実行されない
         } catch (NumberFormatException e) { // 数値変換失敗を捕捉
             System.out.println("入力値が数値ではありません: " + input); // 入力値を含めて表示
+// ===== Step 2 で追加・変更ここまで =====
         }
     } // main メソッドの終わり
 } // クラス定義の終わり
@@ -241,6 +243,7 @@ java ExceptionDemo
 `ExceptionDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 3 で追加・変更 =====
 public class ExceptionDemo { // throw による入力検証の例
     static int validateQuantity(int quantity) { // 数量の妥当性を検証するメソッド
         if (quantity <= 0) { // 1 以上でない値は不正
@@ -255,6 +258,7 @@ public class ExceptionDemo { // throw による入力検証の例
             System.out.println("数量: " + q); // 例外時は実行されない
         } catch (IllegalArgumentException e) { // 入力不正例外を捕捉
             System.out.println("入力エラー: " + e.getMessage()); // エラーメッセージ表示
+// ===== Step 3 で追加・変更ここまで =====
         }
     } // main メソッドの終わり
 } // クラス定義の終わり
@@ -276,24 +280,32 @@ java ExceptionDemo
 ---
 
 ## 5. ミニ演習（10分）
+Step 3で完成した`ExceptionDemo.java`を基準に、レベル1からレベル3まで順番に進めてください。検証メソッドの変更は引き継ぎ、例外確認用の呼び出し値は次のレベルを実行できる値へ変更します。
+
 ### レベル1（基本）
 1. `validateQuantity` を `quantity > 1000` もエラーにする。
+2. `main(...)`の`validateQuantity(...)`へ`1001`を渡して上限超過を確認する。
+3. 確認後は呼び出し値を正常値`1`へ変更してからレベル2へ進む。
 
 期待状態:
 - `validateQuantity(1001)` で例外が発生する
 
 ### レベル2（拡張）
-1. `validatePrice(int price)` を追加して0未満を弾く。
+1. レベル1の`validateQuantity`を残したまま、`validatePrice(int price)`を追加して0未満を弾く。
+2. `main(...)`の`try`内で、正常値へ戻した数量の確認より後に`int price = validatePrice(-1);`を追加する。
+3. 続けて`System.out.println("価格: " + price);`を追加し、価格の例外が発生した場合はこの表示まで進まないことを確認する。
 
 期待状態:
 - `validatePrice(-1)` で例外が発生する
 
 ### レベル3（実務）
-1. 例外メッセージに入力値を含める。
+1. レベル1・2で作成した両方の検証メソッドについて、例外メッセージに入力値を含める。
+2. `main(...)`を、`validateQuantity(1001)`と`validatePrice(-1)`を別々の`try-catch`で確認する構成へ変更する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
 quantity が不正です: 1001
+price が不正です: -1
 ```
 
 ---
@@ -305,4 +317,3 @@ quantity が不正です: 1001
   -> まずは具体例外を捕まえる
 - 例外メッセージが曖昧
   -> どの値が不正かを明示
-

@@ -1,0 +1,75 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd"> <!-- Maven用XMLの定型。今日は編集しない -->
+  <modelVersion>4.0.0</modelVersion> <!-- pom.xml自体の形式バージョン。Mavenでは通常4.0.0を使う -->
+
+  <!-- 1. プロジェクト識別情報: Mavenがこのアプリを区別するための名前 -->
+  <groupId>com.shinesoft</groupId> <!-- 組織や会社を表すID。Javaのpackage名と同じくドメイン逆順が多い -->
+  <artifactId>attendance-management</artifactId> <!-- アプリ/成果物の名前。jarファイル名にも使われる -->
+  <version>0.0.1-SNAPSHOT</version> <!-- アプリのバージョン。SNAPSHOTは開発中という意味 -->
+  <name>attendance-management</name> <!-- Mavenやログ上で表示されるプロジェクト名 -->
+  <description>Attendance Management MVP</description> <!-- プロジェクトの説明。起動動作にはほぼ影響しない -->
+
+  <!-- 2. 共通設定: このpom.xml内で何度も使う値をまとめる -->
+  <properties>
+    <java.version>17</java.version> <!-- この研修で使うJavaのバージョン -->
+    <spring-boot.version>3.5.15</spring-boot.version> <!-- Spring Boot関連ライブラリの基準バージョン -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- ソースやリソースをUTF-8として扱う -->
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding> <!-- Mavenレポート出力もUTF-8として扱う -->
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding> <!-- Javaコンパイル時のソース文字コード -->
+    <maven.compiler.release>${java.version}</maven.compiler.release> <!-- Java 17向けの.classを作る。上のjava.versionを再利用 -->
+  </properties>
+
+  <!-- 3-1. 依存関係のバージョン表: Spring Boot推奨の組み合わせを取り込む -->
+  <dependencyManagement> <!-- バージョン管理用。ここに書いただけではライブラリは追加されない -->
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version> <!-- propertiesで決めたSpring Bootバージョンを使う -->
+        <type>pom</type> <!-- jarではなく、依存関係の一覧表として読む -->
+        <scope>import</scope> <!-- Spring Boot推奨のバージョン表を取り込む -->
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <!-- 3-2. 実際に使うライブラリ: このアプリに必要な機能を追加する -->
+  <dependencies>
+    <dependency> <!-- Webアプリに必要なSpring MVC/Tomcat/JSON変換などをまとめて追加 -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency> <!-- HTMLテンプレートThymeleafを使うために追加 -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+  </dependencies>
+
+  <!-- 4. ビルド設定: コンパイルやSpring Boot起動に使うMaven拡張 -->
+  <build>
+    <plugins>
+      <plugin> <!-- mvn spring-boot:run や実行可能jar作成を使えるようにする -->
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring-boot.version}</version>
+        <executions> <!-- mvn package時に追加で実行する処理 -->
+          <execution>
+            <goals>
+              <goal>repackage</goal> <!-- java -jarで起動できるSpring Boot用jarへ作り直す -->
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin> <!-- Javaをどのバージョン・文字コードでコンパイルするかを決める -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <release>${maven.compiler.release}</release> <!-- Java 17向けにコンパイル -->
+          <encoding>${maven.compiler.encoding}</encoding> <!-- ソース文字コード -->
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

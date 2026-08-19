@@ -1,4 +1,4 @@
-﻿# Java-09 ハンズオン: インスタンスとクラス
+# Java-09 ハンズオン: インスタンスとクラス
 
 前章とのつながり: [Java-08 メソッド](./java-08-methods.md) では、処理をメソッドへ分ける方法を学んだ。この章では、データと処理を持つクラスからインスタンスを作る方法を学ぶ。
 
@@ -181,6 +181,7 @@ Suzuki point: 80
 `InstanceDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 class Customer { // 顧客クラス
     String name; // 顧客名
     int point; // ポイント
@@ -203,6 +204,7 @@ public class InstanceDemo { // 実行クラス
 
         System.out.println(c1.name + " point: " + c1.point); // 加算後の c1 を表示
         System.out.println(c2.name + " point: " + c2.point); // c2 は影響を受けないことを表示
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -234,6 +236,7 @@ class Customer { // 顧客クラス
     int point; // ポイント
 
     void addPoint(int value) { // ポイント加算メソッド
+        // ===== Step 3 で追加・変更 =====
         point += value; // 呼び出したインスタンスのポイントを更新
     }
 }
@@ -252,6 +255,7 @@ public class InstanceDemo { // 実行クラス
 
         System.out.println(c1.name + " point: " + c1.point); // c1 の状態を表示
         System.out.println(c2.name + " point: " + c2.point); // c2 の状態を表示
+        // ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -276,32 +280,58 @@ Suzuki point: 100
 ---
 
 ## 5. ミニ演習（10分）
+
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 3の完成コードから開始してください。
+
 ### レベル1（基本）
-1. `Customer` を3件作成して、それぞれの名前とポイントを表示する。
-
-期待出力例:
-```text
-Tanaka point: 120
-Suzuki point: 80
-Sato point: 50
-```
-
-### レベル2（拡張）
-1. `addPoint` メソッドを復活させ、1件だけポイント加算する。
+1. Step 3に3人目の `Customer` インスタンス `c3` を追加する。
+2. `c3.name` に `"Sato"`、`c3.point` に `50` を設定する。
+3. `c1`、`c2`、`c3` の名前とポイントを表示する。
 
 期待出力例:
 ```text
 Tanaka point: 150
-Suzuki point: 80
+Suzuki point: 100
+Sato point: 50
+```
+
+### レベル2（拡張）
+1. レベル1の `c1.addPoint(30)` を `c1.addPoint(50)` に変更する。
+2. `c2.addPoint(20)` は変更しない。
+3. それぞれのインスタンスが別々のポイントを持つことを確認する。
+
+確認対象の出力（抜粋）:
+```text
+Tanaka point: 170
+Suzuki point: 100
 ```
 
 ### レベル3（実務）
-1. ポイントを減らす `usePoint` メソッドを追加し、結果が `0` 未満なら `0` に補正する。
+1. `Customer` クラスにポイントを減らす `usePoint(int value)` メソッドを追加する。
+2. 減算後の `point` が`0`未満なら、`0`に補正する。
+3. レベル2の加算処理後に `c1.usePoint(200)` を呼び出す。
+4. `c1` と `c2` のポイントを表示し、`c2` は影響を受けないことを確認する。
 
 期待出力例:
 ```text
 Tanaka point: 0
+Suzuki point: 100
+Sato point: 50
 ```
+
+### 実行前予想問題（1分）
+Step 3のコードで、加算値を次のように変更した場合の出力を予想してください。
+
+```java
+c1.addPoint(10);
+c2.addPoint(50);
+```
+
+### デバッグ演習（任意, 5分）
+1. Step 3の `c1.addPoint(30)` を、一時的に `c1.addPoints(30)` へ変更する。
+2. コンパイルして `cannot find symbol` を確認する。
+3. エラーメッセージから、見つからないメソッド名を確認する。
+4. `c1.addPoint(30)` に戻して再コンパイルする。
 
 ---
 

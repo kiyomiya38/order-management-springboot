@@ -1,4 +1,4 @@
-﻿# Java-06 ハンズオン: 条件分岐と繰り返し
+# Java-06 ハンズオン: 条件分岐と繰り返し
 
 補講（任意）: [Java-06A switch / do-while / ラベル付き制御](./java-06a-advanced-control-flow.md)
 
@@ -209,10 +209,12 @@ java ControlFlowDemo
 `for` は、回数が決まっている繰り返しに使う。
 
 ```java
+// ===== Step 2 で追加・変更 =====
 public class ControlFlowDemo { // for ループの動作確認クラス
     public static void main(String[] args) {
         for (int day = 1; day <= 5; day++) { // day を 1 から 5 まで 1 ずつ増やして繰り返す
             System.out.println("営業日: " + day + "日目"); // 各周回で現在の日数を表示
+// ===== Step 2 で追加・変更ここまで =====
         }
     } // main メソッドの終わり
 } // クラス定義の終わり
@@ -241,12 +243,14 @@ java ControlFlowDemo
 `while` は、条件が成り立つ間だけ繰り返したいときに使う。
 
 ```java
+// ===== Step 3 で追加・変更 =====
 public class ControlFlowDemo { // while ループの動作確認クラス
     public static void main(String[] args) {
         int retry = 0; // カウンタを 0 で初期化
         while (retry < 3) { // retry が 3 未満の間は繰り返す
             System.out.println("再試行回数: " + retry); // 現在の再試行回数を表示
             retry++; // 次の周回に向けて 1 増やす（これがないと無限ループになる）
+// ===== Step 3 で追加・変更ここまで =====
         }
     } // main メソッドの終わり
 } // クラス定義の終わり
@@ -273,6 +277,7 @@ java ControlFlowDemo
 `continue` は今回の周回だけスキップし、`break` はループ全体を終了する。
 
 ```java
+// ===== Step 4 で追加・変更 =====
 public class ControlFlowDemo { // break / continue の動作確認クラス
     public static void main(String[] args) {
         for (int orderNo = 1; orderNo <= 10; orderNo++) { // 注文番号 1〜10 を順に処理
@@ -283,6 +288,7 @@ public class ControlFlowDemo { // break / continue の動作確認クラス
                 break; // 8番に到達したらループ全体を終了する
             }
             System.out.println("処理対象注文: " + orderNo); // 処理対象として出力
+// ===== Step 4 で追加・変更ここまで =====
         }
     } // main メソッドの終わり
 } // クラス定義の終わり
@@ -304,62 +310,138 @@ java ControlFlowDemo
 処理対象注文: 7
 ```
 
+### Step 5: 在庫確認と注文処理にまとめる（仕上げ）
+前のコード全体を置き換え、`ControlFlowDemo.java` を次の内容に更新:
+
+```java
+// ===== Step 5 で追加・変更 =====
+public class ControlFlowDemo {
+    public static void main(String[] args) {
+        int stock = 8;
+        int requestedQuantity = 3;
+
+        if (requestedQuantity <= 0) {
+            System.out.println("注文数が不正です");
+        } else if (requestedQuantity > stock) {
+            System.out.println("在庫が不足しています");
+        } else {
+            System.out.println("注文を受け付けました");
+        }
+
+        for (int orderNo = 1; orderNo <= 10; orderNo++) {
+            if (orderNo == 3) {
+                continue;
+            }
+            if (orderNo == 8) {
+                break;
+            }
+            System.out.println("処理対象注文: " + orderNo);
+        }
+
+        int retry = 0;
+        while (retry < 3) {
+            System.out.println("再試行回数: " + retry);
+            retry++;
+        }
+    }
+}
+// ===== Step 5 で追加・変更ここまで =====
+```
+
+実行:
+```bash
+javac -encoding UTF-8 ControlFlowDemo.java
+java ControlFlowDemo
+```
+
+期待出力例:
+```text
+注文を受け付けました
+処理対象注文: 1
+処理対象注文: 2
+処理対象注文: 4
+処理対象注文: 5
+処理対象注文: 6
+処理対象注文: 7
+再試行回数: 0
+再試行回数: 1
+再試行回数: 2
+```
+
+確認ポイント:
+- `if / else if / else` で注文数を判定している
+- `for` で注文番号を順番に処理している
+- `continue` で特定の注文をスキップしている
+- `break` で注文処理を終了している
+- `while` で再試行処理を繰り返している
 
 
 ---
 
 ## 5. ミニ演習（10分）
-### レベル1（基本）
-1. `if` 条件を増やし、`stock` が `100` 以上なら `在庫十分` を表示する。
 
-期待出力例:
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 5の完成コードから開始してください。
+
+### レベル1（基本）
+1. `requestedQuantity` を `10` に変更し、在庫不足になることを確認する。
+2. 次に `requestedQuantity` を `0` に変更し、不正な注文数になることを確認する。
+
+確認対象の出力（レベル1は値を変えて2回実行）:
 ```text
-在庫十分
+requestedQuantity = 10:
+在庫が不足しています
+
+requestedQuantity = 0:
+注文数が不正です
 ```
 
 ### レベル2（拡張）
-1. `for` で `1〜12` を回して偶数だけ表示する。
-2. `while` を使って `countdown`（3,2,1）を表示する。
+1. Step 5の `for` 文を変更する。
+2. 注文番号が奇数の場合は `continue` する。
+3. 注文番号が `6` の場合は `break` する。
+4. 偶数の注文番号だけが表示されることを確認する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
-2
-4
-6
-8
-10
-12
-3
-2
-1
+処理対象注文: 2
+処理対象注文: 4
 ```
 
 ### レベル3（実務）
-1. コマンドライン引数から点数を1つ受け取り、以下を順に満たすように実装する。
-- 0〜100 以外なら `不正な点数です！`
-- 0〜59 なら `赤点です！`
-- 60〜79 なら `普通です！`
-- 80〜100 なら `優秀です！`
-- 100 のときだけ最後に `満点だったので宿題免除です！！`
+1. レベル2のコードで `stock` を `3` に変更する。
+2. `for` 文で注文を1件処理するたびに、`stock` を1減らす。
+3. `stock` が `0` になったら、次の注文処理を `break` で終了する。
+4. レベル2の「奇数は`continue`」を残す。
+5. 固定値`6`で終了する条件は削除し、在庫がなくなったときに`在庫終了`と表示する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
-入力=100:
-優秀です！
-満点だったので宿題免除です！！
-
-入力=-1:
-不正な点数です！
+処理対象注文: 2
+処理対象注文: 4
+処理対象注文: 6
+在庫終了
 ```
 
 ### 実行前予想問題（1分）
-次のコード片で実際に表示される注文番号を、実行前に予想してから確認してください。
-- `for (int orderNo = 1; orderNo <= 6; orderNo++) { if (orderNo == 2) continue; if (orderNo == 5) break; System.out.println(orderNo); }`
+次のコードで表示される注文番号を、実行前に予想してください。
+
+```java
+for (int orderNo = 1; orderNo <= 6; orderNo++) {
+    if (orderNo == 2) {
+        continue;
+    }
+    if (orderNo == 5) {
+        break;
+    }
+    System.out.println(orderNo);
+}
+```
 
 ### デバッグ演習（任意, 5分）
-1. `if (stock <= 0)` を意図的に `if stock <= 0` に変更してコンパイルエラーを出す。
-2. エラーメッセージを見て `if (条件)` 形式に修正する。
-3. 再コンパイルして成功することを確認する。
+1. Step 5の `if (requestedQuantity <= 0)` を `if requestedQuantity <= 0` に変更し、意図的に丸括弧を削除する。
+2. コンパイルして構文エラーを確認する。
+3. `if (requestedQuantity <= 0)` に戻す。
+4. 再コンパイルして成功することを確認する。
 
 ---
 
@@ -370,5 +452,3 @@ java ControlFlowDemo
   -> `while` の更新処理（`i++` など）を確認
 - `break` と `continue` を混同
   -> `break` は終了、`continue` はスキップ
-
-

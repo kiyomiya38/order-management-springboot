@@ -31,6 +31,36 @@ javac -version
 5. 仕様を読んだら、最小コードで即検証する
 6. 推測で書かず、「Javadocに書いてあること」だけを根拠に実装する
 
+### メソッドの見出しを分解して読む
+
+たとえば、次のようなメソッド表記を見つけたとします。
+
+```java
+String substring(int beginIndex, int endIndex)
+```
+
+| 部分 | 意味 |
+| --- | --- |
+| 最初の`String` | 呼び出した結果として返る型 |
+| `substring` | メソッド名 |
+| `int beginIndex` | 1つ目に渡す値とその型 |
+| `int endIndex` | 2つ目に渡す値とその型 |
+
+読み取った書式をコードへ対応させると、次のようになります。
+
+```java
+String result = text.substring(0, 3);
+//     戻り値      メソッド名  第1引数 第2引数
+```
+
+Javadocを読むときは、次の順番でメモします。
+
+1. 何を呼び出すメソッドか
+2. 引数へ何を渡すか
+3. 戻り値を何型で受けるか
+4. どの条件で例外が発生するか
+5. 最小コードで読み方が正しいか確認する
+
 ---
 
 ## 4. ハンズオン
@@ -171,12 +201,47 @@ Stream.toList の戻り値は変更不可
 - `HttpServer.setExecutor(Executor executor)`
 - `HttpServer.start()`
   https://docs.oracle.com/javase/jp/17/docs/api/jdk.httpserver/com/sun/net/httpserver/HttpServer.html
+- `HttpExchange.getRequestMethod()`
+- `HttpExchange.getResponseHeaders()`
+- `HttpExchange.sendResponseHeaders(int rCode, long responseLength)`
+- `HttpExchange.getResponseBody()`
+- `HttpExchange.close()`
+  https://docs.oracle.com/javase/jp/17/docs/api/jdk.httpserver/com/sun/net/httpserver/HttpExchange.html
 
 確認ポイント:
 1. `backlog` の意味
 2. `backlog` が `0` 以下のときの扱い
 3. `setExecutor(null)` の意味
 4. `start()` を呼んだ後に何が起きるか
+5. `getRequestMethod()`が何を返すか
+6. `sendResponseHeaders(...)`の2つの引数が何を表すか
+7. レスポンス本文をどこへ書き込むか
+
+`HttpServer`と`HttpExchange`は役割が異なります。
+
+| 型 | このコードでの役割 |
+| --- | --- |
+| `HttpServer` | ポートを開き、URLごとの担当処理を登録して受付を開始する |
+| `HttpExchange` | 1回分のリクエスト情報を受け取り、その通信へレスポンスを返す |
+
+1回の通信は次の順番で処理します。
+
+```text
+getRequestMethod()
+  リクエストがGETか確認する
+        ↓
+getResponseHeaders().set(...)
+  返す本文の種類を設定する
+        ↓
+sendResponseHeaders(...)
+  HTTPステータスと本文サイズを送る
+        ↓
+getResponseBody().write(...)
+  本文を書き込む
+        ↓
+close()
+  通信を終了する
+```
 
 `HttpServerDocDemo.java` を次の内容で作成:
 
@@ -200,17 +265,30 @@ public class HttpServerDocDemo { // HttpServer の最小確認クラス
     } // main メソッドの終わり
 
     private static void handleHealth(HttpExchange exchange) throws IOException {
-        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) { // GET 以外は 405
+        // getRequestMethod()は、受け取ったHTTPメソッドをGETなどの文字列で返す
+        String requestMethod = exchange.getRequestMethod();
+
+        // equalsIgnoreCase(...)は大文字・小文字を区別せず比較する
+        if (!"GET".equalsIgnoreCase(requestMethod)) {
+            // 405は許可されていないHTTPメソッド。本文を返さないため長さは-1
             exchange.sendResponseHeaders(405, -1);
-            exchange.close();
+            exchange.close(); // このHTTP通信を終了する
             return;
         }
 
-        byte[] body = "OK".getBytes(StandardCharsets.UTF_8); // レスポンス本文
-        exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=UTF-8"); // Content-Type 指定
-        exchange.sendResponseHeaders(200, body.length); // 200 を返す
-        exchange.getResponseBody().write(body); // 本文を書き込む
-        exchange.close(); // 通信終了
+        // HTTPでは本文をバイト列で送るため、文字列OKをUTF-8のbyte[]へ変換する
+        byte[] body = "OK".getBytes(StandardCharsets.UTF_8);
+
+        // getResponseHeaders()でレスポンスヘッダーを取得し、本文の種類を設定する
+        exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=UTF-8");
+
+        // sendResponseHeaders(ステータス, 本文のバイト数)で200 OKと本文サイズを送る
+        exchange.sendResponseHeaders(200, body.length);
+
+        // getResponseBody()で本文の書き込み先を取得し、用意したバイト列を書き込む
+        exchange.getResponseBody().write(body);
+
+        exchange.close(); // レスポンスを書き終えたため通信を終了する
     } // handleHealth の終わり
 } // クラス定義の終わり
 ```

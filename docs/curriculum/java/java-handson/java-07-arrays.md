@@ -1,4 +1,4 @@
-﻿# Java-07 ハンズオン: 配列
+# Java-07 ハンズオン: 配列
 
 補講（任意）: [Java-07A 参照型と多次元配列](./java-07a-reference-types-and-multidimensional-arrays.md)
 
@@ -183,6 +183,7 @@ java ArrayDemo
 配列全体を処理するときは、`for` と `length` を組み合わせる。
 
 ```java
+// ===== Step 2 で追加・変更 =====
 public class ArrayDemo { // 配列をループで集計するクラス
     public static void main(String[] args) {
         int[] quantities = {3, 5, 2, 8}; // 集計対象の配列
@@ -193,6 +194,7 @@ public class ArrayDemo { // 配列をループで集計するクラス
         }
 
         System.out.println("数量合計: " + total); // 集計結果を表示
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -216,6 +218,7 @@ java ArrayDemo
 複数の配列を同じインデックスで対応付けて扱う。
 
 ```java
+// ===== Step 3 で追加・変更 =====
 public class ArrayDemo { // 文字列配列と数値配列を組み合わせて扱うクラス
     public static void main(String[] args) {
         String[] productNames = {"Laptop", "Mouse", "Keyboard"}; // 商品名配列
@@ -224,6 +227,7 @@ public class ArrayDemo { // 文字列配列と数値配列を組み合わせて�
         for (int i = 0; i < productNames.length; i++) { // 商品数分だけ繰り返す
             System.out.println(productNames[i] + " 数量: " + quantities[i]); // 同じインデックス同士を対応付けて表示
         }
+// ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -244,8 +248,13 @@ Keyboard 数量: 2
 ---
 
 ## 5. ミニ演習（10分）
+
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 3の完成コードから開始してください。
+
 ### レベル1（基本）
-1. 商品を1件追加して4件表示する。
+1. `productNames` の末尾に `"Monitor"` を追加する。
+2. `quantities` の末尾に `1` を追加する。
+3. 2つの配列の要素数をそろえ、商品を4件表示する。
 
 期待出力例:
 ```text
@@ -256,23 +265,29 @@ Monitor 数量: 1
 ```
 
 ### レベル2（拡張）
-1. `quantities` の最大値を求める処理を追加する。
+1. レベル1の表示処理より後へ、`int max = quantities[0];`を追加し、先頭要素を最大数量の初期値にする。
+2. 通常の`for`文を`int i = 1`から開始し、`quantities[i]`が`max`より大きい場合は`max`へ代入する。
+3. ループ終了後に`System.out.println("最大数量: " + max);`で最大数量を表示する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
-最大値: 8
+最大数量: 5
 ```
 
 ### レベル3（実務）
-1. `for` を拡張for（for-each）に書き換えできるか試す。
-2. インデックスが必要な場面では通常 `for` を残し、用途で使い分ける。
+1. レベル2の最大数量表示より後へ、`int total = 0;`を追加する。
+2. `for (int quantity : quantities)`を使い、`total`へ各数量を加算する。
+3. ループ終了後に`System.out.println("合計(拡張for): " + total);`で合計を表示する。
+4. 商品名の前にインデックスを表示する処理は、通常の`for`文で実装する。
+5. インデックスが不要な処理と必要な処理で、2種類の`for`文を使い分ける。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
-合計(拡張for): 18
+合計(拡張for): 11
 0: Laptop
 1: Mouse
 2: Keyboard
+3: Monitor
 ```
 
 ### 実行前予想問題（1分）
@@ -282,9 +297,10 @@ Monitor 数量: 1
 - `System.out.println(nums[nums.length - 1]);`
 
 ### デバッグ演習（任意, 5分）
-1. ループ条件を `i < quantities.length` から `i <= quantities.length` に変更して実行する。
+1. Step 3のループ条件を `i < productNames.length` から `i <= productNames.length` に変更して実行する。
 2. `ArrayIndexOutOfBoundsException` を確認する。
-3. 条件を元に戻して再実行する。
+3. エラーが発生したインデックスと配列の要素数を確認する。
+4. 条件を `i < productNames.length` に戻して再実行する。
 
 ---
 
@@ -295,5 +311,3 @@ Monitor 数量: 1
   -> `productNames` と `quantities` の件数を揃える
 - `length()` と `length` の混同
   -> 配列は `length`（フィールド）
-
-

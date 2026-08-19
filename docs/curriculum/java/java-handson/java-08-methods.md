@@ -1,4 +1,4 @@
-﻿# Java-08 ハンズオン: メソッド
+# Java-08 ハンズオン: メソッド
 
 ## 1. この資料のゴール
 - メソッドの定義と呼び出しを理解する
@@ -151,6 +151,7 @@ java MethodDemo
 `MethodDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 public class MethodDemo { // 引数と戻り値を使うメソッド例
     static int calcTotal(int quantity, int unitPrice) { // quantity と unitPrice を受け取り int を返す
         return quantity * unitPrice; // 合計金額を呼び出し元へ返す
@@ -159,6 +160,7 @@ public class MethodDemo { // 引数と戻り値を使うメソッド例
     public static void main(String[] args) {
         int total = calcTotal(3, 1200); // 実引数を渡してメソッド実行
         System.out.println("合計: " + total); // 戻り値を表示
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -184,6 +186,7 @@ java MethodDemo
 `MethodDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 3 で追加・変更 =====
 public class MethodDemo { // オーバーロードを学ぶクラス
     static int calcTotal(int quantity, int unitPrice) { // 引数2つ版
         return quantity * unitPrice; // 送料なし合計
@@ -199,6 +202,7 @@ public class MethodDemo { // オーバーロードを学ぶクラス
 
         System.out.println("送料なし合計: " + total1); // 結果を表示
         System.out.println("送料込み合計: " + total2); // 結果を表示
+// ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -221,6 +225,7 @@ java MethodDemo
 `MethodDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 4 で追加・変更 =====
 public class MethodDemo { // 実務で使う計算メソッド構成例
     static int calcSubtotal(int quantity, int unitPrice) { // 小計計算メソッド
         return quantity * unitPrice; // 小計を返す
@@ -234,6 +239,7 @@ public class MethodDemo { // 実務で使う計算メソッド構成例
     public static void main(String[] args) {
         int billingAmount = calcBillingAmount(4, 1800, 800, 500); // 必要値を渡して請求金額を計算
         System.out.println("請求金額: " + billingAmount); // 計算結果を表示
+// ===== Step 4 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -254,45 +260,161 @@ java MethodDemo
 - この章の金額計算メソッドは学習用に `int` を使っている
 - 実務の金額計算では `BigDecimal` の利用を検討する
 
+### Step 5: 開始処理と金額計算をまとめる（仕上げ）
+前のコード全体を置き換え、`MethodDemo.java` を次の内容に更新:
+
+```java
+// ===== Step 5 で追加・変更 =====
+public class MethodDemo {
+    static void printStartMessage() {
+        System.out.println("受注処理を開始します");
+    }
+
+    static int calcSubtotal(int quantity, int unitPrice) {
+        return quantity * unitPrice;
+    }
+
+    static int calcBillingAmount(int quantity, int unitPrice, int shippingFee, int discount) {
+        int subtotal = calcSubtotal(quantity, unitPrice);
+        return subtotal + shippingFee - discount;
+    }
+
+    public static void main(String[] args) {
+        printStartMessage();
+
+        int billingAmount = calcBillingAmount(4, 1800, 800, 500);
+        System.out.println("請求金額: " + billingAmount);
+    }
+}
+// ===== Step 5 で追加・変更ここまで =====
+```
+
+実行:
+```bash
+javac -encoding UTF-8 MethodDemo.java
+java MethodDemo
+```
+
+期待出力例:
+```text
+受注処理を開始します
+請求金額: 7500
+```
+
+確認ポイント:
+- 引数なし・戻り値なしのメソッドを呼び出している
+- `calcBillingAmount(...)` から `calcSubtotal(...)` を再利用している
+- 引数で受け取った値を使って計算結果を返している
 
 ---
 
 ## 5. ミニ演習（10分）
-### レベル1（基本）
-1. `calcBillingAmount` に `taxRatePercent` 引数を追加する。
 
-期待出力例:
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 5の完成コードから開始してください。
+
+### レベル1（基本）
+Step 5のコードは削除せず、次の処理を追加します。
+
+1. 4引数版の`calcBillingAmount(...)`より後、`main(...)`より前に、次の5引数版を追加する。
+
+```java
+static int calcBillingAmount(
+        int quantity,
+        int unitPrice,
+        int shippingFee,
+        int discount,
+        int taxRatePercent) {
+    // ここに税率を適用する処理を記述する
+}
+```
+
+2. 5引数版の中から4引数版を呼び出し、戻り値を`int amountBeforeTax`へ代入する。
+
+```java
+int amountBeforeTax = calcBillingAmount(quantity, unitPrice, shippingFee, discount);
+```
+
+3. `amountBeforeTax`へ税率を適用した金額を返す。
+   - 計算式: `amountBeforeTax * (100 + taxRatePercent) / 100`
+4. `main(...)`内の既存の表示処理より後に、5引数版を税率`10`と`8`で呼び出す処理を追加する。
+5. 税率`10`の戻り値を`int amountWith10PercentTax`、税率`8`の戻り値を`int amountWith8PercentTax`へ代入する。
+6. `amountWith10PercentTax`と`amountWith8PercentTax`を、確認対象の出力と同じ形式で表示する。
+
+呼び出し時に渡す値:
+
+| 変数 | 数量 | 単価 | 送料 | 割引 | 税率 |
+|---|---:|---:|---:|---:|---:|
+| `amountWith10PercentTax` | `4` | `1800` | `800` | `500` | `10` |
+| `amountWith8PercentTax` | `4` | `1800` | `800` | `500` | `8` |
+
+確認対象の出力（抜粋）:
 ```text
 税率10% 請求金額: 8250
 税率8% 請求金額: 8100
 ```
 
 ### レベル2（拡張）
-1. `quantity` が0以下なら `0` を返すガードを追加する。
+レベル1の完成コードは削除せず、次の処理を追加します。
 
-期待出力例:
+1. 4引数版`calcBillingAmount(...)`の先頭（`subtotal`を計算する処理より前）に、次の処理を追加する。
+
+```java
+if (quantity <= 0) {
+    return 0;
+}
+```
+
+2. `main(...)`内のレベル1の表示処理より後で、4引数版`calcBillingAmount(...)`を次の値で呼び出す。
+
+| 確認対象 | 数量 | 単価 | 送料 | 割引 |
+|---|---:|---:|---:|---:|
+| 数量0 | `0` | `1800` | `800` | `500` |
+| 数量-2 | `-2` | `1800` | `800` | `500` |
+
+3. 戻り値を変数へ代入せず、次の表示形式で直接表示する。
+   - `"quantity=0 -> " + calcBillingAmount(0, 1800, 800, 500)`
+   - `"quantity=-2 -> " + calcBillingAmount(-2, 1800, 800, 500)`
+4. 5引数版`calcBillingAmount(...)`と、レベル1で追加した税込み金額の表示処理も残す。
+
+確認対象の出力（抜粋）:
 ```text
 quantity=0 -> 0
 quantity=-2 -> 0
 ```
 
 ### レベル3（実務）
-1. `printStartMessage` を `printStartMessage(String jobName)` に変更する。
-2. 呼び出し側でジョブ名を2パターン渡して表示を確認する。
+レベル2の完成コードは削除せず、次の処理を追加します。
 
-期待出力例:
+1. 引数なし`printStartMessage()`の後ろ（`calcSubtotal(...)`より前）に、次の引数あり版を追加する。
+
+```java
+static void printStartMessage(String jobName) {
+    System.out.println(jobName + " を開始します");
+}
+```
+
+2. `main(...)`内の既存の`printStartMessage();`より後で、引数あり版を次の順番で呼び出す。
+
+```java
+printStartMessage("受注取込");
+printStartMessage("在庫同期");
+```
+
+3. 引数なし版、`calcSubtotal(...)`、4引数版と5引数版の`calcBillingAmount(...)`、レベル1・レベル2で追加した呼び出しと表示はすべて残す。
+
+確認対象の出力（抜粋）:
 ```text
 受注取込 を開始します
 在庫同期 を開始します
 ```
 
 ### 実行前予想問題（1分）
-次の呼び出し結果を実行前に予想してください。
-- `calcBillingAmount(2, 1000, 10)`
-- `calcBillingAmount(0, 1000, 10)`
+Step 5の4引数版メソッドについて、次の呼び出し結果を実行前に予想してください。
+- `calcBillingAmount(2, 1000, 300, 100)`
+- `calcBillingAmount(0, 1000, 300, 100)`
 
 ### デバッグ演習（任意, 5分）
-1. 戻り値型を `int` のまま、`return "0";` のような不一致コードを一度入れてコンパイルする。
+1. Step 5の `calcSubtotal(...)` の戻り値を、一時的に `return "0";` へ変更する。
 2. エラーメッセージを確認して `return 0;` に修正する。
 3. 再コンパイルして成功を確認する。
 

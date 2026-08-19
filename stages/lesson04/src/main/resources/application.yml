@@ -1,0 +1,39 @@
+# Spring Framework全体の設定
+spring:
+  application:
+    # アプリ名。環境変数 APP_NAME が無ければ attendance-management を使う
+    name: ${APP_NAME:attendance-management}
+  datasource:
+    # H2の接続先（インメモリDB）。アプリ停止でデータは消える
+    url: jdbc:h2:mem:attendance;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    # JDBCドライバ
+    driver-class-name: org.h2.Driver
+    # Lesson2では簡易構成として固定ユーザーを使用
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      # Entity定義に合わせてテーブルを自動更新（学習用設定）
+      ddl-auto: update
+    # View描画中に追加のDBアクセスを発生させない
+    open-in-view: false
+  thymeleaf:
+    # 学習中はキャッシュ無効（HTML変更を反映しやすくする）
+    cache: false
+  h2:
+    console:
+      # H2コンソール（ブラウザでDB確認）を有効化
+      enabled: true
+      # H2コンソールのアクセスパス
+      path: /h2-console
+
+# 組み込みWebサーバーの設定
+server:
+  # 環境変数 SERVER_PORT が無い時は 8080
+  port: ${SERVER_PORT:8080}
+
+# ログ設定
+logging:
+  level:
+    # ルートロガーの出力レベル
+    root: ${LOG_LEVEL:INFO}

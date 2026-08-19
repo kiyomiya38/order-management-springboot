@@ -1,4 +1,4 @@
-﻿# Java-03 ハンズオン: 変数と型（宣言→代入→参照）
+# Java-03 ハンズオン: 変数と型（宣言→代入→参照）
 
 ## 1. この資料のゴール
 - 変数の基本（宣言・代入・参照）を説明できる
@@ -169,6 +169,7 @@ java VariableTypeDemo
 `VariableTypeDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 2 で追加・変更 =====
 public class VariableTypeDemo { // 変数の型を増やして実務に近い情報を扱う
     public static void main(String[] args) {
         String orderCode = "ORD-2026-0001"; // 文字列: 注文番号
@@ -182,6 +183,7 @@ public class VariableTypeDemo { // 変数の型を増やして実務に近い情
         System.out.println("単価: " + unitPrice); // 単価を表示
         System.out.println("合計: " + totalPrice); // 計算結果を表示
         System.out.println("支払済み: " + paid); // true / false を表示
+// ===== Step 2 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -210,6 +212,7 @@ java VariableTypeDemo
 `VariableTypeDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 3 で追加・変更 =====
 public class VariableTypeDemo { // 大きな整数(long)と小数(double)も扱う
     public static void main(String[] args) {
         String orderCode = "ORD-2026-0001"; // 文字列データ
@@ -226,6 +229,7 @@ public class VariableTypeDemo { // 大きな整数(long)と小数(double)も扱�
         System.out.println("合計: " + totalPrice); // 合計金額を表示
         System.out.println("税額: " + taxAmount); // 税額を表示
         System.out.println("支払済み: " + paid); // 支払状態を表示
+// ===== Step 3 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -255,6 +259,7 @@ java VariableTypeDemo
 `VariableTypeDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 4 で追加・変更 =====
 public class VariableTypeDemo { // 初期化と再代入の動きを確認する
     public static void main(String[] args) {
         int quantity = 3; // 初期化: 宣言と最初の代入を同時に行う
@@ -262,6 +267,7 @@ public class VariableTypeDemo { // 初期化と再代入の動きを確認する
 
         quantity = 5; // 再代入: 既存の値 3 を 5 で上書きする
         System.out.println("再設定後数量: " + quantity); // 更新後の値を表示
+// ===== Step 4 で追加・変更ここまで =====
     } // main メソッドの終わり
 } // クラス定義の終わり
 ```
@@ -305,34 +311,45 @@ public class CharEscapeDemo {
 ---
 
 ## 5. ミニ演習（10分）
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1は、`orderCode`や`taxRate`を含むStep 3の完成コードから開始してください。Step 4のコードは、このミニ演習では使用しません。
+
 ### レベル1（基本）
-1. `orderCode` を別値に変更する。
+1. Step 3の`orderCode`を`"ORD-2026-9999"`に変更する。
 2. `paid` を `true` に変更して出力確認する。
+3. Step 3のその他の変数と表示処理は残す。
 
 期待出力例:
 ```text
 注文番号: ORD-2026-9999
-数量: 3
-単価: 1200
+注文ID: 10000000001
 合計: 3600
+税額: 360.0
 支払済み: true
 ```
 
 ### レベル2（拡張）
-1. `taxRate` を `0.08` に変更して税額の差分を確認する。
+1. レベル1の `taxRate` を `0.08` に変更して税額の差分を確認する。
 
 期待出力例:
 ```text
+注文番号: ORD-2026-9999
+注文ID: 10000000001
+合計: 3600
 税額: 288.0
+支払済み: true
 ```
 
 ### レベル3（実務）
-1. `int totalPrice` を `long totalPrice` に変える。
-2. `totalPrice` に `3000000000L` を代入してコンパイル・実行する。
+1. レベル2の `int totalPrice` を `long totalPrice` に変える。
+2. `totalPrice` に `3000000000L` を代入し、他の表示も残したまま実行する。
 
 期待出力例:
 ```text
+注文番号: ORD-2026-9999
+注文ID: 10000000001
 合計: 3000000000
+税額: 2.4E8
+支払済み: true
 ```
 
 ### 実行前予想問題（1分）

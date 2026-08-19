@@ -8,9 +8,14 @@
 この教材は、`pom.xml` と `mvn` コマンドを「なぜ必要か」から理解し、最後にSpringの最小MVCまで動かすためのものです。
 対象は **Java初学者** を想定しています。
 
+このREADMEと同じ`maven-sandbox`フォルダには、講師確認用の完成例が入っています。
+受講者は完成例を直接編集せず、`practice/springboot/maven-sandbox`へ自分の作業用プロジェクトを作ります。
+これにより、Step 5で「Thymeleafを追加する前」と「追加した後」を混同せず確認できます。
+
 ## 0. この教材で到達する状態
 - `pom.xml` の主要ブロックを自分の言葉で説明できる
-- `mvn validate/test/package/dependency:tree/clean` の目的を説明できる
+- `mvn validate/package/dependency:tree/clean` の目的を説明できる
+- `@SpringBootApplication`や`@Controller`などのアノテーションが、Springへ役割を伝える目印だと説明できる
 - `mvn spring-boot:run` で起動し、`Controller -> Service -> Template` の流れを説明できる
 
 ---
@@ -23,7 +28,6 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
 
 - 依存ライブラリの取得
 - コンパイル
-- テスト実行
 - 成果物（jar）の作成
 
 ### 1-2. `pom.xml` とは
@@ -48,7 +52,7 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
 
 以下は、このSandboxで使う `pom.xml` の例です。
 
-作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/pom.xml`
+作成ファイル: `~/order-management-springboot/practice/springboot/maven-sandbox/pom.xml`
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -90,12 +94,6 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
       <artifactId>spring-boot-starter-web</artifactId> <!-- Spring MVC + 組み込みTomcat -->
     </dependency> <!-- Web依存の終了 -->
 
-    <dependency> <!-- テスト実行用の依存 -->
-      <groupId>org.junit.jupiter</groupId> <!-- JUnit 5系ライブラリのグループ -->
-      <artifactId>junit-jupiter</artifactId> <!-- 単体テスト用 -->
-      <!-- versionはSpring Boot BOMに任せ、JUnit関連ライブラリの組み合わせを揃える -->
-      <scope>test</scope> <!-- テスト実行時のみ有効 -->
-    </dependency> <!-- テスト依存の終了 -->
   </dependencies> <!-- dependenciesセクション終了 -->
 
   <build> <!-- ビルドに使うプラグイン設定 -->
@@ -108,12 +106,6 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
           <release>${maven.compiler.release}</release> <!-- Java 17でコンパイル -->
         </configuration> <!-- compiler plugin設定終了 -->
       </plugin> <!-- maven-compiler-pluginの終了 -->
-
-      <plugin> <!-- テスト実行用プラグイン -->
-        <groupId>org.apache.maven.plugins</groupId> <!-- 公式Mavenプラグイングループ -->
-        <artifactId>maven-surefire-plugin</artifactId> <!-- 単体テスト実行 -->
-        <version>3.2.5</version> <!-- mvn testでJUnitを実行 -->
-      </plugin> <!-- maven-surefire-pluginの終了 -->
 
       <plugin> <!-- Spring Boot起動/パッケージ化用プラグイン -->
         <groupId>org.springframework.boot</groupId> <!-- Spring Boot系プラグイングループ -->
@@ -143,65 +135,22 @@ Mavenは、Javaプロジェクトの作業を自動化するツールです。
 
 ### 3-1. 作業場所
 ```bash
-cd ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox
+mkdir -p ~/order-management-springboot/practice/springboot/maven-sandbox
+cd ~/order-management-springboot/practice/springboot/maven-sandbox
 pwd
 ls
 ```
 
-### 3-2. ディレクトリ作成
+この時点の作業フォルダは空で構いません。Section 2の`pom.xml`を作成してから、以降のファイルを追加します。
+
+### 3-2. Java用ディレクトリ作成
 ```bash
-mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox
-mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/test/java/com/shinesoft/sandbox
+mkdir -p ~/order-management-springboot/practice/springboot/maven-sandbox/src/main/java/com/shinesoft/sandbox
 ```
 
 なぜ長い階層か:
 - Maven標準構成を守るため
 - Javaの`package`とフォルダ構成を一致させるため
-
-### 3-3. Javaコード作成
-作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/GreetingCalculator.java`
-
-```java
-package com.shinesoft.sandbox; // package宣言（フォルダ構成と一致）
-
-public class GreetingCalculator {
-    public int add(int left, int right) { // 2つの整数を足し算する
-        return left + right;
-    }
-
-    public String greeting(String name) { // 名前から挨拶文を作る
-        if (name == null || name.isBlank()) { // 未入力はguest扱い
-            return "Hello, guest";
-        }
-        return "Hello, " + name.trim(); // 前後空白を除去して返す
-    }
-}
-```
-
-### 3-4. テストコード作成
-作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/test/java/com/shinesoft/sandbox/GreetingCalculatorTest.java`
-
-```java
-package com.shinesoft.sandbox; // テスト対象と同じpackage
-
-import static org.junit.jupiter.api.Assertions.assertEquals; // 期待値比較
-
-import org.junit.jupiter.api.Test; // テストメソッド定義
-
-class GreetingCalculatorTest {
-    private final GreetingCalculator calculator = new GreetingCalculator(); // テスト対象インスタンス
-
-    @Test
-    void add_returnsSum() {
-        assertEquals(5, calculator.add(2, 3)); // 2 + 3 = 5 を確認
-    }
-
-    @Test
-    void greeting_blankName_returnsGuest() {
-        assertEquals("Hello, guest", calculator.greeting(" ")); // 空白入力の挙動を確認
-    }
-}
-```
 
 ---
 
@@ -209,7 +158,7 @@ class GreetingCalculatorTest {
 
 実行前に必ず確認:
 ```bash
-cd ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox
+cd ~/order-management-springboot/practice/springboot/maven-sandbox
 pwd
 ls
 ```
@@ -230,37 +179,7 @@ mvn validate
 - `no POM in this directory` -> 実行場所が違う
 - XMLパースエラー -> `pom.xml` のタグ不整合
 
-### 4-2. `mvn test`
-目的:
-- テストを実行し、ロジックの正しさを確認する
-
-```bash
-mvn test
-```
-
-成功時の見方:
-- `Tests run: ... Failures: 0, Errors: 0`
-- `BUILD SUCCESS`
-
-失敗時の切り分け:
-- `Compilation failure` -> Java構文エラー
-- `Failures: 1` 以上 -> テスト期待値と実装の不一致
-
-### 4-3. `mvn package`
-目的:
-- 配布可能な`jar`を作る
-
-```bash
-mvn package
-```
-
-成功時の見方:
-- `target/day1-maven-sandbox-1.0.0-SNAPSHOT.jar` が生成される
-
-失敗時の切り分け:
-- まず `mvn test` を通す
-
-### 4-4. `mvn dependency:tree`
+### 4-2. `mvn dependency:tree`
 目的:
 - 依存関係を可視化する
 
@@ -275,7 +194,7 @@ mvn dependency:tree
 - ネットワークエラー -> 再実行
 - 依存解決エラー -> `pom.xml` の記述見直し
 
-### 4-5. `mvn clean`
+### 4-3. `mvn clean`
 目的:
 - `target` を削除してビルド成果物を初期化する
 
@@ -287,7 +206,7 @@ mvn clean
 - `BUILD SUCCESS`
 - `target` が削除される
 
-### 4-6. エラー修正後に `clean` は必須か
+### 4-4. エラー修正後に `clean` は必須か
 結論:
 - 必須ではない
 
@@ -310,6 +229,26 @@ mvn clean
 - `GET /hello -> Controller -> Service -> Template` の順で処理を追跡する
 - テンプレートは提供コードを配置し、`message` と `${message}` の対応を確認する
 
+通常のJavaでは、利用側が必要なオブジェクトを自分で作れます。
+
+```java
+GreetingService service = new GreetingService();
+```
+
+Springでは、`@Service`が付いた`GreetingService`をSpringが作成します。
+Controllerは、作成済みのオブジェクトをコンストラクタで受け取ります。
+
+```java
+private final GreetingService greetingService;
+
+public GreetingController(GreetingService greetingService) {
+    this.greetingService = greetingService;
+}
+```
+
+この「必要なオブジェクトを外部から渡してもらう」方法をDI（依存性注入）と呼びます。
+このSandboxでは、まず`new`との違いを確認できれば十分です。
+
 ### 5-1. `pom.xml` にThymeleaf依存を追加
 `<dependencies>` に以下を追加します。
 
@@ -325,7 +264,7 @@ mvn clean
 - `spring-boot-starter-thymeleaf`: HTMLテンプレート表示
 
 ### 5-2. 起動クラスを作る
-作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/SandboxApplication.java`
+作成ファイル: `~/order-management-springboot/practice/springboot/maven-sandbox/src/main/java/com/shinesoft/sandbox/SandboxApplication.java`
 
 ```java
 package com.shinesoft.sandbox; // アプリ起点のpackage
@@ -343,10 +282,10 @@ public class SandboxApplication {
 
 ### 5-3. Serviceを作る（DI対象）
 ```bash
-mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/service
+mkdir -p ~/order-management-springboot/practice/springboot/maven-sandbox/src/main/java/com/shinesoft/sandbox/service
 ```
 
-作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/service/GreetingService.java`
+作成ファイル: `~/order-management-springboot/practice/springboot/maven-sandbox/src/main/java/com/shinesoft/sandbox/service/GreetingService.java`
 
 ```java
 package com.shinesoft.sandbox.service; // サービス層
@@ -366,10 +305,10 @@ public class GreetingService {
 
 ### 5-4. Controllerを作る（MVC）
 ```bash
-mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/web
+mkdir -p ~/order-management-springboot/practice/springboot/maven-sandbox/src/main/java/com/shinesoft/sandbox/web
 ```
 
-作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/java/com/shinesoft/sandbox/web/GreetingController.java`
+作成ファイル: `~/order-management-springboot/practice/springboot/maven-sandbox/src/main/java/com/shinesoft/sandbox/web/GreetingController.java`
 
 ```java
 package com.shinesoft.sandbox.web; // Web層
@@ -398,10 +337,10 @@ public class GreetingController {
 
 ### 5-5. テンプレートを作る
 ```bash
-mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/resources/templates
+mkdir -p ~/order-management-springboot/practice/springboot/maven-sandbox/src/main/resources/templates
 ```
 
-作成ファイル: `~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox/src/main/resources/templates/hello.html`
+作成ファイル: `~/order-management-springboot/practice/springboot/maven-sandbox/src/main/resources/templates/hello.html`
 
 ```html
 <!DOCTYPE html> <!-- HTML5宣言 -->
@@ -419,9 +358,12 @@ mkdir -p ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven
 ### 5-6. 起動と確認
 ```bash
 mvn dependency:tree
-mvn test
+mvn package
 mvn spring-boot:run
 ```
+
+`mvn package`でコンパイルとリソース配置を行い、`target/day1-maven-sandbox-1.0.0-SNAPSHOT.jar`を作成します。
+`BUILD SUCCESS`を確認してからアプリを起動します。
 
 ブラウザ確認:
 - `http://localhost:8080/hello`
@@ -440,7 +382,7 @@ mvn spring-boot:run
 
 対処:
 ```bash
-cd ~/order-management-springboot/docs/curriculum/springboot/lesson01/maven-sandbox
+cd ~/order-management-springboot/practice/springboot/maven-sandbox
 ls
 ```
 
@@ -469,6 +411,6 @@ public String hello(@RequestParam(name = "name", required = false) String name, 
 
 ## 7. 理解確認チェック
 - `pom.xml` の `dependencies` と `plugins` の違いを説明できる
-- `mvn test` と `mvn package` の違いを説明できる
+- `mvn validate` と `mvn package` の役割の違いを説明できる
 - DIとは「newしないこと」だけでなく「注入で依存を渡す設計」だと説明できる
 - MVCの流れを `GET /hello -> Controller -> Service -> Template` で説明できる

@@ -1,0 +1,76 @@
+<!doctype html> <!-- HTML5文書宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"> <!-- Thymeleaf有効化 -->
+<head>
+  <meta charset="utf-8" /> <!-- 文字コード -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" /> <!-- モバイル表示対応 -->
+  <title>アカウント管理</title> <!-- ページタイトル -->
+  <link rel="stylesheet" th:href="@{/styles.css}" /> <!-- 共通CSS -->
+</head>
+<body>
+  <div class="container"> <!-- 全体レイアウト -->
+    <header>
+      <h1>アカウント管理</h1>
+      <div class="row">
+        <a th:href="@{/}">トップへ戻る</a> <!-- トップへ戻る -->
+        <a th:href="@{/users/new}">新規作成</a> <!-- 新規作成画面へ -->
+      </div>
+    </header>
+
+    <div th:if="${error != null and !#strings.isEmpty(error)}" class="alert alert-error" th:text="${error}"></div> <!-- エラー -->
+    <div th:if="${message != null and !#strings.isEmpty(message)}" class="alert alert-info" th:text="${message}"></div> <!-- 成功通知 -->
+
+    <section class="panel">
+      <div class="table-tools row"> <!-- 検索/絞り込み -->
+        <label>ユーザー名検索
+          <input id="user-search-input" type="search" placeholder="例: tanaka" autocomplete="off" />
+        </label>
+        <label>ロール絞り込み
+          <select id="role-filter-select">
+            <option value="">すべて</option>
+            <option value="ROLE_USER">ROLE_USER</option>
+            <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+          </select>
+        </label>
+        <p id="user-filter-result" class="muted filter-result"></p> <!-- 表示件数 -->
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>ユーザー名</th>
+            <th>ロール</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:if="${#lists.isEmpty(users)}"> <!-- データ0件時の表示 -->
+            <td colspan="4" class="muted">ユーザーがいません。</td>
+          </tr>
+          <tr th:each="u : ${users}"
+              class="js-user-row"
+              th:attr="data-username=${#strings.toLowerCase(u.username)},data-role=${u.role}"> <!-- JS絞り込み用データ -->
+            <td th:text="${u.id}">1</td>
+            <td th:text="${u.username}">user1</td>
+            <td th:text="${u.role}">ROLE_USER</td>
+            <td>
+              <a th:href="@{|/users/${u.id}/edit|}">編集</a> <!-- 編集画面 -->
+              <form method="post"
+                    th:action="@{|/users/${u.id}/delete|}"
+                    style="display:inline"
+                    class="js-delete-user-form"
+                    th:attr="data-username=${u.username}"> <!-- 削除確認用データ -->
+                <button type="submit" class="danger">削除</button>
+              </form>
+            </td>
+          </tr>
+          <tr id="no-match-row" hidden> <!-- 絞り込み結果0件 -->
+            <td colspan="4" class="muted">条件に一致するユーザーがいません。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+  <script th:src="@{/users.js}" defer></script> <!-- users一覧画面専用JS -->
+</body>
+</html>

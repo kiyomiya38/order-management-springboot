@@ -1,0 +1,48 @@
+<!-- HTML5の文書宣言 -->
+<!doctype html>
+<!-- Thymeleafを使うため xmlns:th を宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <!-- 文字コード -->
+  <meta charset="utf-8" />
+  <!-- スマホ表示用の基本設定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>勤怠管理（Lesson2）</title>
+  <!-- static/styles.css を読み込む -->
+  <link rel="stylesheet" th:href="@{/styles.css}" />
+</head>
+<body>
+  <!-- 画面全体のコンテナ -->
+  <div class="container">
+    <header>
+      <h1>勤怠管理システム（MVP）</h1>
+      <p class="subtitle">Lesson2: 出勤機能（DB保存）</p>
+    </header>
+
+    <!-- messageがある時だけ成功通知を表示 -->
+    <div th:if="${message}" class="alert alert-info" th:text="${message}"></div>
+    <!-- errorがある時だけエラー通知を表示 -->
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <!-- 今日の勤怠パネル -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>今日の勤怠</h2>
+        <!-- Controllerから受け取った statusLabel を表示 -->
+        <span class="status-badge" th:text="${statusLabel}">未出勤</span>
+      </div>
+      <!-- 値がある時はその値、無い時はフォールバック文字が表示される -->
+      <p>日付: <span th:text="${workDate}">2026-02-05</span></p>
+      <p>出勤時刻: <span th:text="${startTime}">-</span></p>
+      <p>退勤時刻: <span th:text="${endTime}">-</span></p>
+
+      <!-- canClockIn=true の時だけ出勤フォームを表示 -->
+      <form th:if="${canClockIn}" method="post" th:action="@{/clock-in}">
+        <button type="submit">出勤</button>
+      </form>
+      <!-- canClockIn=false の時は案内文を表示 -->
+      <p th:if="${!canClockIn}" class="muted">本日はすでに出勤済みです。</p>
+    </section>
+  </div>
+</body>
+</html>

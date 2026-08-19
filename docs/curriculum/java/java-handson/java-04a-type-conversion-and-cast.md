@@ -165,6 +165,7 @@ taxed: 1320.0
 ```java
 public class TypeConversionDemo {
     public static void main(String[] args) {
+        // ===== Step 2 で追加・変更 =====
         String quantityText = "15";
         int quantity = Integer.parseInt(quantityText); // String -> int
 
@@ -174,6 +175,7 @@ public class TypeConversionDemo {
 
         System.out.println("quantity(int): " + quantity);
         System.out.println("subtotal(String): " + subtotalText);
+        // ===== Step 2 で追加・変更ここまで =====
     }
 }
 ```
@@ -196,6 +198,7 @@ subtotal(String): 12000
 ```java
 public class TypeConversionDemo {
     public static void main(String[] args) {
+        // ===== Step 3 で追加・変更 =====
         double score = 99.8;
         int scoreInt = (int) score; // 小数点以下は切り捨て
 
@@ -204,6 +207,7 @@ public class TypeConversionDemo {
 
         System.out.println("scoreInt: " + scoreInt);
         System.out.println("narrowed: " + narrowed);
+        // ===== Step 3 で追加・変更ここまで =====
     }
 }
 ```
@@ -224,34 +228,103 @@ narrowed: -1294967296
 - `double` から `int` へのキャストでは、小数点以下が切り捨てられる
 - `long` から `int` へのキャストでは、`int` の範囲を超えると値が崩れる
 
+### Step 4: 型変換を使った金額計算にまとめる（仕上げ）
+前のコード全体を置き換え、`TypeConversionDemo.java` を次の内容に更新:
+
+```java
+public class TypeConversionDemo {
+    public static void main(String[] args) {
+        // ===== Step 4 で追加・変更 =====
+        String priceText = "1080";
+        int price = Integer.parseInt(priceText); // String -> int
+
+        double taxRate = 0.10;
+        double taxedPrice = price * (1 + taxRate); // int と double の演算
+
+        int billingAmount = (int) taxedPrice; // double -> int
+        String billingText = String.valueOf(billingAmount); // int -> String
+
+        System.out.println("変換前の価格: " + priceText);
+        System.out.println("税込金額(double): " + taxedPrice);
+        System.out.println("請求金額(int): " + billingAmount);
+        System.out.println("請求金額(String): " + billingText);
+        // ===== Step 4 で追加・変更ここまで =====
+    }
+}
+```
+
+実行:
+```bash
+javac -encoding UTF-8 TypeConversionDemo.java
+java TypeConversionDemo
+```
+
+期待出力例:
+```text
+変換前の価格: 1080
+税込金額(double): 1188.0
+請求金額(int): 1188
+請求金額(String): 1188
+```
+
+確認ポイント:
+- `Integer.parseInt(...)` で文字列を数値へ変換している
+- `int` と `double` の演算結果は `double` になる
+- `(int)` で小数部分を切り捨てている
+- `String.valueOf(...)` で数値を文字列へ変換している
+
 ---
 
 ## 5. ミニ演習（10分）
+
+各レベルは、前のレベルで変更したコードを引き継いで実施してください。
+
+- レベル1は、Step 4の完成コードから開始する
+- レベル2は、レベル1の完成コードから開始する
+- レベル3は、レベル2の完成コードから開始する
+
 ### レベル1（基本）
-1. `int orderCount = 7;` を `double orderCount = 7;` に変え、出力差分を確認する。
+1. Step 4の `priceText` を `"2500"` に変更する。
+2. 文字列から数値へ変換された価格と、税込金額を確認する。
 
 期待出力例:
 ```text
-7.0
+変換前の価格: 2500
+税込金額(double): 2750.0
+請求金額(int): 2750
+請求金額(String): 2750
 ```
 
 ### レベル2（拡張）
-1. `"1080"` を `parseInt` して、税率 `0.10` を適用した金額を表示する。
-
-期待状態:
-- 計算結果が数値として表示される。
-
-### レベル3（実務）
-1. 価格文字列が不正なとき（例: `"10A0"`）に例外が起きることを確認する。
-2. `try-catch` で捕捉して「不正な数値です」と表示する。
-
-補足:
-- 例外処理は Java-17 で詳しく扱う
-- ここでは「数値ではない文字列を `parseInt` すると失敗する」「失敗を `catch` で受け取れる」ことだけ確認する
+1. レベル1の `taxRate` を `0.125` に変更する。
+2. `double` の税込金額と、`int` へキャストした請求金額の違いを確認する。
 
 期待出力例:
 ```text
-不正な数値です
+変換前の価格: 2500
+税込金額(double): 2812.5
+請求金額(int): 2812
+請求金額(String): 2812
+```
+
+確認ポイント:
+- `(int)` へのキャストでは、小数点以下が切り捨てられる
+
+### レベル3（実務）
+1. レベル2のコードに `String quantityText = "3";` を追加する。
+2. `Integer.parseInt(...)` で数量を `int` に変換する。
+3. `int subtotal = price * quantity;` を追加し、単価と数量から小計を計算する。
+4. レベル2の税込金額計算を、`price`ではなく`subtotal`へ税率を適用する処理に変更する。
+5. 数量、`subtotal`、変換前の価格、税込金額、`int`と`String`の請求金額を表示する。
+
+期待出力例:
+```text
+数量: 3
+小計: 7500
+変換前の価格: 2500
+税込金額(double): 8437.5
+請求金額(int): 8437
+請求金額(String): 8437
 ```
 
 ### 実行前予想問題（1分）
@@ -260,9 +333,9 @@ narrowed: -1294967296
 - `System.out.println(5 + 2.5);`
 
 ### デバッグ演習（任意, 5分）
-1. `int x = Integer.parseInt("12A");` を実行して例外を発生させる。
-2. どの行で失敗したかスタックトレースを確認する。
-3. 文字列を `"12"` に直して再実行する。
+1. レベル3完成コードの価格変換を `int price = priceText;` に変更し、意図的に型不一致を発生させる。
+2. `javac` のエラーメッセージを読み、代入できない理由を確認する。
+3. `Integer.parseInt(priceText)` に戻して再コンパイルし、レベル3の期待結果に戻ることを確認する。
 
 ---
 

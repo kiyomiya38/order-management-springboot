@@ -205,6 +205,7 @@ Step 1 のコードをベースに、`quantity`（数量）を追加します。
 class Product {
     String name;
     int price;
+    // ===== Step 1.5 で追加・変更 =====
     int quantity;
 
     Product() { // 引数なし
@@ -243,6 +244,7 @@ public class ConstructorChainingDemo {
         System.out.println(p2.name + " / " + p2.price + " / " + p2.quantity);
         System.out.println(p3.name + " / " + p3.price + " / " + p3.quantity);
         System.out.println(p4.name + " / " + p4.price + " / " + p4.quantity);
+    // ===== Step 1.5 で追加・変更ここまで =====
     }
 }
 ```
@@ -274,6 +276,7 @@ Display / 12000 / 2
 class Product {
     String name;
     int price;
+// ===== Step 2 で追加・変更 =====
 
     Product() {
         this("UNKNOWN", 0); // name と price の初期値を補い、引数2つのコンストラクタへ委譲
@@ -298,6 +301,7 @@ public class ConstructorChainingDemo {
         System.out.println(p1.name + " / " + p1.price);
         System.out.println(p2.name + " / " + p2.price);
         System.out.println(p3.name + " / " + p3.price);
+// ===== Step 2 で追加・変更ここまで =====
     }
 }
 ```
@@ -340,6 +344,7 @@ Step 2 のコードをベースに、同じく `quantity` を追加します。
 class Product {
     String name;
     int price;
+    // ===== Step 2.5 で追加・変更 =====
     int quantity;
 
     Product() {
@@ -372,6 +377,7 @@ public class ConstructorChainingDemo {
         System.out.println(p2.name + " / " + p2.price + " / " + p2.quantity);
         System.out.println(p3.name + " / " + p3.price + " / " + p3.quantity);
         System.out.println(p4.name + " / " + p4.price + " / " + p4.quantity);
+    // ===== Step 2.5 で追加・変更ここまで =====
     }
 }
 ```
@@ -411,6 +417,7 @@ Step 1.5との違い:
 `ConstructorChainingDemo.java` を次の内容に更新:
 
 ```java
+// ===== Step 3 で追加・変更 =====
 class User {
     String name;
 
@@ -427,6 +434,7 @@ public class ConstructorChainingDemo {
         // 任意確認: 下の2行は「引数なしコンストラクタ未定義エラー」を確認するときだけコメント解除する
         // User ng = new User(); // 引数なしコンストラクタがないためコンパイルエラーになる
         // constructor User in class User cannot be applied to given types
+// ===== Step 3 で追加・変更ここまで =====
     }
 }
 ```
@@ -456,25 +464,37 @@ constructor User in class User cannot be applied to given types
 ---
 
 ## 5. ミニ演習（10分）
+
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 3の完成コードから開始してください。
+
 ### レベル1（基本）
-1. Step 2.5 の `Product(String name, int price, int quantity)` で、`quantity` が `0` 未満なら `0` に補正する。
-2. `new Product("Display", 12000, -3)` を追加して確認する。
+1. `User` に引数なしコンストラクタを追加する。
+2. `this("guest")` を使って既存の引数ありコンストラクタへ処理をつなぐ。
+3. `main(...)`の既存処理より後へ、`User guest = new User();`を追加する。
+4. `System.out.println(guest.name);`で、`guest`の名前を表示する。
 
-期待出力例:
-```text
-Display / 12000 / 0
-```
-
-### レベル2（拡張）
-1. Step 3 の `User` に引数なしコンストラクタを追加して `new User()` を成功させる。
-
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
 guest
 ```
 
+### レベル2（拡張）
+1. レベル1の`User`に`String role`フィールドを追加する。
+2. `User(String name, String role)`コンストラクタを追加し、`this.name = name;`と`this.role = role;`でフィールドを初期化する。
+3. 既存の`User(String name)`の処理を、`this(name, "member");`へ変更する。
+4. 引数なし`User()`と`this("guest")`は削除しない。
+5. `main(...)`で`User member = new User("Tanaka");`を生成する。
+6. `System.out.println(member.name + " / " + member.role);`で名前と役割を表示する。
+
+確認対象の出力（抜粋）:
+```text
+Tanaka / member
+```
+
 ### レベル3（実務）
-1. `this(...)` の前に代入文を書いてコンパイルエラーを確認する。
+1. レベル2の`User(String name)`で、`this(name, "member")`の前に`this.name = name;`を一時的に追加する。
+2. `this(...)` はコンストラクタの先頭でなければならないことをコンパイルエラーで確認する。
+3. 確認後は追加した`this.name = name;`だけを削除し、レベル2の正常なコードへ戻して再コンパイルする。
 
 期待状態:
 - `call to this must be first statement in constructor` のようなエラーが表示される

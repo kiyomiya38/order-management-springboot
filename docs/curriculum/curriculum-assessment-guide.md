@@ -27,7 +27,7 @@
 | Week 5 | web-app前半 | `fetch` からJava APIへ届き、JSONで返り、DOMが更新される流れを説明できる |
 | Week 6 | web-app後半 | CRUD、バリデーション、状態遷移、メモリ保存、Spring Bootへの置き換えを説明できる |
 | Week 7 | Spring Boot導入 | Maven、`@Controller`、Thymeleaf、Entity、Repository、Service、DB保存の流れを説明できる |
-| Week 8 | Spring Boot強化 | Lesson5A〜5Cを順に完了し、業務ルール、認証、認可、Serviceテスト、プロファイル、参照整合性を説明できる |
+| Week 8 | Spring Boot強化 | Lesson5A〜5Cを順に完了し、業務ルール、認証、認可、プロファイル、参照整合性を説明できる |
 | Week 9 | REST/API/運用 | `@RestController`、DTO、JSONエラー応答、Flyway、デプロイ/コンテナ化の位置づけを説明できる |
 
 ### バックエンド短縮コースのチェックポイント
@@ -108,7 +108,7 @@
 | Spring Bootの層構造が説明できない | `docs/curriculum/springboot/lesson02/lesson2.md` |
 | 認証と認可の違いが曖昧 | `docs/curriculum/springboot/lesson05/lesson5a-authentication.md` |
 | ユーザー管理・勤怠管理の処理を追えない | `docs/curriculum/springboot/lesson05/lesson5b-management.md` |
-| テスト・プロファイル・参照整合性が曖昧 | `docs/curriculum/springboot/lesson05/lesson5c-testing-operations.md` |
+| プロファイル・コード読解・参照整合性が曖昧 | `docs/curriculum/springboot/lesson05/lesson5c-operations.md` |
 | JSON APIとThymeleafの違いが曖昧 | `docs/curriculum/web-app(簡易版)/bridge-to-springboot.md` と `docs/curriculum/springboot/lesson06/lesson6.md` |
 
 バックエンド短縮コースでは、次の戻り先を追加します。

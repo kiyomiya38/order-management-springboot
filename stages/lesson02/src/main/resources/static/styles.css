@@ -1,0 +1,109 @@
+/* 画面全体で使う色変数 */
+:root {
+  /* 背景色 */
+  --bg: #f6f6f2;
+  /* パネル背景 */
+  --panel: #ffffff;
+  /* 基本文字色 */
+  --text: #202124;
+  /* 補助文字色 */
+  --muted: #6b7280;
+  /* 強調色（ボタン） */
+  --accent: #0ea5e9;
+  /* 枠線色 */
+  --border: #e5e7eb;
+}
+
+/* 幅計算にpadding/borderを含める */
+* { box-sizing: border-box; }
+
+/* ページ全体の基本スタイル */
+body {
+  /* 既定余白をリセット */
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* 中央寄せコンテナ */
+.container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ヘッダー余白 */
+header { margin-bottom: 16px; }
+
+/* 見出し余白 */
+h1 { margin: 0 0 4px; }
+
+/* サブタイトル色 */
+.subtitle {
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+/* カード風パネル */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* 見出し行の左右配置 */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ステータス表示バッジ */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 12px;
+}
+
+/* 出勤ボタン */
+button {
+  padding: 8px 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ホバーで視覚フィードバック */
+button:hover { opacity: 0.9; }
+
+/* 補助テキスト色 */
+.muted { color: var(--muted); }
+
+/* 通知メッセージ共通 */
+.alert {
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+/* エラー通知 */
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* 成功/情報通知 */
+.alert-info {
+  background: #e0f2fe;
+  color: #075985;
+  border: 1px solid #bae6fd;
+}

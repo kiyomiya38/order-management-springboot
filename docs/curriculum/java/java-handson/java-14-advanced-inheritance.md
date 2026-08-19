@@ -1,4 +1,4 @@
-﻿# Java-14 ハンズオン: 高度な継承（abstract / interface）
+# Java-14 ハンズオン: 高度な継承（abstract / interface）
 
 ## 1. この資料のゴール
 - 抽象クラス（`abstract class`）の用途を説明できる
@@ -191,6 +191,24 @@ flowchart TD
 - `getPaymentName()` と `calculateFee(...)` は決済方法ごとに違うので抽象メソッドにする
 - `Notifier` は通知方法を差し替えるための約束として使う
 
+### 通常の継承から何を追加するのか
+
+Java-13の通常の継承でも、親クラスへ共通処理を書き、子クラスでオーバーライドできます。この章で追加するのは、「未完成の親クラスを誤って使わせないこと」と「子クラスに必要なメソッドを強制すること」です。
+
+| 書き方 | 親クラスを`new`できるか | 子クラスの実装忘れを防げるか |
+| --- | --- | --- |
+| 通常の親クラス | できる | 通常メソッドのオーバーライドは任意 |
+| 抽象クラス | できない | 抽象メソッドの実装を強制できる |
+
+ハンズオンでは次の順序で確認します。
+
+1. `PaymentService`へ共通の決済手順を書く
+2. 手数料計算だけを抽象メソッドにして、子クラスへ実装させる
+3. `PaymentService`型でカード決済と銀行振込を同じ呼び方で実行する
+4. 決済処理とは別の役割である通知を`Notifier`として切り離す
+
+`PaymentService card = new CardPaymentService();`はJava-15で詳しく扱う「親型で子クラスの実体を受ける」書き方です。この章では、抽象クラスは直接`new`できないため完成した子クラスを代入する、と理解できれば十分です。
+
 ---
 
 ## 4. ハンズオン
@@ -261,6 +279,9 @@ class BankPaymentService extends PaymentService { // 銀行振込用の子クラ
 
 public class AdvancedInheritanceDemo { // 実行用クラス
     public static void main(String[] args) { // Javaアプリの開始地点
+        // PaymentServiceは抽象クラスなので直接newできない。実体には、処理が完成している子クラスをnewする
+        // 左辺を共通の親クラス型PaymentServiceにすると、カード決済と銀行振込を同じ決済サービスとして扱える
+        // この「親クラス型の変数で子クラスの実体を受ける」仕組みは、Java-15の多態性で詳しく学ぶ
         PaymentService card = new CardPaymentService(); // 親クラス型の変数にカード決済の実体を入れる
         PaymentService bank = new BankPaymentService(); // 親クラス型の変数に銀行振込の実体を入れる
 
@@ -316,6 +337,7 @@ java AdvancedInheritanceDemo
 - `PaymentService` は `Notifier` 型で受け取るので、通知方法の具体的なクラスを気にしない
 
 ```java
+// ===== Step 2 で追加・変更 =====
 interface Notifier { // 通知機能の約束を表すインターフェース
     void notifyResult(String message); // 通知したいメッセージを受け取るメソッド
 }
@@ -391,6 +413,7 @@ public class AdvancedInheritanceDemo { // 実行用クラス
         card.pay(5000, consoleNotifier); // カード決済を実行し、ConsoleNotifierで通知する
         System.out.println("---"); // 出力を見やすく区切る
         bank.pay(5000, simpleNotifier); // 銀行振込を実行し、SimpleNotifierで通知する
+// ===== Step 2 で追加・変更ここまで =====
     }
 }
 ```
@@ -430,13 +453,15 @@ java AdvancedInheritanceDemo
 ---
 
 ## 5. ミニ演習（10分）
+各レベルは前のレベルの完成コードを引き継いで実施します。レベル1はStep 2から開始してください。レベル3の実装削除はエラー確認後に戻します。
+
 ### レベル1（抽象クラス）
 1. `CashPaymentService` を追加する。
 2. `getPaymentName()` は `"現金"` を返す。
 3. `calculateFee(...)` は `0` を返す。
 4. `main(...)` から `cash.pay(5000, consoleNotifier);` を実行する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
 決済方法: 現金
 金額: 5000
@@ -445,17 +470,17 @@ java AdvancedInheritanceDemo
 ```
 
 ### レベル2（インターフェース）
-1. `ReceiptNotifier` を追加する。
+1. レベル1のコードに`ReceiptNotifier`を追加する。
 2. `notifyResult(...)` で `"領収書: "` から始まるメッセージを表示する。
 3. `Notifier notifier = new ReceiptNotifier();` に差し替えて実行する。
 
-期待出力例:
+確認対象の出力（抜粋）:
 ```text
 領収書: カード決済が完了しました。合計: 5050
 ```
 
 ### レベル3（抽象クラスの必要性を確認）
-1. `CashPaymentService` から `calculateFee(...)` を一時的に削除する。
+1. レベル2までの`CashPaymentService`から`calculateFee(...)`を一時的に削除する。
 2. `javac -encoding UTF-8 AdvancedInheritanceDemo.java` を実行し、コンパイルエラーを確認する。
 3. エラー確認後、`calculateFee(...)` を元に戻す。
 
@@ -474,4 +499,3 @@ java AdvancedInheritanceDemo
   -> 実装ミス防止のため付ける
 - 抽象クラスとインターフェースの違いが分からない
   -> 抽象クラスは「共通処理を持つ未完成の親クラス」。インターフェースは「このメソッドを持つという約束」
-

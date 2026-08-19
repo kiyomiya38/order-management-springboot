@@ -15,7 +15,7 @@
 
 ## 学習内容
 
-Lesson5BではPhase 2のユーザー管理と、Phase 3-1〜3-7の管理者勤怠管理を実施します。Phase 3-8以降のテストと運用確認はLesson5Cで実施します。
+Lesson5BではPhase 2のユーザー管理と、Phase 3-1〜3-7の管理者勤怠管理を実施します。動作確認と運用設定はLesson5Cで実施します。
 
 ### Phase 2: 管理者のユーザー管理
 新規作成ファイル（フルパス）:
@@ -27,11 +27,17 @@ Lesson5BではPhase 2のユーザー管理と、Phase 3-1〜3-7の管理者勤�
 - `~/order-management-springboot/stages/lesson05/src/main/resources/static/users.js`
 
 既存編集ファイル（フルパス）:
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
 - `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/web/HomeController.java`
 - `~/order-management-springboot/stages/lesson05/src/main/resources/templates/index.html`
 - `~/order-management-springboot/stages/lesson05/src/main/resources/static/styles.css`
 
 コードの意味（このフェーズで理解すること）:
+- `AttendanceRepository.java`:
+  - ユーザー削除前に、対象ユーザーの勤怠履歴が存在するか確認する
+- `AttendanceService.java`:
+  - ログイン中ユーザーの当日勤怠をトップ画面へ渡す
 - `UserService.java`:
   - ユーザー登録/更新/削除の業務ロジックをまとめる
   - パスワード暗号化、重複チェックなどを担当する
@@ -43,6 +49,173 @@ Lesson5BではPhase 2のユーザー管理と、Phase 3-1〜3-7の管理者勤�
   - 管理者向けのユーザー一覧・編集画面を表示する
 - `HomeController.java`, `index.html`:
   - ログイン中ユーザー情報を表示し、管理者向け導線を追加する
+
+#### Phase 2-0: Phase 2で使用するメソッドを先に追加
+
+Phase 2で作成する`UserService`と`HomeController`は、Lesson4までに存在しない次のメソッドを使用します。
+Phase 2完了チェックでコンパイルエラーにならないように、呼び出し側を作る前に追加します。
+
+- `AttendanceRepository#existsByUser_Id(...)`
+- `AttendanceService#getTodayAttendance(...)`
+
+##### 1. `AttendanceRepository.java`を編集
+
+編集ファイル:
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/repository/AttendanceRepository.java`
+
+ファイル内容を次のコードへ全文置き換えてください。
+
+```java
+// Repositoryインターフェースを置くパッケージ
+package com.shinesoft.attendance.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.shinesoft.attendance.domain.Attendance;
+
+// AttendanceテーブルのDB操作窓口
+public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
+    // userId + workDate で当日レコードを検索
+    // メソッド名からSQL相当の処理が自動生成される
+    Optional<Attendance> findByUser_IdAndWorkDate(Long userId, LocalDate workDate);
+
+    // 指定ユーザーの履歴を勤務日降順で取得（Lesson4で追加）
+    List<Attendance> findByUser_IdOrderByWorkDateDesc(Long userId);
+
+    // 指定ユーザーの勤怠履歴が1件以上あるか確認
+    // UserServiceで、勤怠履歴があるユーザーの削除を防ぐために使用する
+    boolean existsByUser_Id(Long userId);
+}
+```
+
+`existsByUser_Id`は、Spring Data JPAがメソッド名を解析して処理を自動生成します。
+このインターフェースを実装するクラスを自分で作成する必要はありません。
+
+##### 2. `AttendanceService.java`を編集
+
+編集ファイル:
+- `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
+
+ファイル内容を次のコードへ全文置き換えてください。
+
+```java
+// Serviceクラスを置くパッケージ
+package com.shinesoft.attendance.service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.shinesoft.attendance.domain.Attendance;
+import com.shinesoft.attendance.domain.AttendanceStatus;
+import com.shinesoft.attendance.domain.User;
+import com.shinesoft.attendance.exception.BusinessException;
+import com.shinesoft.attendance.repository.AttendanceRepository;
+import com.shinesoft.attendance.repository.UserRepository;
+
+// 業務ロジックを担当するクラス
+@Service
+public class AttendanceService {
+    // 操作ログ出力用
+    private static final Logger log = LoggerFactory.getLogger(AttendanceService.class);
+
+    // DBアクセス層（依存注入）
+    private final AttendanceRepository attendanceRepository;
+    private final UserRepository userRepository;
+
+    // コンストラクタインジェクション
+    public AttendanceService(AttendanceRepository attendanceRepository, UserRepository userRepository) {
+        this.attendanceRepository = attendanceRepository;
+        this.userRepository = userRepository;
+    }
+
+    // トップ画面用: 当日の勤怠を取得（無ければnull）
+    public Attendance getTodayAttendance(Long userId) {
+        return attendanceRepository.findByUser_IdAndWorkDate(userId, LocalDate.now())
+            .orElse(null);
+    }
+
+    // Lesson4までの既存処理: 当日の勤怠をOptionalで取得
+    public Optional<Attendance> findToday(Long userId) {
+        return attendanceRepository.findByUser_IdAndWorkDate(userId, LocalDate.now());
+    }
+
+    // 一覧画面用: 指定ユーザーの勤怠履歴を取得（降順）
+    public List<Attendance> listAttendances(Long userId) {
+        return attendanceRepository.findByUser_IdOrderByWorkDateDesc(userId);
+    }
+
+    // 出勤処理（Lesson3までと同じ）
+    public Attendance clockIn(Long userId) {
+        // 1. 今日の日付
+        LocalDate today = LocalDate.now();
+        // 2. 同日データがあれば二重出勤エラー
+        Optional<Attendance> existing = attendanceRepository.findByUser_IdAndWorkDate(userId, today);
+        if (existing.isPresent()) {
+            throw new BusinessException("すでに出勤済みです");
+        }
+
+        // 3. ユーザー取得（存在しない場合はシステムエラー）
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalStateException("研修ユーザーが存在しません"));
+
+        // 4. 新規勤怠を作成して出勤状態で保存
+        Attendance attendance = new Attendance();
+        attendance.setUser(user);
+        attendance.setWorkDate(today);
+        attendance.setStartTime(LocalDateTime.now());
+        attendance.setStatus(AttendanceStatus.WORKING);
+
+        // 5. 保存結果をログ出力
+        Attendance saved = attendanceRepository.save(attendance);
+        log.info("clock-in userId={} date={} time={}", userId, saved.getWorkDate(), saved.getStartTime());
+        return saved;
+    }
+
+    // 退勤処理（Lesson3までと同じ）
+    public Attendance clockOut(Long userId) {
+        // 1. 当日レコード取得（無ければ未出勤）
+        LocalDate today = LocalDate.now();
+        Attendance attendance = attendanceRepository.findByUser_IdAndWorkDate(userId, today)
+            .orElseThrow(() -> new BusinessException("退勤するには先に出勤してください"));
+
+        // 2. すでに退勤済みなら再退勤を禁止
+        if (attendance.getStatus() == AttendanceStatus.FINISHED) {
+            throw new BusinessException("すでに退勤済みです");
+        }
+        // 3. 出勤中以外の状態も退勤不可
+        if (attendance.getStatus() != AttendanceStatus.WORKING) {
+            throw new BusinessException("退勤するには先に出勤してください");
+        }
+
+        // 4. 退勤時刻と状態を更新
+        attendance.setEndTime(LocalDateTime.now());
+        attendance.setStatus(AttendanceStatus.FINISHED);
+
+        // 5. 保存してログ出力
+        Attendance saved = attendanceRepository.save(attendance);
+        log.info("clock-out userId={} date={} time={}", userId, saved.getWorkDate(), saved.getEndTime());
+        return saved;
+    }
+}
+```
+
+Lesson4までに作成した`findToday(...)`、`listAttendances(...)`、`clockIn(...)`、`clockOut(...)`を残したまま、
+トップ画面で使用する`getTodayAttendance(...)`を追加した状態です。
+
+理解ポイント:
+- `existsByUser_Id(...)`は、勤怠履歴の有無を`boolean`で返す
+- `getTodayAttendance(...)`は、当日勤怠が無い場合に`.orElse(null)`で`null`を返す
+- Phase 3-5の全文コードにも同じ2メソッドが含まれるため、全文置き換え後に追加し直す必要はない
 
 #### Phase 2-1: `UserService.java` を作る（ユーザー管理の業務ロジック）
 作成ファイル:
@@ -302,6 +475,17 @@ public class UserController {
 
 新規作成してください（既にある場合は全文置き換え）。
 
+入力検証用アノテーションの読み方:
+
+| アノテーション | このフォームで確認すること |
+| --- | --- |
+| `@NotBlank` | `null`、空文字、空白だけを不正にする |
+| `@Size(max = 30)` | 文字数を30文字以内にする |
+| `@Pattern(regexp = "ROLE_ADMIN|ROLE_USER")` | 値を`ROLE_ADMIN`または`ROLE_USER`に限定する |
+
+`@Pattern`の`regexp`には正規表現を書きます。この例の`|`は「または」という意味です。
+このLessonでは正規表現を自分で作ることは目的にせず、ロールを2種類へ限定する指定として使用します。
+
 ```java
 package com.shinesoft.attendance.web.form; // フォームクラス用パッケージ
 
@@ -350,6 +534,7 @@ public class UserForm {
 理解ポイント:
 - Formクラスは「画面入力の受け取り専用」
 - `@NotBlank` でControllerに来る前に基本バリデーションを実施できる
+- Controllerの`@Valid`がFormのアノテーションを実行し、結果を`BindingResult`で確認する
 - 新規と更新でパスワード必須条件が違うため、Controllerで追加判定する
 
 #### Phase 2-4: `users.html` を作る（ユーザー一覧画面）
@@ -673,6 +858,17 @@ function setupUserTableFilter() {
 
 全文を以下に置き換えてください。
 
+`Principal`は、Spring Securityが認証済みユーザーの情報を入れてControllerへ渡す型です。
+開発者が`new Principal()`する必要はありません。Controllerの仮引数へ書くと、Springがリクエストを処理するときに値を渡します。
+
+```java
+public String index(Model model, Principal principal) {
+    String loginName = principal.getName(); // 現在ログインしているユーザー名
+}
+```
+
+このLessonでは、以前の固定ID`1L`を使わず、`principal.getName()`からDBの`User`を検索して操作対象を決めます。
+
 ```java
 package com.shinesoft.attendance.web; // Web（Controller）層のパッケージ
 
@@ -688,6 +884,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes; // リダ
 
 import com.shinesoft.attendance.domain.Attendance; // 今日の勤怠データ
 import com.shinesoft.attendance.domain.AttendanceStatus; // 勤怠状態
+import com.shinesoft.attendance.domain.User; // ログイン中のアプリ利用者
 import com.shinesoft.attendance.exception.BusinessException; // 業務例外
 import com.shinesoft.attendance.service.AttendanceService; // 勤怠業務
 import com.shinesoft.attendance.service.UserService; // ユーザー業務
@@ -707,7 +904,7 @@ public class HomeController {
                         @ModelAttribute("error") String error,
                         @ModelAttribute("message") String message,
                         Principal principal) {
-        var user = userService.getByUsername(principal.getName()); // ログイン中ユーザーを取得
+        User user = userService.getByUsername(principal.getName()); // 戻り値の型を明示してログイン中ユーザーを取得
         Attendance today = service.getTodayAttendance(user.getId()); // 当日の勤怠データ
         AttendanceStatus status = today == null ? AttendanceStatus.NOT_STARTED : today.getStatus(); // 状態決定
 
@@ -727,7 +924,7 @@ public class HomeController {
 
     @PostMapping("/clock-in") // 出勤
     public String clockIn(RedirectAttributes redirectAttributes, Principal principal) {
-        var user = userService.getByUsername(principal.getName()); // ログイン中ユーザー
+        User user = userService.getByUsername(principal.getName()); // ログイン中ユーザー
         try {
             service.clockIn(user.getId()); // 出勤処理
             redirectAttributes.addFlashAttribute("message", "出勤しました");
@@ -739,7 +936,7 @@ public class HomeController {
 
     @PostMapping("/clock-out") // 退勤
     public String clockOut(RedirectAttributes redirectAttributes, Principal principal) {
-        var user = userService.getByUsername(principal.getName()); // ログイン中ユーザー
+        User user = userService.getByUsername(principal.getName()); // ログイン中ユーザー
         try {
             service.clockOut(user.getId()); // 退勤処理
             redirectAttributes.addFlashAttribute("message", "退勤しました");
@@ -750,19 +947,24 @@ public class HomeController {
     }
 
     private String statusClass(AttendanceStatus status) { // 状態に応じたCSSクラスを返す
-        return switch (status) {
-            case WORKING -> "status-badge status-working";
-            case FINISHED -> "status-badge status-finished";
-            default -> "status-badge";
-        };
+        // 短縮コースで学習済みのif文を使って状態ごとに返り値を切り替える
+        if (status == AttendanceStatus.WORKING) {
+            return "status-badge status-working";
+        }
+        if (status == AttendanceStatus.FINISHED) {
+            return "status-badge status-finished";
+        }
+        return "status-badge";
     }
 
     private String statusLabel(AttendanceStatus status) { // 状態に応じた表示ラベル
-        return switch (status) {
-            case WORKING -> "出勤中";
-            case FINISHED -> "退勤済み";
-            default -> "未出勤";
-        };
+        if (status == AttendanceStatus.WORKING) {
+            return "出勤中";
+        }
+        if (status == AttendanceStatus.FINISHED) {
+            return "退勤済み";
+        }
+        return "未出勤";
     }
 }
 ```
@@ -850,6 +1052,8 @@ public class HomeController {
 mvn compile
 ```
 
+- `BUILD SUCCESS`と表示される
+- `existsByUser_Id(...)`または`getTodayAttendance(...)`のエラーが出る場合は、Phase 2-0の追加内容を確認する
 - 管理者でユーザー一覧を表示できる
 - ユーザーを1件作成し、入力値が保存される
 - ユーザー作成を `UserController -> UserService -> UserRepository` の順で追跡できる
@@ -882,7 +1086,7 @@ mvn compile
 - `AttendanceRepository.java`:
   - 管理者画面で `user` を同時取得するクエリを提供する
 
-`AttendanceServiceTest.java`の発展版はLesson5Cで作成します。Lesson5Bでは管理機能の実装とコード追跡に集中します。
+Lesson5Bでは管理機能の実装とコード追跡に集中し、全体を通した動作確認はLesson5Cで行います。
 
 #### Phase 3-1: `AdminAttendanceController.java` を作る（管理者勤怠画面の入口）
 作成ファイル:
@@ -1185,6 +1389,7 @@ public class AdminAttendanceForm {
 - `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/service/AttendanceService.java`
 
 全文を以下に置き換えてください。
+Phase 2-0で追加した`getTodayAttendance(...)`を含む完成形です。全文置き換え後に、同じメソッドを重ねて追加する必要はありません。
 
 ```java
 package com.shinesoft.attendance.service; // Service層パッケージ
@@ -1289,9 +1494,9 @@ public class AttendanceService {
         Attendance attendance = attendanceRepository.findById(attendanceId)
             .orElseThrow(() -> new BusinessException("勤怠が存在しません"));
 
-        var user = getUser(userId);
+        User user = getUser(userId); // getUserの戻り値はUser型
 
-        var existing = attendanceRepository.findByUser_IdAndWorkDate(userId, workDate).orElse(null); // 同日重複チェック
+        Attendance existing = attendanceRepository.findByUser_IdAndWorkDate(userId, workDate).orElse(null); // 同日重複チェック
         if (existing != null && !existing.getId().equals(attendanceId)) {
             throw new BusinessException("同じ日付の勤怠が既に存在します");
         }
@@ -1315,32 +1520,27 @@ public class AttendanceService {
                                         AttendanceStatus status, // 整合性ルール
                                         LocalDateTime startTime,
                                         LocalDateTime endTime) {
-        switch (status) {
-            case NOT_STARTED -> {
-                if (startTime != null || endTime != null) {
-                    throw new BusinessException("未出勤の時刻は空にしてください");
-                }
+        // Java-06で学習したif / else ifを使い、状態ごとの入力ルールを確認する
+        if (status == AttendanceStatus.NOT_STARTED) {
+            if (startTime != null || endTime != null) {
+                throw new BusinessException("未出勤の時刻は空にしてください");
             }
-            case WORKING -> {
-                if (startTime == null || endTime != null) {
-                    throw new BusinessException("出勤中は開始時刻のみ必要です");
-                }
-                if (!startTime.toLocalDate().equals(workDate)) {
-                    throw new BusinessException("開始時刻の日付は勤務日と一致させてください");
-                }
+        } else if (status == AttendanceStatus.WORKING) {
+            if (startTime == null || endTime != null) {
+                throw new BusinessException("出勤中は開始時刻のみ必要です");
             }
-            case FINISHED -> {
-                if (startTime == null || endTime == null) {
-                    throw new BusinessException("退勤済みは開始・終了時刻が必要です");
-                }
-                if (!startTime.toLocalDate().equals(workDate)) {
-                    throw new BusinessException("開始時刻の日付は勤務日と一致させてください");
-                }
-                if (endTime.isBefore(startTime)) {
-                    throw new BusinessException("終了時刻は開始時刻以降にしてください");
-                }
+            if (!startTime.toLocalDate().equals(workDate)) {
+                throw new BusinessException("開始時刻の日付は勤務日と一致させてください");
             }
-            default -> {
+        } else if (status == AttendanceStatus.FINISHED) {
+            if (startTime == null || endTime == null) {
+                throw new BusinessException("退勤済みは開始・終了時刻が必要です");
+            }
+            if (!startTime.toLocalDate().equals(workDate)) {
+                throw new BusinessException("開始時刻の日付は勤務日と一致させてください");
+            }
+            if (endTime.isBefore(startTime)) {
+                throw new BusinessException("終了時刻は開始時刻以降にしてください");
             }
         }
     }
@@ -1349,6 +1549,7 @@ public class AttendanceService {
 
 補足（重要）:
 - `AttendanceRepository.java` は、下記の完成形に「全文置き換え」してください。
+- Phase 2-0で追加した`existsByUser_Id(...)`も、この完成形に含まれています。
 - 更新対象の取得は標準 `findById(...)`、画面表示でユーザーも必要な取得は `@EntityGraph` 付き `findWithUserById(...)` を使い分けます。
 
 編集ファイル:
@@ -1357,7 +1558,7 @@ public class AttendanceService {
 手順:
 1. `AttendanceRepository.java` を開く。
 2. ファイル内容を次の完成形に全文置き換える。
-3. 保存後に `mvn compile`（可能なら `mvn test` も）を実行してエラーがないことを確認する。
+3. 保存後に `mvn compile` を実行してエラーがないことを確認する。
 
 ```java
 // Repositoryインターフェースを置くパッケージ
@@ -1416,6 +1617,7 @@ import org.springframework.web.bind.annotation.RequestMapping; // 共通URL
 
 import com.shinesoft.attendance.service.AttendanceService; // 勤怠業務
 import com.shinesoft.attendance.service.UserService; // ユーザー業務
+import com.shinesoft.attendance.domain.User; // ログイン中ユーザー
 
 import java.security.Principal; // ログインユーザー名取得
 
@@ -1432,7 +1634,7 @@ public class AttendanceController {
 
     @GetMapping // GET /attendances
     public String list(Model model, Principal principal) {
-        var user = userService.getByUsername(principal.getName()); // ログイン中ユーザー
+        User user = userService.getByUsername(principal.getName()); // 戻り値の型を明示してログイン中ユーザーを取得
         model.addAttribute("attendances", service.listAttendances(user.getId())); // 本人の履歴
         model.addAttribute("username", user.getUsername()); // 画面表示用ユーザー名
         return "attendances"; // templates/attendances.html
@@ -1521,4 +1723,4 @@ mvn compile
 - ユーザー作成または勤怠更新をControllerからRepositoryまで追跡できる
 - 提供されたHTML/CSS/JavaScriptの説明コメントが保持されている
 
-完了後は [Lesson5C テスト・プロファイル・参照整合性](./lesson5c-testing-operations.md) へ進みます。
+完了後は [Lesson5C 動作確認・プロファイル・参照整合性](./lesson5c-operations.md) へ進みます。

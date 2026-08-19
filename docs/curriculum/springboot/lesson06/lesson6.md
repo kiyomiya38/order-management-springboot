@@ -16,7 +16,9 @@
 バックエンド短縮コースでは、`web-app(簡易版)` の前提を次へ読み替えます。
 
 - `docs/curriculum/springboot/prerequisites/http-thymeleaf-minimum.md` を完了している
-- `curl` で `GET` / `POST` を実行し、HTTPステータスとレスポンス本文を確認できる
+- `docs/curriculum/java/java-handson/java-19-stream-api.md`の「先に覚えるポイント」とStep 1・2を実施している
+- `docs/curriculum/java/java-handson/java-20a-record-enum.md`の「先に覚えるポイント」とStep 1・2を実施している
+- `curl`のオプションはLesson6の「動作確認」で初めて学ぶため、事前に暗記している必要はない
 - ブラウザの `fetch` 実装は前提にせず、`curl -> Controller -> DTO -> Service -> JSON` を追跡する
 
 ## 位置づけ
@@ -32,7 +34,7 @@ APIクライアントとして `curl` を使用し、JSONの入力、DTO、バ�
 | --- | --- |
 | `server.createContext("/api/...", ...)` | `@RestController` + `@GetMapping` / `@PostMapping` |
 | 手書きJSON文字列 | DTOを返して Jackson がJSONへ変換 |
-| `sendJson(status, body)` | `ResponseEntity` / Controllerの戻り値 |
+| `sendJson(status, body)` | `@ResponseStatus` + Controllerの戻り値 |
 | 個別のエラーJSON | `@RestControllerAdvice` で形式を統一 |
 | ブラウザの `fetch` | `curl` やAPIクライアントからHTTPリクエスト |
 
@@ -201,6 +203,41 @@ mkdir -p ~/order-management-springboot/stages/lesson06/src/main/java/com/shineso
 - `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/dto/UserResponse.java`
 - `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/dto/ErrorResponse.java`
 
+### DTOと`record`の読み方
+
+DTO（Data Transfer Object）は、Controllerの外から受け取る値、または外へ返す値だけを入れる専用の型です。
+DBへ保存するEntityをそのままJSONへ出さず、APIで公開してよい項目をDTOで決めます。
+
+通常のクラスでDTOを作ると、フィールド、コンストラクタ、getterなどが必要です。
+`record`を使うと、データの項目を1行に並べるだけで、それらをJavaが自動生成します。
+
+```java
+public record UserResponse(Long id, String username, String role) {
+}
+```
+
+この宣言から、主に次が自動生成されます。
+
+```java
+UserResponse response = new UserResponse(1L, "user1", "ROLE_USER");
+
+Long id = response.id();            // getId()ではなくid()
+String name = response.username();  // getUsername()ではなくusername()
+String role = response.role();      // getRole()ではなくrole()
+```
+
+このLessonの使い分け:
+
+| 型 | 役割 | 値の変更 |
+| --- | --- | --- |
+| `User` Entity | DBへ保存するアプリ内部のデータ | setterで変更する |
+| `UserCreateRequest` record | 作成リクエストJSONを受け取る | 作成後は変更しない |
+| `UserResponse` record | レスポンスJSONとして返す | 作成後は変更しない |
+| `ErrorResponse` record | エラーの`code`と`message`を返す | 作成後は変更しない |
+
+`@Pattern(regexp = "ROLE_ADMIN|ROLE_USER")`の`|`は「または」です。
+この指定により、JSONの`role`を`ROLE_ADMIN`または`ROLE_USER`だけに限定します。正規表現を新しく設計する演習ではありません。
+
 `UserCreateRequest.java`:
 ```java
 package com.shinesoft.attendance.web.api.dto;
@@ -261,6 +298,35 @@ public record ErrorResponse(
 ## 4. `UserApiController` を作成
 作成ファイル:
 - `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/UserApiController.java`
+
+### Streamとメソッド参照の復習
+
+ユーザー一覧をレスポンスDTO一覧へ変換するために、Stream APIを使用します。
+
+```java
+return userService.list()  // List<User>を取得
+        .stream()          // 1件ずつ処理する流れを開始
+        .map(this::toResponse) // 各UserをtoResponse(User)へ渡す
+        .toList();         // 変換後のUserResponseをListへまとめる
+```
+
+`this::toResponse`は、次のラムダ式を短く書いたメソッド参照です。
+
+```java
+user -> this.toResponse(user)
+```
+
+この処理は、学習済みの拡張for文なら次のように考えられます。
+
+```java
+List<UserResponse> responses = new ArrayList<>();
+for (User user : userService.list()) {
+    responses.add(toResponse(user));
+}
+return responses;
+```
+
+Lesson6では上のStream版を使用しますが、どちらも「全ユーザーを1件ずつDTOへ変換する」点は同じです。
 
 ```java
 package com.shinesoft.attendance.web.api;
@@ -348,6 +414,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.shinesoft.attendance.domain.User;
 import com.shinesoft.attendance.service.AttendanceService;
 import com.shinesoft.attendance.service.UserService;
 
@@ -365,14 +432,14 @@ public class AttendanceApiController {
 
     @PostMapping("/clock-in")
     public Map<String, String> clockIn(Principal principal) {
-        var user = userService.getByUsername(principal.getName());
+        User user = userService.getByUsername(principal.getName());
         attendanceService.clockIn(user.getId());
         return Map.of("message", "出勤しました");
     }
 
     @PostMapping("/clock-out")
     public Map<String, String> clockOut(Principal principal) {
-        var user = userService.getByUsername(principal.getName());
+        User user = userService.getByUsername(principal.getName());
         attendanceService.clockOut(user.getId());
         return Map.of("message", "退勤しました");
     }
@@ -389,6 +456,28 @@ public class AttendanceApiController {
 ## 6. `ApiExceptionHandler` を作成
 作成ファイル:
 - `~/order-management-springboot/stages/lesson06/src/main/java/com/shinesoft/attendance/web/api/advice/ApiExceptionHandler.java`
+
+`@RestControllerAdvice`を付けたクラスは、API Controllerで発生した例外をまとめて受け取ります。
+`@ExceptionHandler(例外型.class)`により、「どの例外をどのメソッドで処理するか」を対応付けます。
+
+| 発生した例外 | 処理メソッド | HTTPステータス | エラーコード |
+| --- | --- | ---: | --- |
+| `BusinessException` | `handleBusiness` | 409 | `BUSINESS_ERROR` |
+| `MethodArgumentNotValidException` | `handleValidation` | 400 | `VALIDATION_ERROR` |
+| `MethodArgumentTypeMismatchException` | `handleTypeMismatch` | 400 | `VALIDATION_ERROR` |
+| 上記以外の`Exception` | `handleUnknown` | 500 | `INTERNAL_SERVER_ERROR` |
+
+入力エラーから最初の1件を取り出す部分も、Stream APIを使用しています。
+
+```java
+String message = ex.getBindingResult() // 入力検証結果を取得
+        .getFieldErrors()               // 項目ごとのエラー一覧
+        .stream()                       // 1件ずつ処理する流れ
+        .findFirst()                    // 最初のエラーだけを選ぶ
+        .map(err -> err.getField() + ": " + err.getDefaultMessage())
+        //   └─ エラーを「項目名: メッセージ」という文字列へ変換
+        .orElse("入力値が不正です");    // エラー詳細が取れない場合の既定値
+```
 
 ```java
 package com.shinesoft.attendance.web.api.advice;
@@ -452,6 +541,30 @@ public class ApiExceptionHandler {
 3. `httpBasic` を有効化（curl検証用）
 4. APIの401/403を `ErrorResponse` と同じJSON形式で返す
 
+### この設定を読む順番
+
+Lesson5のSecurity設定へ、API専用の分岐を追加します。
+
+1. `apiMatcher`で、リクエストURLが`/api`または`/api/...`か判定する
+2. `authorizeHttpRequests`で、APIごとの必要権限を決める
+3. `httpBasic`を有効にし、`curl -u`で認証できるようにする
+4. APIの401・403だけは、HTMLではなく`writeApiError(...)`でJSONを返す
+5. 画面の未認証アクセスは、従来どおり`/login`へ移動する
+
+`RequestMatcher`は「このリクエストが条件に一致するか」を返す処理の共通型です。
+次のラムダ式では、`request`を1件受け取り、URLがAPIなら`true`を返します。
+
+```java
+RequestMatcher apiMatcher = request -> {
+    String apiPrefix = request.getContextPath() + "/api";
+    String requestUri = request.getRequestURI();
+    return apiPrefix.equals(requestUri) || requestUri.startsWith(apiPrefix + "/");
+};
+```
+
+`writeApiError(...) throws IOException`の`IOException`は、HTTPレスポンスへの書き込みで発生し得るchecked例外です。
+この補助メソッドを呼ぶSpring Security側へ伝播させ、書き込みに失敗した状態を成功扱いにしません。
+
 ```java
 package com.shinesoft.attendance.config;
 
@@ -474,6 +587,7 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shinesoft.attendance.domain.User;
 import com.shinesoft.attendance.repository.UserRepository;
 import com.shinesoft.attendance.web.api.dto.ErrorResponse;
 
@@ -486,6 +600,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    ObjectMapper objectMapper) throws Exception {
+        // APIへのリクエストかどうかを判定する処理をラムダ式で作る
         RequestMatcher apiMatcher = request -> {
             String apiPrefix = request.getContextPath() + "/api";
             String requestUri = request.getRequestURI();
@@ -494,8 +609,10 @@ public class SecurityConfig {
 
         http
             .authorizeHttpRequests(auth -> auth
+                // ログイン画面、CSS、学習用H2画面は未認証でも許可
                 .requestMatchers("/login", "/styles.css").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                // ユーザーAPIは管理者、勤怠APIはログイン済みユーザーに限定
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
                 .requestMatchers("/api/attendances/**").authenticated()
                 .requestMatchers("/users/**").hasRole("ADMIN")
@@ -511,16 +628,20 @@ public class SecurityConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
             )
+            // curlの-uオプションで送るBasic認証を有効化
             .httpBasic(Customizer.withDefaults())
             .exceptionHandling(exceptions -> exceptions
+                // APIの未認証はログイン画面へ移動せず、401 JSONを返す
                 .defaultAuthenticationEntryPointFor(
                     (request, response, exception) -> writeApiError(
                         response, objectMapper, HttpStatus.UNAUTHORIZED,
                         "UNAUTHORIZED", "認証が必要です"),
                     apiMatcher)
+                // API以外の未認証は従来どおりログイン画面へ移動する
                 .defaultAuthenticationEntryPointFor(
                     new LoginUrlAuthenticationEntryPoint("/login"),
                     new NegatedRequestMatcher(apiMatcher))
+                // APIの権限不足は403 JSONを返す
                 .defaultAccessDeniedHandlerFor(
                     (request, response, exception) -> writeApiError(
                         response, objectMapper, HttpStatus.FORBIDDEN,
@@ -537,16 +658,18 @@ public class SecurityConfig {
                                       HttpStatus status,
                                       String code,
                                       String message) throws IOException {
+        // HTTPステータスとJSONの文字コード・Content-Typeを設定する
         response.setStatus(status.value());
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        // ErrorResponseをJacksonでJSONへ変換し、レスポンス本文へ書き込む
         objectMapper.writeValue(response.getWriter(), new ErrorResponse(code, message));
     }
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
         return username -> {
-            var user = userRepository.findByUsername(username)
+            User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
                     "User not found: " + username));
             return org.springframework.security.core.userdetails.User
@@ -578,6 +701,58 @@ mvn clean spring-boot:run
 
 ## 9. 動作確認（必須）
 別ターミナルで実行:
+
+### `curl`コマンドの読み方
+
+`curl`は、ターミナルからHTTPリクエストを送るコマンドです。
+この教材ではGit Bashで実行します。
+
+| オプション | このLessonでの意味 |
+| --- | --- |
+| `-i` | レスポンス本文だけでなく、HTTPステータスとヘッダーも表示する |
+| `-u ユーザー名:パスワード` | Basic認証のユーザー名とパスワードを送る |
+| `-X POST` | HTTPメソッドをPOSTに指定する |
+| `-H "Content-Type: application/json"` | 送信する本文がJSONだと伝える |
+| `-d "..."` | リクエスト本文を送る。`-X`省略時はPOSTになる |
+| `\` | Git Bashで、1つの長いコマンドを次の行へ続ける |
+
+最初のコマンドを分解すると次の意味です。
+
+```bash
+curl -i http://localhost:8080/api/users
+#    │  └─ リクエスト先URL
+#    └─ HTTPステータスとヘッダーも表示
+```
+
+認証付きの例:
+
+```bash
+curl -i -u admin:admin123 http://localhost:8080/api/users
+#       └─ 研修用のBasic認証情報
+```
+
+JSONを送る例:
+
+```bash
+curl -i -u admin:admin123 \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"user2\",\"password\":\"password123\",\"role\":\"ROLE_USER\"}" \
+  http://localhost:8080/api/users
+```
+
+レスポンス先頭の`HTTP/1.1 200`などを確認します。
+
+| ステータス | 意味 |
+| ---: | --- |
+| 200 | 処理成功 |
+| 201 | 新しいデータの作成成功 |
+| 204 | 処理成功、返す本文なし |
+| 400 | JSONや入力値が不正 |
+| 401 | ログイン情報がない、または認証失敗 |
+| 403 | 認証済みだが権限不足 |
+| 409 | 業務ルール上、その操作を実行できない |
+
+`admin:admin123`などをコマンドへ直接書くのは研修用です。実運用のパスワードをシェル履歴へ残してはいけません。
 
 ```bash
 # 未認証でAPIへアクセス（失敗: 401 + JSON）
@@ -615,23 +790,9 @@ curl -i -u user1:password -X POST \
 
 ---
 
-## 10. API認可の自動テスト（必須）
+## 10. APIコード解読演習（必須）
 
-[lesson6-testing.md](./lesson6-testing.md) の `ApiSecurityTest` を作成し、次を実行します。
-
-```bash
-mvn test
-```
-
-合格条件:
-- Lesson5から引き継いだ12件とAPIテスト5件の合計17件が成功する
-- 401/403のJSON形式と、勤怠操作がログイン本人へ記録されることを自動確認できる
-
----
-
-## 11. APIコード解読演習（必須）
-
-### 11-1. コード確認ポイント
+### 10-1. コード確認ポイント
 
 1. `@Controller` と `@RestController` の戻り値の違い
 2. `@Valid` と DTO の責務（Controllerで検証）
@@ -639,7 +800,7 @@ mvn test
 4. 画面系ルートとAPI系ルートのセキュリティ差分
 5. 勤怠APIが `userId` を受け取らず、認証ユーザーから本人性を確定する理由
 
-### 11-2. 正常系を追跡する
+### 10-2. 正常系を追跡する
 
 「9. 動作確認」ですでに`user1`の出勤データを作成しています。起動中のアプリを`Ctrl + C`で停止し、再起動してインメモリH2を初期状態へ戻してください。
 
@@ -673,7 +834,7 @@ curl -i -u user1:password -X POST \
 - 起動ターミナルの`Clock in`ログ
 - H2コンソールの`attendances`レコード
 
-### 11-3. 例外系を追跡する
+### 10-3. 例外系を追跡する
 
 同じcurlをもう一度実行し、二重出勤を発生させます。
 
@@ -690,7 +851,7 @@ curl -i -u user1:password -X POST \
 
 ---
 
-## 12. つまずきポイント
+## 11. つまずきポイント
 - `@RequestBody` を付け忘れて `400` になる
   -> APIのJSON受け取りには `@RequestBody` が必須
 - CSRF で `403` になる
@@ -702,12 +863,11 @@ curl -i -u user1:password -X POST \
 
 ---
 
-## 13. 時間割目安
+## 12. 時間割目安
 - 0〜2: 15分
 - 3〜7: 70分
 - 8〜9: 20分
-- 10: 20分
-- 11: 30分
-- 12: 10分
+- 10: 30分
+- 11: 10分
 
 バックエンド短縮コースでも時間配分は同じです。ブラウザ側JavaScriptの実装は追加せず、`curl` のリクエストとレスポンスをコードへ対応づけます。

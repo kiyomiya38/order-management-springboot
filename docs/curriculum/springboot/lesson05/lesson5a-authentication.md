@@ -22,6 +22,7 @@
 - `~/order-management-springboot/stages/lesson05/src/main/resources/templates/login.html`
 
 既存編集ファイル（フルパス）:
+- `~/order-management-springboot/stages/lesson05/src/main/resources/application.yml`
 - `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/config/DataSeeder.java`
 - `~/order-management-springboot/stages/lesson05/src/main/java/com/shinesoft/attendance/domain/User.java`
 
@@ -35,8 +36,68 @@
   - ユーザー名/パスワードを送信するログイン画面
 - `DataSeeder.java`:
   - 起動時に学習用ユーザー（`admin`, `user1`）を初期投入する
+- `application.yml`:
+  - Lesson5Aで初期ユーザー投入を有効にし、学習用パスワードを設定する
 - `User.java`:
   - ユーザーの基本情報（名前・ロール・パスワード）を保持するドメイン
+
+#### Phase 1-0: `application.yml`を編集（初期ユーザーを作れる状態にする）
+
+編集ファイル:
+- `~/order-management-springboot/stages/lesson05/src/main/resources/application.yml`
+
+Lesson5Aではログイン確認に`admin`と`user1`が必要です。
+先に初期投入を有効化してから、後続の`DataSeeder`を作成します。
+
+次の全コードへ置き換えてください。
+
+```yaml
+spring:
+  application:
+    name: ${APP_NAME:attendance-management}
+  datasource:
+    # Lesson5A〜5Bでは、アプリ停止時に消える学習用H2 DBを使用する
+    url: jdbc:h2:mem:attendance;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  thymeleaf:
+    cache: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+
+app:
+  seed:
+    # DataSeederの@ConditionalOnPropertyと対応する
+    enabled: true
+    # 研修用の初期値。本番向けの分離はLesson5Cで行う
+    admin-password: ${APP_SEED_ADMIN_PASSWORD:admin123}
+    user-password: ${APP_SEED_USER_PASSWORD:password}
+```
+
+対応関係:
+
+| `application.yml` | `DataSeeder` |
+| --- | --- |
+| `app.seed.enabled: true` | `@ConditionalOnProperty(...)`の条件を満たす |
+| `app.seed.admin-password` | コンストラクタの`adminPassword`へ渡る |
+| `app.seed.user-password` | コンストラクタの`userPassword`へ渡る |
+
+この設定がない場合、`DataSeeder`は登録されず、ログイン用ユーザーも作成されません。
+Lesson5Cでは、この設定を`dev`と`prod`へ分け、研修用パスワードを本番設定から除外します。
 
 #### Phase 1-1: `SecurityConfig.java` を1行ずつ理解しながら作る
 作成ファイル:
@@ -46,6 +107,38 @@
 1. まずは「URLごとのアクセス制御」と「ログイン画面指定」だけを入れる
 2. 次に「DBのユーザーを使う設定（`UserDetailsService`）」を追加する
 3. 最後に「パスワード暗号化方式（`PasswordEncoder`）」を追加する
+
+##### コードを読む前のJava補足
+
+この設定では、Spring Securityが用意したインターフェース型を使用します。
+
+| 型 | このコードでの役割 | 実際の処理 |
+| --- | --- | --- |
+| `SecurityFilterChain` | URLへ適用するセキュリティ規則の共通型 | `http.build()`が作る |
+| `UserDetailsService` | ユーザー名から認証情報を探す処理の共通型 | `username -> {...}`で作る |
+| `PasswordEncoder` | パスワード変換・照合処理の共通型 | `BCryptPasswordEncoder`が実装する |
+
+`PasswordEncoder`型で`new BCryptPasswordEncoder()`を返せるのは、`BCryptPasswordEncoder`が`PasswordEncoder`の決めた操作を実装しているためです。
+利用側を共通型にすると、将来別方式へ変更しても、利用側のコードを変えにくくできます。
+
+```java
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+```
+
+設定内の`auth -> auth`や`form -> form`はラムダ式です。
+左側の`auth`や`form`で設定部品を1つ受け取り、右側でその部品へ規則を追加しています。
+
+```java
+.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/login").permitAll()
+    .anyRequest().authenticated()
+)
+```
+
+`throws Exception`は、`HttpSecurity`の設定確定時に発生する可能性があるchecked例外を、Springの起動処理へ伝える指定です。
+このメソッド内で`try-catch`するのではなく、設定に失敗したらアプリ起動自体を失敗させます。
 
 コード（コメント付き・完成形）:
 ```java
@@ -60,6 +153,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // BCry
 import org.springframework.security.crypto.password.PasswordEncoder; // パスワードエンコーダの共通型
 import org.springframework.security.web.SecurityFilterChain; // セキュリティの実行ルール本体
 
+import com.shinesoft.attendance.domain.User; // DBから取得するアプリ側のユーザー
 import com.shinesoft.attendance.repository.UserRepository; // DBからユーザーを取得するために使う
 
 @Configuration // このクラスを設定クラスとしてSpringに登録
@@ -93,7 +187,7 @@ public class SecurityConfig {
     @Bean // ユーザー認証で使うUserDetailsServiceを登録
     public UserDetailsService userDetailsService(UserRepository userRepository) {
         return username -> { // ログイン時に入力されたユーザー名を受け取る
-            var user = userRepository.findByUsername(username) // DBからユーザー検索
+            User user = userRepository.findByUsername(username) // DBからユーザー検索
                 .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
                     "User not found: " + username)); // 見つからない場合は認証失敗
             return org.springframework.security.core.userdetails.User // Spring Security用ユーザーへ変換
@@ -212,6 +306,21 @@ public class AuthController {
 
 全文を以下に置き換えてください。
 
+Lesson2では`CommandLineRunner`をラムダ式で作りました。Lesson5Aでは、クラス自身が`CommandLineRunner`を実装する形へ変更します。
+
+```java
+public class DataSeeder implements CommandLineRunner
+```
+
+- `implements CommandLineRunner`:
+  - このクラスが`CommandLineRunner`で決められた`run(...)`を実装するという宣言
+- `@Override`:
+  - インターフェースで決められた`run(...)`を実装していることを明示する
+- `String... args`:
+  - 0個以上の起動引数を配列のように受け取る書式。このコードでは使用しない
+- 実行タイミング:
+  - `@Component`によりSpringが`DataSeeder`を作り、アプリ起動後に`run(...)`を呼ぶ
+
 ```java
 package com.shinesoft.attendance.config; // 設定クラス群のパッケージ
 
@@ -271,7 +380,7 @@ public class DataSeeder implements CommandLineRunner {
 - 目的は「起動直後にログイン用ユーザーを必ず作る」こと
 - `passwordEncoder.encode(...)` で平文保存を回避する
 - ユーザー名ごとに存在確認し、片方だけ削除された場合も必要な初期ユーザーを復元する
-- 初期投入は `app.seed.enabled=true` の環境だけで動かし、パスワードは設定値から受け取る
+- Phase 1-0で設定した`app.seed.enabled=true`のときだけ動き、パスワードは設定値から受け取る
 
 #### Phase 1-5: `User.java` を編集（認証に必要な項目を持つ）
 編集ファイル:

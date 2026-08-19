@@ -39,6 +39,30 @@ javac -version
 - この資料では、継承を使った確認は行わない。
 - 他パッケージの子クラスから `protected` にアクセスする確認は、継承を学んだ後に扱う内容として分ける。
 
+### 変数やメソッドを使う側から考える
+
+アクセス修飾子は、宣言だけを見ても違いを実感しにくい機能です。この章では、`Account`を「定義する側」、`AccountInspector`を「使う側」に分けて確認します。
+
+```text
+Account
+  ├─ public       : AccountInspectorから使える
+  ├─ protected    : 同じmodelパッケージなので使える
+  ├─ 無指定       : 同じmodelパッケージなので使える
+  └─ private      : Account自身からだけ使える
+```
+
+重要なのは、`private`を付けた値が消えるわけではないことです。クラス外から直接触れなくなるだけで、`Account`が用意した`public`メソッドを通して安全に利用できます。
+
+```java
+// 直接アクセスは不可
+// System.out.println(account.secret);
+
+// Account自身が用意したpublicメソッド経由なら利用可能
+System.out.println(account.debugSecret());
+```
+
+この章ではまず「同じパッケージ」を確認します。別パッケージと継承を組み合わせた`protected`の確認は、Java-13で継承を学んだ後に行うと理解しやすくなります。
+
 ---
 
 ## 4. ハンズオン
@@ -54,9 +78,11 @@ javac -version
 
 ### Step 0: 作業フォルダを作る
 ```bash
-mkdir -p ~/order-management-springboot/practice/java/handson12a/src/model
+mkdir -p ~/order-management-springboot/practice/java/handson12a/src/model ~/order-management-springboot/practice/java/handson12a/out
 cd ~/order-management-springboot/practice/java/handson12a
 ```
+
+`mkdir -p`に2つのパスを指定すると、`handson12a`、`src/model`、`out`までの必要なディレクトリをこの時点でまとめて作成できます。各Javaファイルは、以降のStepで説明に従って作成します。
 
 ### Step 1: 同一パッケージでアクセス確認
 作成ファイル: `src/model/Account.java`
@@ -166,10 +192,28 @@ class InternalRule { // 無指定クラス: package-private
 }
 ```
 
-`src/model/AccountInspector.java` の `main` に次を追加:
+`src/model/AccountInspector.java`を次の内容に更新します。Step 1から追加した行をコメントで示しています。
 
 ```java
-System.out.println(InternalRule.value()); // 同一パッケージなので可
+package model;
+
+public class AccountInspector {
+    public static void main(String[] args) {
+        Account a = new Account();
+        System.out.println(a.id); // public
+        System.out.println(a.points); // 同一パッケージなので可
+        System.out.println(a.status); // 無指定なので可
+        System.out.println(a.publicInfo()); // public
+        System.out.println(a.protectedInfo()); // 同一パッケージなので可
+        System.out.println(a.packageInfo()); // 同一パッケージなので可
+        System.out.println(a.debugSecret()); // private情報は公開メソッド経由なら可
+        // System.out.println(a.secret); // private なので不可
+
+        // ===== Step 2で追加: 同じパッケージの無指定クラスを利用する =====
+        System.out.println(InternalRule.value()); // 同一パッケージなので可
+        // ===== Step 2で追加ここまで =====
+    }
+}
 ```
 
 実行:
@@ -197,10 +241,17 @@ internal-rule
 ---
 
 ## 5. ミニ演習（10分）
-### レベル1（基本）
-1. `Account` に `private int loginFailures` を追加し、公開メソッド経由でのみ更新できるようにする。
+各レベルは前のレベルで追加したコードを引き継いで実施します。レベル1はStep 2から開始してください。コンパイルエラー確認用のアクセス変更だけは確認後に戻します。
 
-期待出力例:
+### レベル1（基本）
+1. `Account`に`private int loginFailures = 0;`を追加する。
+2. `loginFailures`を1増やす`public void recordFailure()`を追加する。
+3. 現在の`loginFailures`を返す`public int getLoginFailures()`を追加する。
+4. `AccountInspector.main(...)`の既存処理より後で、`a.recordFailure();`を1回呼び出す。
+5. `System.out.println("loginFailures: " + a.getLoginFailures());`で値を表示する。
+6. `AccountInspector`から`a.loginFailures`を直接変更するコードは書かない。
+
+確認対象の出力（抜粋）:
 ```text
 loginFailures: 1
 ```
